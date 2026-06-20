@@ -271,10 +271,10 @@ async function main() {
   console.log(`Relayer status: ${health.status} (${health.version ?? health.relayerVersion ?? "unknown"})`);
 
   if (testWrite) {
-    console.log("Test write to namespace HoolClone:setup-test ...");
+    console.log("Test write to namespace hoolclone:setup-test ...");
     const result = await memwal.rememberAndWait(
       "[remembered] HoolClone MemWal setup smoke test",
-      "HoolClone:setup-test",
+      "hoolclone:setup-test",
       { timeoutMs: 90_000 },
     );
     console.log(`Test memory stored. blob_id=${result.blob_id}`);
