@@ -9,8 +9,8 @@ import {
   getDemoNamespace,
 } from "@/lib/db/demo-memories";
 import { seedDemoUser } from "@/lib/db/seed-demo-user";
-import { getEnv, isMemWalConfigured } from "@/lib/env";
-import { WalrusMemoryAdapter } from "@/lib/memory/walrus-memory-adapter";
+import { getEnv, getMemWalServerUrl, isMemWalConfigured } from "@/lib/env";
+import { fetchRelayerConfig } from "@/lib/memwal/contract-config";
 
 async function main() {
   if (getEnv().MEMORY_BACKEND !== "walrus") {
@@ -25,13 +25,20 @@ async function main() {
     process.exit(1);
   }
 
-  const health = await new WalrusMemoryAdapter().health();
-  if (!health.ok) {
-    console.error("Walrus health check failed:", health.message);
+  try {
+    const relayer = await fetchRelayerConfig(getMemWalServerUrl());
+    console.log(`Walrus relayer OK (${relayer.network})`);
+  } catch (error) {
+    console.error(
+      "Walrus health check failed:",
+      error instanceof Error ? error.message : error,
+    );
     process.exit(1);
   }
 
-  console.log("Walrus OK:", health.message);
+  const { WalrusMemoryAdapter } = await import(
+    "@/lib/memory/walrus-memory-adapter"
+  );
 
   const seeded = await seedDemoUser();
   const userId = seeded.userId;
@@ -88,4 +95,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-
