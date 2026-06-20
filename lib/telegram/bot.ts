@@ -1,0 +1,240 @@
+import { Bot } from "grammy";
+import { memoryCountToMaturity } from "@/lib/auth/maturity";
+import {
+  buildWalletAuthMessage,
+  createWalletChallenge,
+  normalizeWalletAddress,
+  verifyWalletChallengeToken,
+  walletAddressesMatch,
+} from "@/lib/auth/wallet-challenge";
+import { verifyWalletPersonalMessage } from "@/lib/auth/verify-wallet-signature";
+import { getClonePredictionForMatch } from "@/lib/db/clone-predictions";
+import { getUserPredictionForMatch } from "@/lib/db/predictions";
+import {
+  buildMeResponse,
+  countMemories,
+  findOrCreateUserByWallet,
+  getFanProfile,
+} from "@/lib/db/users";
+import { getAppUrl, getTelegramBotToken } from "@/lib/env";
+import {
+  clearPendingLink,
+  findUserByChatId,
+  getPendingLink,
+  linkChatToUser,
+  revokeChatLink,
+  setNotificationsEnabled,
+  setPendingLink,
+} from "@/lib/telegram/link-account";
+import { buildRoastMessage } from "@/lib/telegram/roast";
+
+let bot: Bot | null = null;
+
+export function getTelegramBot(): Bot | null {
+  const token = getTelegramBotToken();
+  if (!token) return null;
+
+  if (!bot) {
+    bot = new Bot(token);
+    registerHandlers(bot);
+  }
+
+  return bot;
+}
+
+function registerHandlers(instance: Bot): void {
+  instance.command("start", async (ctx) => {
+    const linked = await findUserByChatId(ctx.chat.id);
+    if (linked) {
+      const profile = await getFanProfile(linked.userId);
+      const count = await countMemories(linked.userId);
+      const maturity = memoryCountToMaturity(count);
+      await ctx.reply(
+        `HoolClone linked.\nMaturity: ${maturity.label}\nFavorite: ${profile?.favorite_team ?? "unknown"}\n\n/roast — get roasted\n/predict m071 — your picks\n/notifications on — post-loss DMs`,
+      );
+      return;
+    }
+
+    await ctx.reply(
+      "Welcome to HoolClone — your football hooligan clone.\n\n/link <wallet> then /verify <signature> to connect.\n/roast works after linking.",
+    );
+  });
+
+  instance.command("link", async (ctx) => {
+    const walletArg = ctx.match?.trim();
+    if (!walletArg) {
+      await ctx.reply("Usage: /link <your-sui-wallet-address>");
+      return;
+    }
+
+    try {
+      const walletAddress = normalizeWalletAddress(walletArg);
+      const user = await findOrCreateUserByWallet(walletAddress);
+      await linkChatToUser(user.id, ctx.chat.id);
+
+      const challenge = await createWalletChallenge(walletAddress);
+      await setPendingLink(ctx.chat.id, walletAddress, challenge.challengeToken);
+
+      await ctx.reply(
+        `Sign this message in your Sui wallet, then send:\n/verify <signature>\n\n${challenge.message}`,
+      );
+    } catch (error) {
+      await ctx.reply(
+        error instanceof Error ? error.message : "Failed to start wallet link.",
+      );
+    }
+  });
+
+  instance.command("verify", async (ctx) => {
+    const signature = ctx.match?.trim();
+    if (!signature) {
+      await ctx.reply("Usage: /verify <signature-from-wallet>");
+      return;
+    }
+
+    const pending = await getPendingLink(ctx.chat.id);
+    if (!pending) {
+      await ctx.reply("Run /link <wallet> first.");
+      return;
+    }
+
+    try {
+      const challenge = await verifyWalletChallengeToken(pending.challengeToken);
+      if (!walletAddressesMatch(challenge.walletAddress, pending.walletAddress)) {
+        await ctx.reply("Challenge wallet mismatch.");
+        return;
+      }
+
+      const message = buildWalletAuthMessage(
+        challenge.walletAddress,
+        challenge.nonce,
+      );
+
+      await verifyWalletPersonalMessage({
+        message,
+        signature,
+        walletAddress: challenge.walletAddress,
+      });
+
+      const user = await findOrCreateUserByWallet(challenge.walletAddress);
+      await linkChatToUser(user.id, ctx.chat.id);
+      await clearPendingLink(ctx.chat.id);
+
+      const me = await buildMeResponse(user.id);
+      await ctx.reply(
+        `Linked as ${me?.displayName ?? challenge.walletAddress.slice(0, 10)}…\nNotifications are OFF. Send /notifications on for post-loss roasts.`,
+      );
+    } catch (error) {
+      await ctx.reply(
+        error instanceof Error ? error.message : "Verification failed.",
+      );
+    }
+  });
+
+  instance.command("notifications", async (ctx) => {
+    const arg = ctx.match?.trim().toLowerCase();
+    if (arg !== "on" && arg !== "off") {
+      await ctx.reply("Usage: /notifications on | /notifications off");
+      return;
+    }
+
+    const linked = await findUserByChatId(ctx.chat.id);
+    if (!linked) {
+      await ctx.reply("Link your wallet first: /link <wallet>");
+      return;
+    }
+
+    const ok = await setNotificationsEnabled(ctx.chat.id, arg === "on");
+    if (!ok) {
+      await ctx.reply("Could not update notifications.");
+      return;
+    }
+
+    await ctx.reply(
+      arg === "on"
+        ? "Post-loss roasts enabled. Your clone will DM you when your team or pick loses."
+        : "Notifications off.",
+    );
+  });
+
+  instance.command("unlink", async (ctx) => {
+    const ok = await revokeChatLink(ctx.chat.id);
+    await ctx.reply(ok ? "Unlinked. /link to connect again." : "No active link.");
+  });
+
+  instance.command("roast", async (ctx) => {
+    const linked = await findUserByChatId(ctx.chat.id);
+    if (!linked) {
+      await ctx.reply("Link your wallet first: /link <wallet>");
+      return;
+    }
+
+    const roast = await buildRoastMessage({
+      userId: linked.userId,
+      publicSlug: linked.publicSlug,
+      appUrl: getAppUrl(),
+    });
+
+    await ctx.reply(roast.message, {
+      link_preview_options: { is_disabled: false },
+    });
+  });
+
+  instance.command("predict", async (ctx) => {
+    const matchId = ctx.match?.trim();
+    if (!matchId) {
+      await ctx.reply("Usage: /predict <matchId> (e.g. m071)");
+      return;
+    }
+
+    const linked = await findUserByChatId(ctx.chat.id);
+    if (!linked) {
+      await ctx.reply("Link your wallet first: /link <wallet>");
+      return;
+    }
+
+    const [human, clone] = await Promise.all([
+      getUserPredictionForMatch(linked.userId, matchId),
+      getClonePredictionForMatch(linked.userId, matchId),
+    ]);
+
+    if (!human) {
+      await ctx.reply(`No prediction for ${matchId} yet. Predict on the web app.`);
+      return;
+    }
+
+    const lines = [
+      `Your pick (${matchId}): ${human.winner} ${human.homeScore}-${human.awayScore}`,
+      human.reasoning ? `Reason: ${human.reasoning}` : "",
+    ];
+
+    if (clone) {
+      lines.push(
+        `Clone pick: ${clone.clone.winner} ${clone.clone.homeScore}-${clone.clone.awayScore}`,
+        clone.clone.reasoning ? `Clone: ${clone.clone.reasoning}` : "",
+      );
+      if (clone.clone.receipts?.length) {
+        lines.push("Receipts:");
+        for (const r of clone.clone.receipts.slice(0, 3)) {
+          lines.push(`• ${r.text}`);
+        }
+      }
+    }
+
+    if (linked.publicSlug) {
+      lines.push(`Profile: ${getAppUrl()}/u/${linked.publicSlug}`);
+    }
+
+    await ctx.reply(lines.filter(Boolean).join("\n"));
+  });
+}
+
+export async function handleTelegramUpdate(
+  update: Parameters<Bot["handleUpdate"]>[0],
+): Promise<void> {
+  const instance = getTelegramBot();
+  if (!instance) {
+    throw new Error("Telegram bot is not configured");
+  }
+  await instance.handleUpdate(update);
+}

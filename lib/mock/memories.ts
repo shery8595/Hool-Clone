@@ -1,0 +1,90 @@
+import type { MemoryReceipt } from "./types";
+
+export const memories: MemoryReceipt[] = [
+  {
+    id: "mem-1",
+    number: 17,
+    type: "remembered",
+    text: "You previously trusted late individual brilliance in close knockout matches.",
+    date: "2025-05-31",
+    publicVisible: true,
+    usedInPrediction: true,
+  },
+  {
+    id: "mem-2",
+    number: 22,
+    type: "remembered",
+    text: "You called Morocco 'chaos football' and backed them as underdogs.",
+    date: "2025-05-28",
+    publicVisible: true,
+    usedInPrediction: true,
+  },
+  {
+    id: "mem-3",
+    type: "stored",
+    text: "Immutable receipt · Verified",
+    date: "2025-05-28",
+    publicVisible: true,
+  },
+  {
+    id: "mem-4",
+    number: 8,
+    type: "used",
+    text: "You picked Argentina despite midfield worries in a prior semi-final.",
+    date: "2026-05-06",
+    matchContext: "Argentina vs Netherlands",
+    publicVisible: true,
+    usedInPrediction: true,
+    quote: "Star power wins when the stakes get emotional.",
+  },
+  {
+    id: "mem-5",
+    number: 12,
+    type: "used",
+    text: "You said star players matter more than possession stats in knockouts.",
+    date: "2026-05-02",
+    publicVisible: true,
+    usedInPrediction: true,
+  },
+  {
+    id: "mem-6",
+    number: 15,
+    type: "inferred",
+    text: "Your last 4 emotional matches favored the favorite over the underdog.",
+    date: "2026-04-28",
+    publicVisible: false,
+    usedInPrediction: true,
+  },
+  {
+    id: "mem-7",
+    type: "remembered",
+    text: "You picked Morocco as chaos football underdog.",
+    date: "2025-05-28",
+    publicVisible: true,
+  },
+  {
+    id: "mem-8",
+    type: "remembered",
+    text: "You trust late individual brilliance.",
+    date: "2025-06-02",
+    publicVisible: true,
+  },
+  {
+    id: "mem-9",
+    type: "remembered",
+    text: "You overrate star attackers in emotional matches.",
+    date: "2025-06-10",
+    publicVisible: true,
+  },
+  {
+    id: "mem-10",
+    type: "remembered",
+    text: "Favorite team: Portugal, because of late-game brilliance.",
+    date: "2026-06-01",
+    publicVisible: true,
+  },
+];
+
+export const cloneEvidenceMemories = memories.filter(
+  (m) => m.type === "remembered" && ["mem-7", "mem-8", "mem-9"].includes(m.id),
+);
