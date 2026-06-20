@@ -45,7 +45,8 @@ function distanceToScore(distance: number): number {
 export class WalrusMemoryAdapter implements MemoryAdapter {
   async health(): Promise<{ ok: boolean; message?: string }> {
     try {
-      const result = await getMemWalClient().health();
+      const memwal = await getMemWalClient();
+      const result = await memwal.health();
       const ok =
         result.status === "ok" ||
         result.status === "healthy" ||
@@ -72,7 +73,8 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
     const row = await insertMemoryRow(userId, memory, "pending");
 
     try {
-      const result = await getMemWalClient().rememberAndWait(
+      const memwal = await getMemWalClient();
+      const result = await memwal.rememberAndWait(
         formatWalrusPayload(memory),
         namespace,
         { timeoutMs: 90_000 },
@@ -97,7 +99,8 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
     const namespace = await getUserNamespace(userId);
 
     try {
-      const result = await getMemWalClient().recall({
+      const memwal = await getMemWalClient();
+      const result = await memwal.recall({
         query: queryText,
         limit: 6,
         namespace,
@@ -158,7 +161,8 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
     await updateMemoryStorage(memoryId, "pending", { walrusError: null });
 
     try {
-      const result = await getMemWalClient().rememberAndWait(
+      const memwal = await getMemWalClient();
+      const result = await memwal.rememberAndWait(
         formatWalrusPayload({
           type: row.memory_type,
           text: row.text,

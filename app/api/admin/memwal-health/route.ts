@@ -27,7 +27,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const health = await getMemWalClient().health();
+    const memwal = await getMemWalClient();
+    const health = await memwal.health();
     const ok =
       health.status === "ok" ||
       health.status === "healthy" ||
