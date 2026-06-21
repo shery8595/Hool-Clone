@@ -57,4 +57,29 @@ describe("primaryRecallSource", () => {
       "walrus",
     );
   });
+
+  it("returns postgres_fallback when only fallback memories exist", () => {
+    assert.equal(
+      primaryRecallSource([
+        {
+          id: "1",
+          text: "a",
+          score: 1,
+          rrfScore: 1,
+          finalScore: 1,
+          recallSource: "postgres_fallback",
+        },
+      ]),
+      "postgres_fallback",
+    );
+  });
+
+  it("returns none when recall source is missing", () => {
+    assert.equal(
+      primaryRecallSource([
+        { id: "1", text: "a", score: 1, rrfScore: 1, finalScore: 1 },
+      ]),
+      "none",
+    );
+  });
 });

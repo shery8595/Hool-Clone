@@ -385,7 +385,10 @@ curl -X POST https://your-app.vercel.app/api/admin/sync-matches \
 
 ## 11. Related docs
 
+- [Walrus Memory](./walrus-memory.md) — namespaces, write/recall, receipts
+- [Telegram Bot](./telegram-bot.md) — connect, commands, post-match loop
+- [Deployment](./deployment.md) — Vercel env vars and Mainnet
+- [API Reference](./api-reference.md) — all `/api` routes
 - [Architecture](./hoolclone-architecture.md) — full technical spec
-- [Product design](./product-design.md) — screens and UX
-- [Implementation plan](./implementation-plan.md) — build milestones
-- [README](../README.md) — setup and demo links
+- [Demo Guide](./demo-guide.md) — judge URLs and demo script
+- [Getting Started](./getting-started.md) — local setup

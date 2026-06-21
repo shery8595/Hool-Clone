@@ -49,7 +49,7 @@ export function LandingHero() {
                 Train Your Clone
               </ButtonLink>
               <ButtonLink
-                href="#how-it-works"
+                href="/docs/how-it-works"
                 variant="accent"
                 size="lg"
                 className="gap-2"

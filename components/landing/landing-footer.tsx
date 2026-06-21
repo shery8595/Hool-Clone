@@ -94,10 +94,18 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <p className="mt-8 border-t border-white/10 pt-6 text-center text-[11px] font-medium text-white/45 lg:text-left">
-          © {new Date().getFullYear()} HoolClone — AI fan clones with Walrus-backed
-          memory.
-        </p>
+        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-[11px] font-medium text-white/45 sm:flex-row">
+          <p>
+            © {new Date().getFullYear()} HoolClone — AI fan clones with Walrus-backed
+            memory.
+          </p>
+          <Link
+            href="/docs"
+            className="text-white/55 transition-colors hover:text-white/80"
+          >
+            Documentation
+          </Link>
+        </div>
       </div>
     </footer>
   );

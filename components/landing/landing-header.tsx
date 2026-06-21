@@ -5,17 +5,16 @@ import Link from "next/link";
 import { ConnectButton } from "@mysten/dapp-kit";
 import {
   ArrowRight,
+  BookOpen,
   Database,
-  ExternalLink,
   Menu,
-  Play,
   Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { landingNavItems, DEMO_EVOLUTION_URL } from "@/lib/landing/content";
+import { landingNavItems, JUDGES_DOC_URL } from "@/lib/landing/content";
 import { suiWalletFilter } from "@/lib/wallet/config";
 import { cn } from "@/lib/utils";
 
@@ -129,12 +128,12 @@ export function LandingHeader() {
                   </Link>
                 ))}
                 <Link
-                  href={DEMO_EVOLUTION_URL}
+                  href={JUDGES_DOC_URL}
                   onClick={() => setMenuOpen(false)}
                   className="mt-1 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-hoolclone-green-800 transition-colors hover:bg-hoolclone-green-100"
                 >
-                  <Play className="h-3.5 w-3.5" />
-                  Judge evolution demo
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Judge guide
                 </Link>
               </nav>
               <div className="mt-auto space-y-2 border-t border-border/60 p-4">
@@ -182,13 +181,13 @@ export function LandingHeader() {
           <WalrusChip className="hidden md:flex" />
 
           <ButtonLink
-            href={DEMO_EVOLUTION_URL}
+            href={JUDGES_DOC_URL}
             variant="ghost"
             size="sm"
             className="hidden gap-1.5 text-hoolclone-green-800 hover:bg-hoolclone-green-100 hover:text-hoolclone-green-900 lg:inline-flex"
           >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Judge demo
+            <BookOpen className="h-3.5 w-3.5" />
+            Judge guide
           </ButtonLink>
 
           <div className="hidden h-6 w-px bg-border/80 sm:block" aria-hidden />

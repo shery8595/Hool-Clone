@@ -1,9 +1,6 @@
 import type { BiasAxis } from "@/lib/mock/types";
 
-export const landingNavItems = [
-  { href: "#how-it-works", label: "How It Works" },
-  { href: "#walrus-memory", label: "Walrus Memory" },
-] as const;
+export const landingNavItems = [{ href: "/docs", label: "Docs" }] as const;
 
 export const landingFeatures = [
   {
@@ -181,5 +178,6 @@ export const DEMO_NAMESPACE = "hoolclone:demo:hoolclone-demo";
 export const PRODUCTION_APP_URL = "https://walrus-mu.vercel.app";
 
 export const DEMO_EVOLUTION_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/evolution`;
+export const JUDGES_DOC_URL = "/docs/judges";
 export const DEMO_PROFILE_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo`;
 export const DEMO_CLASH_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/clash?opponent=hoolclone-rival`;

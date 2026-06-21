@@ -9,7 +9,7 @@ import {
 } from "@/lib/llm/schemas/memory-extraction";
 import type { DriverChip } from "@/lib/mock/types";
 
-function fallbackExtraction(input: {
+export function fallbackExtraction(input: {
   question: string;
   answer: string;
   driver?: DriverChip;
