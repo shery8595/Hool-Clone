@@ -60,7 +60,7 @@ async function main() {
 
     console.log(`Retrying: ${seed.text.slice(0, 60)}…`);
 
-    let result = { status: "failed" as string, id: undefined as string | undefined };
+    let result: { id?: string; status: string } = { status: "failed" };
     for (let attempt = 1; attempt <= 3; attempt++) {
       result = await adapter.remember(user.id, {
         type: seed.type,
