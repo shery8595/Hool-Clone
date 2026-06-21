@@ -5,6 +5,8 @@ import { syncMatchResultsFromApi } from "@/lib/match-data/sync-match-results";
 import { processLiveGoalNotifications } from "@/lib/telegram/live-goal-notify";
 import { processPostMatchNotifications } from "@/lib/telegram/post-match-notify";
 
+/** Production: triggered every minute by cron-job.org with Authorization: Bearer CRON_SECRET */
+
 function isAuthorized(request: Request): boolean {
   const secret = getCronSecret();
   if (!secret) {

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-/** Refetch cached data on an interval (e.g. live match scores without Vercel cron). */
+/** Refetch cached data on an interval (e.g. live match scores in the browser). */
 export function useIntervalRefresh(
   refresh: () => void | Promise<void>,
   intervalMs: number,

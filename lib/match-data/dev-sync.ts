@@ -5,7 +5,7 @@ const DEV_SYNC_INTERVAL_MS = 60_000;
 let lastDevSyncAt = 0;
 let devSyncInFlight: Promise<void> | null = null;
 
-/** Pull live scores from worldcup26.ir in development (replaces Vercel cron locally). */
+/** Pull live scores from worldcup26.ir in development (replaces production cron-job locally). */
 export async function maybeSyncMatchResultsInDev(): Promise<void> {
   if (process.env.NODE_ENV !== "development") return;
 

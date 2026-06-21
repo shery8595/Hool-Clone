@@ -14,6 +14,10 @@ High-level explanation of what HoolClone is, why it fits the Walrus Memory World
 
 Operational guide: training, Walrus memory read/write, recall algorithms (RRF + rerank), match sync, Telegram live/post-match loops, and cron pipeline. **Start here** if you want to understand runtime behavior.
 
+### [Production Cron (cron-job.org)](./cron-job.md)
+
+How to schedule `/api/cron/check-resolutions` on Vercel Hobby using cron-job.org (UI + API + `npm run cron:setup`).
+
 ### [Architecture](./hoolclone-architecture.md)
 
 Full technical architecture covering system modules, memory architecture, data model, APIs, agent behavior, security, deployment, observability, testing, and demo strategy.

@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cron-job.org local payloads (contain secrets)
+cron-job/job.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

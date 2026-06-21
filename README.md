@@ -84,7 +84,7 @@ On the demo profile, expand any memory card to see **Verified on Walrus Mainnet*
 | Walrus status in UI | Sidebar, top bar (`Walrus: Verified`), predict panel |
 | Per-receipt recall source | `Walrus: Verified recall` vs `Postgres fallback recall` on receipt cards |
 | Mainnet verification | `npm run verify:mainnet` — see [Mainnet verification](#mainnet-verification) |
-| Closed-loop cron + Telegram | `GET /api/cron/check-resolutions` (every 1 min) syncs scores, live goals, post-match memories |
+| Closed-loop cron + Telegram | `GET /api/cron/check-resolutions` (cron-job.org, every 1 min) syncs scores, live goals, post-match memories |
 
 ---
 
@@ -151,7 +151,7 @@ GET /api/telegram/status  →  { linked, notificationsEnabled }
 
 ### Post-match behavioral loop
 
-Vercel Cron (`/api/cron/check-resolutions`, every 1 min) syncs live scores, sends goal alerts, and checks recently finalized matches for subscribers with notifications enabled:
+[cron-job.org](https://cron-job.org) hits `GET /api/cron/check-resolutions` every minute (Vercel Hobby cannot run sub-daily platform crons). Setup: [`docs/cron-job.md`](docs/cron-job.md). The job syncs live scores, sends goal alerts, and checks recently finalized matches for subscribers with notifications enabled:
 
 | Outcome | Telegram DM | Walrus write |
 |---------|-------------|--------------|
@@ -212,6 +212,7 @@ npm run verify:mainnet          # must pass before recording demo video
 | `npm run db:seed-demo-walrus` | Demo user with real Walrus Mainnet blobs |
 | `npm run verify:mainnet` | Mainnet readiness checklist |
 | `npm run memwal:setup` | One-time MemWal account setup |
+| `npm run cron:setup` | Create check-resolutions job on cron-job.org (needs API key + env) |
 
 ---
 
@@ -228,5 +229,6 @@ See [`docs/hoolclone-architecture.md`](docs/hoolclone-architecture.md) for the f
 - [x] Public profile with verifiable memory receipts
 - [x] Clone behavior driven by `recall()` from Walrus namespaces
 - [x] Telegram bot with post-match congrats/roasts + Walrus memory loop
-- [ ] Deploy to production + set Telegram webhook
+- [ ] Deploy to production + set `CRON_SECRET` + [cron-job.org scheduler](docs/cron-job.md)
+- [ ] Set Telegram webhook
 - [ ] Record demo video (≤3 min)
