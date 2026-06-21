@@ -3,7 +3,7 @@ import { processPostMatchResolutionMemories } from "@/lib/clone/post-match-resol
 import { getCronSecret } from "@/lib/env";
 import {
   syncMatchResultsFromApi,
-  type LiveGoalEvent,
+  type MatchSyncResult,
 } from "@/lib/match-data/sync-match-results";
 import { processLiveGoalNotifications } from "@/lib/telegram/live-goal-notify";
 import { processPostMatchNotifications } from "@/lib/telegram/post-match-notify";
@@ -27,7 +27,7 @@ function errorMessage(error: unknown): string {
 }
 
 async function runCron(): Promise<NextResponse> {
-  let syncResult: Awaited<ReturnType<typeof syncMatchResultsFromApi>>;
+  let syncResult: MatchSyncResult;
   try {
     syncResult = await syncMatchResultsFromApi();
   } catch (error) {
@@ -38,7 +38,7 @@ async function runCron(): Promise<NextResponse> {
       fixturesFetched: 0,
       matched: 0,
       updated: 0,
-      liveGoalEvents: [] as LiveGoalEvent[],
+      liveGoalEvents: [],
       unmatched: [],
       syncError: message,
     };

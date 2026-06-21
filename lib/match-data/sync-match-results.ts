@@ -154,14 +154,17 @@ async function recordLiveGoalEvent(input: {
   return rows[0]?.id ?? null;
 }
 
-export async function syncMatchResultsFromApi(): Promise<{
+export type MatchSyncResult = {
   skipped: boolean;
   fixturesFetched: number;
   matched: number;
   updated: number;
   liveGoalEvents: LiveGoalEvent[];
   unmatched: string[];
-}> {
+  syncError?: string;
+};
+
+export async function syncMatchResultsFromApi(): Promise<MatchSyncResult> {
   if (!isFootballApiConfigured()) {
     return {
       skipped: true,
