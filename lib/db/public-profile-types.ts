@@ -1,6 +1,7 @@
 import type { DashboardContradiction } from "@/lib/clone/contradiction-hunter";
 import type { MemoryTimeMachine } from "@/lib/clone/memory-time-machine-types";
 import type { PredictionHistoryItem } from "@/lib/db/predictions";
+import type { CloneAnalyticsBundle } from "@/lib/stats/clone-analytics";
 import type {
   BiasAxis,
   CloneMaturity,
@@ -33,4 +34,5 @@ export type PublicProfileData = {
   contradictionCount: number;
   memoryTimeMachine: MemoryTimeMachine | null;
   debateHighlights: DebateHighlight[];
+  cloneAnalytics: CloneAnalyticsBundle;
 };

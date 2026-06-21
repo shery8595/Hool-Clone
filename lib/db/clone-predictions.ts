@@ -12,6 +12,10 @@ import type {
 export type StoredCloneReceipt = CloneMemoryReceipt & {
   date?: string;
   recallSource?: RecallSource;
+  memorySource?: string;
+  provenanceLabel?: string;
+  walrusBlobId?: string;
+  storageStatus?: "stored" | "pending" | "failed";
 };
 
 type DbCloneRow = {
@@ -42,6 +46,10 @@ function receiptsToUi(receipts: StoredCloneReceipt[]): MemoryReceipt[] {
     publicVisible: true,
     usedInPrediction: true,
     recallSource: r.recallSource,
+    memorySource: r.memorySource,
+    provenanceLabel: r.provenanceLabel,
+    walrusBlobId: r.walrusBlobId,
+    storageStatus: r.storageStatus,
   }));
 }
 

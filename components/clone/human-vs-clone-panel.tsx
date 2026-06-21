@@ -1,6 +1,7 @@
 import { CheckCircle2, GitCompare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ReceiptsUsedPanel } from "@/components/memory/receipts-used-panel";
 import type { Prediction } from "@/lib/mock/types";
 import type { Match } from "@/lib/mock/types";
 
@@ -67,6 +68,10 @@ export function HumanVsClonePanel({
             <GitCompare className="h-4 w-4 shrink-0" />
             Your clone disagrees — teach it below so future picks improve
           </div>
+        )}
+
+        {prediction.clone?.receipts && prediction.clone.receipts.length > 0 && (
+          <ReceiptsUsedPanel receipts={prediction.clone.receipts} />
         )}
       </CardContent>
     </Card>

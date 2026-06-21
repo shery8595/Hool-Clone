@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
+import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
+import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
 import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
 import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
 import { DebateHighlightsCard } from "@/components/profile/debate-highlights-card";
@@ -9,8 +11,10 @@ import { StatCardRow } from "@/components/profile/stat-card-row";
 import { PublicPredictionHistory } from "@/components/profile/public-prediction-history";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
 import { EvolutionTimeline } from "@/components/profile/evolution-timeline";
+import { SeasonReportCard } from "@/components/profile/season-report-card";
+import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { PredictionComparisonTable } from "@/components/profile/prediction-comparison-table";
-import { MemoryReceiptCard } from "@/components/memory/memory-receipt-card";
+import { PublicReceiptGrid } from "@/components/memory/public-receipt-grid";
 import { HOOLCLONE_LOGO_SRC } from "@/components/brand/hoolclone-logo";
 import { getPublicProfileBySlug } from "@/lib/db/public-profile";
 import type { CloneMaturity } from "@/lib/mock/types";
@@ -45,6 +49,13 @@ export default async function PublicProfilePage({
     notFound();
   }
 
+  const clashOpponent =
+    slug === "hoolclone-demo"
+      ? "hoolclone-rival"
+      : slug === "hoolclone-rival"
+        ? "hoolclone-demo"
+        : "hoolclone-demo";
+
   const hasBehavioralContradiction = profile.contradictionCount > 0;
   const hasCloneDisagreement = profile.comparisons.some(
     (c) => c.clonePrediction !== "—" && !c.agreed,
@@ -68,6 +79,8 @@ export default async function PublicProfilePage({
         joinedAt={profile.joinedAt}
         maturityLabel={profile.maturityLabel as CloneMaturity}
         level={profile.level}
+        slug={profile.slug}
+        clashOpponent={clashOpponent}
       />
 
       <StatCardRow
@@ -84,6 +97,18 @@ export default async function PublicProfilePage({
         contradiction={profile.topContradiction}
         predictionsCount={profile.predictionsCount}
       />
+
+      <ContradictionScoreCard
+        contradictions={profile.cloneAnalytics.temporalContradictions}
+        consistencyScore={profile.cloneAnalytics.consistencyScore}
+        totalCount={
+          profile.cloneAnalytics.temporalContradictions.length +
+          profile.contradictionCount
+        }
+        roastLine={profile.topContradiction?.text}
+      />
+
+      <CloneDriftChart data={profile.cloneAnalytics.driftSeries} />
 
       {profile.memoryTimeMachine && (
         <>
@@ -124,11 +149,7 @@ export default async function PublicProfilePage({
             page will appear here.
           </p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {allReceipts.map((receipt) => (
-              <MemoryReceiptCard key={receipt.id} receipt={receipt} compact />
-            ))}
-          </div>
+          <PublicReceiptGrid receipts={allReceipts} />
         )}
       </section>
 
@@ -139,6 +160,15 @@ export default async function PublicProfilePage({
           No prediction comparisons yet.
         </p>
       )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AccuracyLeaderboardCard
+          data={profile.cloneAnalytics.accuracyLeaderboard}
+        />
+        <div className="flex items-center justify-center">
+          <SeasonReportCard report={profile.cloneAnalytics.seasonReport} />
+        </div>
+      </div>
 
       <footer className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
         {/* eslint-disable-next-line @next/next/no-img-element */}

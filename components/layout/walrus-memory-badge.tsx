@@ -7,7 +7,7 @@ import { fetchMemoryHealth } from "@/lib/api/client";
 import { useUser } from "@/components/providers/user-provider";
 
 type WalrusMemoryBadgeProps = {
-  variant?: "sidebar" | "inline";
+  variant?: "sidebar" | "inline" | "compact";
   memoriesUsed?: number;
   className?: string;
 };
@@ -36,15 +36,45 @@ export function WalrusMemoryBadge({
   }, []);
 
   const isSidebar = variant === "sidebar";
+  const isCompact = variant === "compact";
   const isLocal = backend === "Local";
+  const walrusVerified = !isLocal && configured && healthy;
   const statusLabel = isLocal
     ? "Local dev store"
     : !configured
       ? "Not configured"
-      : healthy
-        ? "Connected"
+      : walrusVerified
+        ? "Verified"
         : "Degraded";
   const count = memoriesUsed ?? me?.profile.memoriesCount;
+
+  if (isCompact) {
+    const label = isLocal ? "Local" : walrusVerified ? "Walrus: Verified" : "Walrus";
+    return (
+      <div
+        className={cn(
+          "hidden items-center gap-2 rounded-full border border-hoolclone-green-200/80 bg-white/80 px-2.5 py-1 shadow-sm md:flex",
+          className,
+        )}
+        title={`${label} · ${statusLabel}${count !== undefined ? ` · ${count} memories` : ""}`}
+      >
+        <span
+          className={cn(
+            "h-1.5 w-1.5 shrink-0 rounded-full",
+            isLocal || walrusVerified ? "bg-emerald-500" : "bg-amber-500",
+          )}
+        />
+        <span className="text-[11px] font-semibold text-hoolclone-green-900">
+          {label}
+        </span>
+        {count !== undefined && (
+          <span className="text-[11px] tabular-nums text-muted-foreground">
+            · {count}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -70,13 +100,13 @@ export function WalrusMemoryBadge({
               isSidebar ? "text-white" : "text-hoolclone-green-900",
             )}
           >
-            {isLocal ? "Local Memory" : "Walrus Memory"}
+            {isLocal ? "Local Memory" : walrusVerified ? "Walrus: Verified" : "Walrus Memory"}
           </p>
           <div className="flex items-center gap-1.5">
             <span
               className={cn(
                 "h-2 w-2 rounded-full",
-                isLocal || (configured && healthy)
+                isLocal || walrusVerified
                   ? "bg-emerald-400"
                   : "bg-amber-400",
               )}

@@ -1,13 +1,28 @@
 import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
 
-const SUI_SIGN_FEATURES = ["sui:signTransaction", "sui:signTransactionBlock"] as const;
+/**
+ * Shown first in the connect modal when installed.
+ * Includes native Sui wallets, Phantom (Sui), and popular browser extensions.
+ */
+export const PREFERRED_SUI_WALLETS = [
+  "Slush",
+  "Sui Wallet",
+  "Phantom",
+  "Suiet",
+  "Nightly",
+  "Martian",
+  "Surf",
+  "OKX Wallet",
+  "Ethos",
+  "WalletConnect",
+];
 
-/** Sui-native wallets first; exclude Phantom (injects on all pages and spams console). */
-export const PREFERRED_SUI_WALLETS = ["Slush", "Sui Wallet"];
+const REQUIRED_AUTH_FEATURES = ["sui:signPersonalMessage"] as const;
 
+/**
+ * HoolClone signs a personal message on connect — wallet must expose this feature.
+ * Does not exclude Phantom or any other wallet that supports Sui auth.
+ */
 export function suiWalletFilter(wallet: WalletWithRequiredFeatures): boolean {
-  const name = wallet.name.toLowerCase();
-  if (name.includes("phantom")) return false;
-
-  return SUI_SIGN_FEATURES.some((feature) => wallet.features[feature]);
+  return REQUIRED_AUTH_FEATURES.some((feature) => feature in wallet.features);
 }

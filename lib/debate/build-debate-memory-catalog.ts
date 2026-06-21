@@ -1,4 +1,4 @@
-import { storedMemoryToReceipt } from "@/lib/api/memory-mapper";
+import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import { recallMemoriesForMatch } from "@/lib/clone/recall-memories";
 import type { DbFanProfile } from "@/lib/db/users";
 import { getMemoryAdapter } from "@/lib/memory";
@@ -61,7 +61,7 @@ export async function buildDebateMemoryCatalog(
     (a, b) =>
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   );
-  const receipts = chronological.map(storedMemoryToReceipt);
+  const receipts = storedMemoriesToReceipts(chronological);
   const byId = new Map(receipts.map((receipt) => [receipt.id, receipt]));
   const byText = new Map(
     receipts.map((receipt) => [receipt.text.trim().toLowerCase(), receipt]),

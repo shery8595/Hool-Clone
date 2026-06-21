@@ -5,8 +5,15 @@ import { listUserPredictions } from "@/lib/db/predictions";
 import { getOnboardingDrivers } from "@/lib/onboarding/service";
 import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import { extractMemoryDrivers } from "@/lib/stats/user-analytics";
-import { getMemoryAdapter } from "@/lib/memory";
 import { getLlmAdapter } from "@/lib/llm/gemini-adapter";
+import type { Match } from "@/lib/mock/types";
+import {
+  finalizeTelegramMessage,
+  recallMemoriesForTelegramMessage,
+  type TelegramMessageAssembly,
+} from "@/lib/telegram/assemble-telegram-message";
+import { recallMemoriesForTelegram } from "@/lib/telegram/recall-for-telegram";
+import type { TelegramRankedMemory } from "@/lib/telegram/recall-for-telegram-match";
 import {
   buildRoastPrompt,
   ROAST_SYSTEM,
@@ -19,14 +26,9 @@ const roastSchema = z.object({
   citedMemoryIds: z.array(z.string()).optional(),
 });
 
-export type RoastResult = {
-  message: string;
-  citedMemoryIds: string[];
-  publicProfileUrl?: string;
-};
-
 export type BuildRoastInput = {
   userId: string;
+  match?: Match;
   publicSlug?: string | null;
   appUrl?: string;
   matchContext?: string;
@@ -36,7 +38,7 @@ export type BuildRoastInput = {
 
 export async function buildRoastMessage(
   input: BuildRoastInput,
-): Promise<RoastResult> {
+): Promise<TelegramMessageAssembly> {
   const [profile, history, memories, memoriesCount, onboardingDrivers] =
     await Promise.all([
       getFanProfile(input.userId),
@@ -58,27 +60,26 @@ export async function buildRoastMessage(
     memoryTexts: memories.map((m) => m.text),
   });
 
-  const adapter = getMemoryAdapter();
-  const recallQueries = [
-    "What is this user's football prediction style and biases?",
-    "What teams does this user trust or distrust?",
-    "What contradictions exist in this user's football takes?",
-  ];
-
-  const recallResults = await Promise.all(
-    recallQueries.map((q) => adapter.recall(input.userId, q)),
-  );
-
-  const recalledMemories = recallResults
-    .flat()
-    .slice(0, 6)
-    .map((r) => ({
-      text: r.text,
-      id:
-        typeof r.metadata?.memoryId === "string"
-          ? r.metadata.memoryId
-          : undefined,
+  let recalledMemories: TelegramRankedMemory[];
+  if (input.match?.homeTeam && input.match.awayTeam) {
+    recalledMemories = await recallMemoriesForTelegramMessage({
+      userId: input.userId,
+      match: input.match,
+      favoriteTeam: profile?.favorite_team,
+      rivalTeam: profile?.rival_team,
+      preferredStyle: profile?.preferred_style,
+      userPick: input.wrongPick,
+    });
+  } else {
+    const basic = await recallMemoriesForTelegram(input.userId);
+    recalledMemories = basic.map((m) => ({
+      id: m.id,
+      text: m.text,
+      score: 0.5,
+      rrfScore: 0.5,
+      finalScore: 0.5,
     }));
+  }
 
   const contradictionText = contradictions[0]?.text ?? null;
   const maturity = memoryCountToMaturity(memoriesCount);
@@ -90,7 +91,8 @@ export async function buildRoastMessage(
       : "Your clone barely knows you yet — train it on the web before I can roast you properly.");
 
   const llm = getLlmAdapter();
-  let message = fallbackMessage;
+  let llmMessage = fallbackMessage;
+  let citedMemoryIds: string[] | undefined;
 
   if (llm) {
     try {
@@ -100,7 +102,13 @@ export async function buildRoastMessage(
           profileSummary: profile?.summary ?? null,
           favoriteTeam: profile?.favorite_team ?? null,
           rivalTeam: profile?.rival_team ?? null,
-          recalledMemories,
+          recalledMemories: recalledMemories.map((m) => ({
+            id: m.id,
+            text: m.text,
+            type: m.type,
+            source: m.source,
+            score: m.finalScore ?? m.score,
+          })),
           contradictionText,
           matchContext: input.matchContext,
           wrongPick: input.wrongPick,
@@ -109,26 +117,19 @@ export async function buildRoastMessage(
         schemaName: "Roast",
         schema: roastResponseSchema,
       });
-      message = roastSchema.parse(raw).message;
+      const parsed = roastSchema.parse(raw);
+      llmMessage = parsed.message;
+      citedMemoryIds = parsed.citedMemoryIds;
     } catch {
-      message = fallbackMessage;
+      llmMessage = fallbackMessage;
     }
   }
 
-  const profilePath =
-    input.publicSlug && input.appUrl
-      ? `${input.appUrl.replace(/\/$/, "")}/u/${input.publicSlug}`
-      : input.publicSlug
-        ? `/u/${input.publicSlug}`
-        : undefined;
-
-  const footer = profilePath
-    ? `\n\nClone evidence: ${profilePath}`
-    : "";
-
-  return {
-    message: `${message.trim()}${footer}`,
-    citedMemoryIds: [],
-    publicProfileUrl: profilePath,
-  };
+  return finalizeTelegramMessage({
+    recalledMemories,
+    llmMessage,
+    citedMemoryIds,
+    publicSlug: input.publicSlug,
+    appUrl: input.appUrl,
+  });
 }

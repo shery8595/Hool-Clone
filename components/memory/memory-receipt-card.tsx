@@ -4,7 +4,7 @@ import { RecallSourceBadge } from "@/components/memory/recall-source-badge";
 import { cn } from "@/lib/utils";
 import type { MemoryReceipt } from "@/lib/mock/types";
 import { formatDate } from "@/lib/mock/demo-user";
-import { Database, ArrowRight, Loader2, AlertCircle, RotateCcw } from "lucide-react";
+import { Database, ArrowRight, Loader2, AlertCircle, RotateCcw, GitBranch } from "lucide-react";
 
 const typeLabels: Record<string, string> = {
   remembered: "REMEMBERED",
@@ -23,6 +23,7 @@ type MemoryReceiptCardProps = {
   onRetry?: () => void;
   retrying?: boolean;
   onClick?: () => void;
+  onExplore?: () => void;
 };
 
 export function MemoryReceiptCard({
@@ -35,12 +36,14 @@ export function MemoryReceiptCard({
   onRetry,
   retrying = false,
   onClick,
+  onExplore,
 }: MemoryReceiptCardProps) {
   const hasWalrusProof = Boolean(
     receipt.walrusBlobId || receipt.walrusNamespace || receipt.walrusJobId,
   );
+  const hasLineage = Boolean(receipt.lineage && receipt.lineage.length > 0);
   const isDashboard = variant === "dashboard";
-  const revealProofOnHover = !compact && hasWalrusProof;
+  const revealProofOnHover = !compact && (hasWalrusProof || hasLineage);
 
   return (
     <article
@@ -120,6 +123,17 @@ export function MemoryReceiptCard({
         </p>
       )}
 
+      {receipt.provenanceLabel && (
+        <p
+          className={cn(
+            "mt-1.5 text-[10px] font-semibold text-hoolclone-green-700",
+            compact && "text-[10px]",
+          )}
+        >
+          {receipt.provenanceLabel}
+        </p>
+      )}
+
       {receipt.recallSource && (
         <div className="mt-2">
           <RecallSourceBadge source={receipt.recallSource} />
@@ -146,9 +160,21 @@ export function MemoryReceiptCard({
                   : receipt.walrusBlobId}
               </span>
             )}
+            {(onExplore && receipt.walrusBlobId) && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onExplore();
+                }}
+                className="ml-1 rounded-full bg-hoolclone-green-200/80 px-2 py-0.5 text-[10px] font-semibold text-hoolclone-green-900 hover:bg-hoolclone-green-300"
+              >
+                Verify on Walrus
+              </button>
+            )}
             {revealProofOnHover && (
               <span className="ml-auto text-[10px] font-normal text-muted-foreground transition-opacity duration-300 group-hover:opacity-0 group-focus-within:opacity-0">
-                Hover for proof
+                Hover for {hasLineage && hasWalrusProof ? "proof + lineage" : hasLineage ? "lineage" : "proof"}
               </span>
             )}
           </div>
@@ -157,7 +183,7 @@ export function MemoryReceiptCard({
               className={cn(
                 "rounded-lg border border-hoolclone-green-100 bg-hoolclone-green-50/50 px-3 py-2 text-[11px]",
                 revealProofOnHover
-                  ? "mt-0 max-h-0 overflow-hidden border-transparent bg-transparent px-3 py-0 opacity-0 transition-all duration-300 ease-out group-hover:mt-2 group-hover:max-h-56 group-hover:border-hoolclone-green-100 group-hover:bg-hoolclone-green-50/80 group-hover:py-2 group-hover:opacity-100 group-focus-within:mt-2 group-focus-within:max-h-56 group-focus-within:border-hoolclone-green-100 group-focus-within:bg-hoolclone-green-50/80 group-focus-within:py-2 group-focus-within:opacity-100"
+                  ? "mt-0 max-h-0 overflow-hidden border-transparent bg-transparent px-3 py-0 opacity-0 transition-all duration-300 ease-out group-hover:mt-2 group-hover:max-h-72 group-hover:overflow-y-auto group-hover:border-hoolclone-green-100 group-hover:bg-hoolclone-green-50/80 group-hover:py-2 group-hover:opacity-100 group-focus-within:mt-2 group-focus-within:max-h-72 group-focus-within:overflow-y-auto group-focus-within:border-hoolclone-green-100 group-focus-within:bg-hoolclone-green-50/80 group-focus-within:py-2 group-focus-within:opacity-100"
                   : "mt-2",
               )}
             >
@@ -187,6 +213,71 @@ export function MemoryReceiptCard({
                   </dd>
                 </div>
               )}
+              {hasLineage && (
+                <div className="mt-2 border-t border-hoolclone-green-100/80 pt-2">
+                  <dt className="mb-1.5 flex items-center gap-1 font-semibold text-muted-foreground">
+                    <GitBranch className="h-3 w-3" />
+                    Write history
+                  </dt>
+                  <dd>
+                    <ol className="space-y-1.5">
+                      {receipt.lineage!.map((step, index) => (
+                        <li key={`${step.label}-${index}`} className="flex gap-2">
+                          <span className="shrink-0 font-mono text-[10px] text-hoolclone-green-700">
+                            {index + 1}.
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-medium text-hoolclone-green-900">
+                              {step.label}
+                            </p>
+                            {step.detail && (
+                              <p className="text-[10px] text-muted-foreground">
+                                {step.detail}
+                              </p>
+                            )}
+                            {step.blobId && (
+                              <p className="font-mono text-[10px] text-hoolclone-green-800/80">
+                                Blob {step.blobId.length > 20 ? `${step.blobId.slice(0, 20)}…` : step.blobId}
+                              </p>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          {!hasWalrusProof && hasLineage && (
+            <dl
+              className={cn(
+                "rounded-lg border border-hoolclone-green-100 bg-hoolclone-green-50/50 px-3 py-2 text-[11px]",
+                revealProofOnHover
+                  ? "mt-0 max-h-0 overflow-hidden border-transparent bg-transparent px-3 py-0 opacity-0 transition-all duration-300 ease-out group-hover:mt-2 group-hover:max-h-72 group-hover:overflow-y-auto group-hover:border-hoolclone-green-100 group-hover:bg-hoolclone-green-50/80 group-hover:py-2 group-hover:opacity-100 group-focus-within:mt-2 group-focus-within:max-h-72 group-focus-within:overflow-y-auto group-focus-within:border-hoolclone-green-100 group-focus-within:bg-hoolclone-green-50/80 group-focus-within:py-2 group-focus-within:opacity-100"
+                  : "mt-2",
+              )}
+            >
+              <div className="flex items-center gap-1 font-semibold text-muted-foreground">
+                <GitBranch className="h-3 w-3" />
+                Write history
+              </div>
+              <ol className="mt-1.5 space-y-1.5">
+                {receipt.lineage!.map((step, index) => (
+                  <li key={`${step.label}-${index}`} className="flex gap-2">
+                    <span className="shrink-0 font-mono text-[10px] text-hoolclone-green-700">
+                      {index + 1}.
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-hoolclone-green-900">{step.label}</p>
+                      {step.detail && (
+                        <p className="text-[10px] text-muted-foreground">{step.detail}</p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </dl>
           )}
         </div>

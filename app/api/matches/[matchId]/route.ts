@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { getMatchDataAdapter } from "@/lib/match-data";
+import { maybeSyncMatchResultsInDev } from "@/lib/match-data/dev-sync";
 
 type RouteContext = { params: Promise<{ matchId: string }> };
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
+    await maybeSyncMatchResultsInDev();
     const { matchId } = await context.params;
     const adapter = getMatchDataAdapter();
     const match = await adapter.getMatch(matchId);

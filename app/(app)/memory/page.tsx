@@ -5,6 +5,7 @@ import { Database } from "lucide-react";
 import { HoolCloneLoader } from "@/components/brand/hoolclone-loader";
 import { MemoryFilters, type MemoryFilter } from "@/components/memory/memory-filters";
 import { MemoryReceiptCard } from "@/components/memory/memory-receipt-card";
+import { WalrusBlobExplorerSheet } from "@/components/memory/walrus-blob-explorer-sheet";
 import { WalrusProofSummary } from "@/components/memory/walrus-proof-summary";
 import { cacheKeys } from "@/lib/api/data-cache";
 import { fetchMemoriesRaw, retryMemoryWrite } from "@/lib/api/client";
@@ -17,6 +18,9 @@ export default function MemoryPage() {
   const [filter, setFilter] = useState<MemoryFilter>("all");
   const [memories, setMemories] = useState<MemoryReceipt[]>([]);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [exploreReceipt, setExploreReceipt] = useState<MemoryReceipt | null>(
+    null,
+  );
 
   const { data, hydrating, error, refresh } = useCachedData(
     me?.id ? cacheKeys.memories(me.id) : null,
@@ -140,6 +144,8 @@ export default function MemoryPage() {
               key={receipt.id}
               receipt={receipt}
               showActions
+              onClick={() => setExploreReceipt(receipt)}
+              onExplore={() => setExploreReceipt(receipt)}
               onTogglePublic={() => togglePublic(receipt.id)}
               onRetry={
                 receipt.storageStatus === "failed" && backend === "Walrus"
@@ -151,6 +157,14 @@ export default function MemoryPage() {
           ))}
         </div>
       )}
+
+      <WalrusBlobExplorerSheet
+        receipt={exploreReceipt}
+        open={Boolean(exploreReceipt)}
+        onOpenChange={(open) => {
+          if (!open) setExploreReceipt(null);
+        }}
+      />
     </div>
   );
 }

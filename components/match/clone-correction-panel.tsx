@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MessageSquare, RefreshCw, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PredictButton } from "@/components/predict/predict-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClonePrediction, Match, MemoryReceipt, Prediction } from "@/lib/mock/types";
 import { isUuid } from "@/lib/utils";
@@ -99,7 +99,7 @@ export function CloneCorrectionPanel({
               key={snippet}
               type="button"
               onClick={() => setCorrection(snippet)}
-              className="rounded-full border border-border bg-white px-3 py-1 text-xs text-muted-foreground hover:border-hoolclone-green-700 hover:text-hoolclone-green-900"
+              className="inline-block cursor-pointer rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold leading-5 text-muted-foreground outline-none transition-[box-shadow,transform] duration-200 hover:shadow-sm active:scale-[0.98] hover:border-hoolclone-green-700 hover:text-hoolclone-green-900"
             >
               {snippet}
             </button>
@@ -115,24 +115,26 @@ export function CloneCorrectionPanel({
           className="w-full resize-none rounded-xl border border-border bg-white px-3 py-2 text-sm outline-none ring-hoolclone-green-700/30 focus:ring-2"
         />
 
-        <Button
-          type="button"
-          className="w-full"
-          disabled={submitting || correction.trim().length < 8}
-          onClick={() => void submit()}
-        >
+        <div className="flex justify-center">
+          <PredictButton
+            type="button"
+            size="lg"
+            disabled={submitting || correction.trim().length < 8}
+            onClick={() => void submit()}
+          >
           {submitting ? (
             <>
-              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              <RefreshCw className="h-4 w-4 animate-spin" />
               Retraining clone...
             </>
           ) : (
             <>
-              <Sparkles className="mr-2 h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               Store correction &amp; retrain clone
             </>
           )}
-        </Button>
+          </PredictButton>
+        </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
         {success && (

@@ -7,7 +7,8 @@ When memory is weak, say so and ask one useful training question in trainingQues
 When memory is strong, cite specific memory receipts from the recalled list only — do not fabricate memory IDs.
 predictedWinner must be one of the two team codes provided.
 predictedScore.teamA is the home team score; predictedScore.teamB is the away team score.
-Return 2-4 memoryReceipts when evidence exists. Do not claim certainty you do not have.`;
+Return 2-4 memoryReceipts when evidence exists. Do not claim certainty you do not have.
+Corrections override stale disputed memories. Recent prediction and post-match memories reflect current form. Fan profile memories are stable identity signals.`;
 
 export function buildClonePredictionPrompt(input: {
   profileSummary: string | null;
@@ -15,8 +16,17 @@ export function buildClonePredictionPrompt(input: {
   rivalTeam: string | null;
   preferredStyle: string | null;
   match: Match;
-  recalledMemories: Array<{ id?: string; text: string; type?: string; score?: number }>;
+  recalledMemories: Array<{
+    id?: string;
+    text: string;
+    type?: string;
+    score?: number;
+    source?: string;
+  }>;
   memoriesCount: number;
+  postMatchMemoryCount?: number;
+  cloneMoodLabel?: string;
+  cloneMoodGuidance?: string;
 }): string {
   const { match, recalledMemories, memoriesCount } = input;
 
@@ -27,10 +37,12 @@ export function buildClonePredictionPrompt(input: {
   const memoryBlock =
     recalledMemories.length > 0
       ? recalledMemories
-          .map(
-            (m, i) =>
-              `${i + 1}. [${m.id ?? "unknown"}] (${m.type ?? "memory"}) ${m.text}`,
-          )
+          .map((m, i) => {
+            const score =
+              m.score != null ? ` score=${m.score.toFixed(3)}` : "";
+            const source = m.source ? ` source=${m.source}` : "";
+            return `${i + 1}. [${m.id ?? "unknown"}] (${m.type ?? "memory"}${source}${score}) ${m.text}`;
+          })
           .join("\n")
       : "No strong memories recalled yet.";
 
@@ -39,14 +51,23 @@ Favorite team: ${input.favoriteTeam ?? "unknown"}
 Rival / distrusted team: ${input.rivalTeam ?? "unknown"}
 Prediction style: ${input.preferredStyle ?? "unknown"}
 Total stored memories: ${memoriesCount}
+Post-match memories on record: ${input.postMatchMemoryCount ?? 0}
+Clone mood: ${input.cloneMoodLabel ?? "Learning"}
+Tone guidance: ${input.cloneMoodGuidance ?? "Curious and observational."}
 
 Match: ${match.homeTeam.name} (${match.homeTeam.code}) vs ${match.awayTeam.name} (${match.awayTeam.code})
 Stage: ${match.stage}
 Venue: ${match.venue}, ${match.city}
 Kickoff: ${match.kickoffAt}
 
-Recalled memories (you have NOT seen the user's pick for this match):
+Recalled memories (ranked; you have NOT seen the user's pick for this match):
 ${memoryBlock}
+
+Weighting guidance:
+- correction memories are high-signal for current behavior
+- prediction_submit memories from OTHER fixtures show habitual picks — never this match's saved pick
+- prediction_history_summary and match_resolution memories reflect how the user reacts after results
+- fan_profile memories are long-term identity, not necessarily match-specific
 
 Predict as this user would based on habits and biases alone. Use team codes ${match.homeTeam.code} and ${match.awayTeam.code} for predictedWinner.`;
 }

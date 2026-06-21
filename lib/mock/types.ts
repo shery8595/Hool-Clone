@@ -35,6 +35,13 @@ export type DemoUser = {
   predictionsCount: number;
 };
 
+export type MatchStatus =
+  | "scheduled"
+  | "live"
+  | "final"
+  | "postponed"
+  | "cancelled";
+
 export type Match = {
   id: string;
   matchNumber: number;
@@ -48,9 +55,20 @@ export type Match = {
   venue: string;
   city: string;
   featured?: boolean;
+  status?: MatchStatus;
+  homeScore?: number | null;
+  awayScore?: number | null;
+  winnerCode?: string | null;
 };
 
 export type RecallSource = "walrus" | "postgres_fallback";
+
+export type MemoryLineageStep = {
+  label: string;
+  detail?: string;
+  blobId?: string;
+  timestamp?: string;
+};
 
 export type MemoryReceipt = {
   id: string;
@@ -68,6 +86,9 @@ export type MemoryReceipt = {
   walrusNamespace?: string;
   walrusJobId?: string;
   recallSource?: RecallSource;
+  memorySource?: string;
+  provenanceLabel?: string;
+  lineage?: MemoryLineageStep[];
 };
 
 export type DebateHighlight = {

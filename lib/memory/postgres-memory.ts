@@ -113,6 +113,20 @@ export async function listMemoriesForUser(
   return rows.map(rowToStoredMemory);
 }
 
+export async function countMemoriesBySource(
+  userId: string,
+  source: string,
+): Promise<number> {
+  const row = await queryOne<{ count: string }>(
+    `select count(*)::text as count
+     from memories
+     where user_id = $1
+       and metadata->>'source' = $2`,
+    [userId, source],
+  );
+  return Number(row?.count ?? 0);
+}
+
 export async function recallMemoriesLocal(
   userId: string,
   queryText: string,
@@ -139,7 +153,10 @@ export async function recallMemoriesLocal(
         ...row.metadata,
         memoryId: row.id,
         memoryType: row.memory_type,
-        source: "postgres_fallback",
+        createdAt: row.created_at.toISOString(),
+        source: row.metadata?.source,
+        matchId: row.metadata?.matchId,
+        backendSource: "postgres_fallback",
       },
     }));
   }
@@ -155,7 +172,10 @@ export async function recallMemoriesLocal(
           ...row.metadata,
           memoryId: row.id,
           memoryType: row.memory_type,
-          source: "postgres_fallback",
+          createdAt: row.created_at.toISOString(),
+          source: row.metadata?.source,
+          matchId: row.metadata?.matchId,
+          backendSource: "postgres_fallback",
         },
       };
     })
@@ -172,4 +192,115 @@ export async function getMemoryRowById(
     `select * from memories where id = $1 and user_id = $2`,
     [memoryId, userId],
   );
+}
+
+/** Public memories by id — used to filter Walrus recall hits for public clash pages. */
+export async function getPublicMemoriesByIds(
+  userId: string,
+  memoryIds: string[],
+): Promise<StoredMemory[]> {
+  if (memoryIds.length === 0) return [];
+
+  const rows = await query<MemoryRow>(
+    `select * from memories
+     where user_id = $1
+       and id = any($2::uuid[])
+       and public_visible = true
+       and coalesce((metadata->>'disputed')::boolean, false) = false
+     order by created_at desc`,
+    [userId, memoryIds],
+  );
+  return rows.map(rowToStoredMemory);
+}
+
+export async function getMemoryByWalrusBlobId(
+  blobId: string,
+): Promise<StoredMemory | null> {
+  const row = await queryOne<MemoryRow>(
+    `select * from memories
+     where metadata->>'walrusBlobId' = $1
+     order by created_at desc
+     limit 1`,
+    [blobId],
+  );
+  return row ? rowToStoredMemory(row) : null;
+}
+
+const STORED_MEMORY_FILTER = `
+  coalesce((metadata->>'disputed')::boolean, false) = false
+  and storage_status = 'stored'
+`;
+
+/** Memories stored on or before `cutoff`, optionally scoped to a Walrus namespace. */
+export async function listStoredMemoriesForUserAt(
+  userId: string,
+  cutoff: Date,
+  options?: { namespace?: string; limit?: number },
+): Promise<StoredMemory[]> {
+  const params: unknown[] = [userId, cutoff.toISOString()];
+  let namespaceClause = "";
+  if (options?.namespace) {
+    params.push(options.namespace);
+    namespaceClause = `and metadata->>'walrusNamespace' = $${params.length}`;
+  }
+
+  const limitClause =
+    options?.limit != null ? `limit $${params.push(options.limit)}` : "";
+
+  const rows = await query<MemoryRow>(
+    `select * from memories
+     where user_id = $1
+       and created_at <= $2::timestamptz
+       and ${STORED_MEMORY_FILTER}
+       ${namespaceClause}
+     order by created_at asc
+     ${limitClause}`,
+    params,
+  );
+  return rows.map(rowToStoredMemory);
+}
+
+/** Chronological stored memories between two timestamps (inclusive). */
+export async function listStoredMemoriesForUserBetween(
+  userId: string,
+  from: Date,
+  to: Date,
+  options?: { namespace?: string },
+): Promise<StoredMemory[]> {
+  const params: unknown[] = [userId, from.toISOString(), to.toISOString()];
+  let namespaceClause = "";
+  if (options?.namespace) {
+    params.push(options.namespace);
+    namespaceClause = `and metadata->>'walrusNamespace' = $${params.length}`;
+  }
+
+  const rows = await query<MemoryRow>(
+    `select * from memories
+     where user_id = $1
+       and created_at >= $2::timestamptz
+       and created_at <= $3::timestamptz
+       and ${STORED_MEMORY_FILTER}
+       ${namespaceClause}
+     order by created_at asc`,
+    params,
+  );
+  return rows.map(rowToStoredMemory);
+}
+
+/** Correction memories that dispute one of the given memory IDs. */
+export async function listCorrectionsForMemoryIds(
+  userId: string,
+  memoryIds: string[],
+): Promise<StoredMemory[]> {
+  if (memoryIds.length === 0) return [];
+
+  const rows = await query<MemoryRow>(
+    `select * from memories
+     where user_id = $1
+       and memory_type = 'correction'
+       and metadata->>'wrongMemoryId' = any($2::text[])
+     order by created_at asc`,
+    [userId, memoryIds],
+  );
+  return rows.map(rowToStoredMemory);
 }

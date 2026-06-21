@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { Target } from "lucide-react";
 import { HoolCloneLoader } from "@/components/brand/hoolclone-loader";
 import { HumanVsClonePanel } from "@/components/clone/human-vs-clone-panel";
@@ -9,17 +9,25 @@ import { PredictionForm } from "@/components/match/prediction-form";
 import { CloneCorrectionPanel } from "@/components/match/clone-correction-panel";
 import { ClonePredictionPanel } from "@/components/match/clone-prediction-panel";
 import { WeakMemoryCloneCard } from "@/components/match/weak-memory-clone-card";
+import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
+import { PredictButton } from "@/components/predict/predict-button";
+import { buildDashboardFallback } from "@/lib/dashboard/dashboard-fallback";
 import { cacheKeys, peekCached } from "@/lib/api/data-cache";
 import {
+  fetchDashboardRaw,
   fetchMatchPredictionRaw,
   fetchMatchRaw,
   generateClonePrediction,
   submitMatchPrediction,
 } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
+import { useIntervalRefresh } from "@/lib/hooks/use-interval-refresh";
 import type { EmotionState, Match, Prediction } from "@/lib/mock/types";
 import { getMatch as getMockMatch } from "@/lib/mock/matches";
+import { isMatchFinished, isMatchLive } from "@/lib/match-data/match-status";
 import { useUser } from "@/components/providers/user-provider";
+
+const MATCH_POLL_MS = 60_000;
 
 type PredictMatchPageProps = {
   params: Promise<{ matchId: string }>;
@@ -37,11 +45,26 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
     () => fetchMatchPredictionRaw(matchId),
     [matchId],
   );
+  const dashboardFallback = useMemo(
+    () => (me ? buildDashboardFallback(me) : undefined),
+    [me],
+  );
+  const { data: dashboardData } = useCachedData(
+    me?.id ? cacheKeys.dashboard(me.id) : null,
+    fetchDashboardRaw,
+    dashboardFallback,
+  );
 
-  const { data: match, hydrating: matchHydrating } = useCachedData(
+  const { data: match, hydrating: matchHydrating, refresh: refreshMatch } = useCachedData(
     cacheKeys.match(matchId),
     loadMatch,
     initialMatch,
+  );
+
+  useIntervalRefresh(
+    refreshMatch,
+    MATCH_POLL_MS,
+    Boolean(match && (isMatchLive(match) || match.status === "live")),
   );
 
   const { data: savedPrediction, hydrating: predHydrating } = useCachedData(
@@ -167,12 +190,19 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
     prediction?.clone &&
     prediction.agreed === false &&
     !usingMock;
+  const matchFinished = isMatchFinished(match);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         <Target className="h-6 w-6 text-hoolclone-green-700" />
         <h1 className="text-2xl font-bold">Predict Match</h1>
+        {dashboardData?.cloneAnalytics.cloneMood && (
+          <CloneMoodBadge
+            mood={dashboardData.cloneAnalytics.cloneMood}
+            compact
+          />
+        )}
         {(matchHydrating || predHydrating) && (
           <span className="text-xs text-muted-foreground">Syncing...</span>
         )}
@@ -185,6 +215,12 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
       )}
 
       <MatchBanner match={match} />
+
+      {matchFinished && !locked && (
+        <p className="rounded-2xl border border-muted bg-muted/30 px-4 py-3 text-center text-sm text-muted-foreground">
+          This match has ended — predictions are closed. View your saved pick below if you predicted before kickoff.
+        </p>
+      )}
 
       {locked && prediction?.clone && (
         <HumanVsClonePanel match={match} prediction={prediction} />
@@ -214,7 +250,7 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
           initialConfidence={defaultPrediction.confidence}
           initialReasoning={defaultPrediction.reasoning}
           initialEmotion={defaultPrediction.emotion}
-          locked={locked}
+          locked={locked || matchFinished}
           submitting={submitting}
           onSubmit={handleSubmit}
         />
@@ -243,13 +279,13 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
           <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-white p-8 text-center text-muted-foreground">
             <p>Clone prediction not generated yet.</p>
             {!usingMock && (
-              <button
+              <PredictButton
                 type="button"
-                className="text-sm font-semibold text-hoolclone-green-900 underline"
+                variant="ghost"
                 onClick={() => void runClonePrediction()}
               >
                 Generate clone prediction
-              </button>
+              </PredictButton>
             )}
           </div>
         ) : (

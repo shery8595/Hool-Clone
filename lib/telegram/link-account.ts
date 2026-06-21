@@ -57,20 +57,46 @@ export async function findUserByChatId(
   return row ? rowToLinkedUser(row) : null;
 }
 
+export async function findChatByUserId(userId: string): Promise<{
+  chatId: string;
+  notificationsEnabled: boolean;
+} | null> {
+  const row = await queryOne<{
+    chat_id: string;
+    notifications_enabled: boolean;
+  }>(
+    `select chat_id, notifications_enabled
+     from telegram_chats
+     where user_id = $1 and revoked_at is null
+     order by created_at desc
+     limit 1`,
+    [userId],
+  );
+
+  if (!row) return null;
+  return {
+    chatId: row.chat_id,
+    notificationsEnabled: row.notifications_enabled,
+  };
+}
+
 export async function linkChatToUser(
   userId: string,
   chatId: number | string,
+  options?: { enableNotifications?: boolean },
 ): Promise<void> {
+  const enableNotifications = options?.enableNotifications ?? false;
   await query(
     `insert into telegram_chats (
        user_id, chat_id, notifications_enabled,
        pending_wallet, pending_challenge_token, revoked_at
-     ) values ($1, $2::bigint, false, null, null, null)
+     ) values ($1, $2::bigint, $3, null, null, null)
      on conflict (user_id, chat_id) do update set
        revoked_at = null,
        pending_wallet = null,
-       pending_challenge_token = null`,
-    [userId, String(chatId)],
+       pending_challenge_token = null,
+       notifications_enabled = excluded.notifications_enabled`,
+    [userId, String(chatId), enableNotifications],
   );
 }
 

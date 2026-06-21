@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { User, Zap, Smile, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  PredictButton,
+  predictChoiceButtonClass,
+} from "@/components/predict/predict-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import type { EmotionState, Match } from "@/lib/mock/types";
 import { Check } from "lucide-react";
 import { TeamFlag } from "./team-flag";
@@ -71,11 +73,12 @@ function PredictionFormInner({
   const [homeScore, setHomeScore] = useState(initialHomeScore);
   const [awayScore, setAwayScore] = useState(initialAwayScore);
   const [confidence, setConfidence] = useState(initialConfidence);
-  const [reasoning, setReasoning] = useState(
-    initialReasoning ||
-      "Argentina's midfield control wins tight games.",
-  );
+  const [reasoning, setReasoning] = useState(initialReasoning);
   const [emotion, setEmotion] = useState<EmotionState>(initialEmotion);
+
+  const winnerTeam =
+    winner === match.homeTeam.code ? match.homeTeam : match.awayTeam;
+  const reasoningPlaceholder = `${winnerTeam.name} feels more likely because...`;
 
   return (
     <Card className="rounded-2xl border-0 shadow-sm">
@@ -97,17 +100,12 @@ function PredictionFormInner({
                   key={team.code}
                   type="button"
                   onClick={() => setWinner(team.code)}
-                  className={cn(
-                    "flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 font-semibold transition-colors",
-                    winner === team.code
-                      ? "border-hoolclone-green-700 bg-hoolclone-green-100"
-                      : "border-border hover:border-hoolclone-green-700/50",
-                  )}
+                  className={predictChoiceButtonClass(winner === team.code)}
                 >
                   <TeamFlag team={team} size="md" />
                   {team.name}
                   {winner === team.code && (
-                    <Check className="h-4 w-4 text-hoolclone-green-700" />
+                    <Check className="h-4 w-4 text-current" />
                   )}
                 </button>
               ))}
@@ -163,6 +161,7 @@ function PredictionFormInner({
             <Textarea
               value={reasoning}
               onChange={(e) => setReasoning(e.target.value)}
+              placeholder={reasoningPlaceholder}
               maxLength={200}
               rows={3}
               aria-label="Prediction reasoning"
@@ -182,12 +181,7 @@ function PredictionFormInner({
                   key={id}
                   type="button"
                   onClick={() => setEmotion(id)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                    emotion === id
-                      ? "bg-hoolclone-yellow-500 text-hoolclone-gray-900"
-                      : "border border-border bg-white hover:bg-hoolclone-gray-50",
-                  )}
+                  className={predictChoiceButtonClass(emotion === id, true)}
                 >
                   {icon}
                   {label}
@@ -198,23 +192,25 @@ function PredictionFormInner({
         </fieldset>
 
         {!locked && (
-          <Button
-            className="w-full"
-            disabled={submitting}
-            onClick={() =>
-              void onSubmit?.({
-                winner,
-                homeScore,
-                awayScore,
-                confidence,
-                reasoning,
-                emotion,
-              })
-            }
-          >
-            <Shield className="mr-2 h-4 w-4" />
-            {submitting ? "Saving..." : "Lock In Prediction"}
-          </Button>
+          <div className="flex justify-center pt-1">
+            <PredictButton
+              size="lg"
+              disabled={submitting}
+              onClick={() =>
+                void onSubmit?.({
+                  winner,
+                  homeScore,
+                  awayScore,
+                  confidence,
+                  reasoning,
+                  emotion,
+                })
+              }
+            >
+              <Shield className="h-4 w-4" />
+              {submitting ? "Saving..." : "Lock In Prediction"}
+            </PredictButton>
+          </div>
         )}
       </CardContent>
     </Card>

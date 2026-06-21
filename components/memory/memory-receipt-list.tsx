@@ -23,6 +23,7 @@ export function MemoryReceiptList({
       r.storageStatus === "stored" &&
       (r.walrusBlobId || r.walrusNamespace || r.walrusJobId),
   );
+  const hasLineage = receipts.some((r) => r.lineage && r.lineage.length > 0);
 
   return (
     <Card
@@ -74,10 +75,11 @@ export function MemoryReceiptList({
           />
         ))}
 
-        {hasWalrusProof && (
+        {(hasWalrusProof || hasLineage) && (
           <p className="mt-1 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
             <Info className="h-3 w-3 shrink-0 text-hoolclone-green-700" />
-            Hover a receipt to expand Walrus proof details
+            Hover a receipt to expand Walrus proof
+            {hasLineage ? " and write history" : " details"}
           </p>
         )}
       </CardContent>

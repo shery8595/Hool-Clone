@@ -1,4 +1,5 @@
 import type { Match, Team } from "./types";
+import { resolveMatch } from "@/lib/match-data/match-status";
 import { OFFICIAL_SCHEDULE_ROWS, CITY_TIMEZONES } from "./wc2026-schedule-rows";
 import { getTeamDef, flagPath } from "./wc2026-teams";
 
@@ -90,7 +91,7 @@ function buildOfficialMatches(): Match[] {
   });
 }
 
-export const matches: Match[] = buildOfficialMatches();
+export const matches: Match[] = buildOfficialMatches().map(resolveMatch);
 
 export const groupMatches = matches.filter((m) => m.group !== undefined);
 

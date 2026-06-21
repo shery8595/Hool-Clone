@@ -1,4 +1,4 @@
-import { storedMemoryToReceipt } from "@/lib/api/memory-mapper";
+import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
 import { huntContradictions } from "@/lib/clone/contradiction-hunter";
 import { analyzeDebateTurn } from "@/lib/debate/analyze-debate-turn";
@@ -17,7 +17,7 @@ import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import { getOnboardingDrivers } from "@/lib/onboarding/service";
 import { predictionsAgree } from "@/lib/clone/prediction-agreement";
 import { extractMemoryDrivers } from "@/lib/stats/user-analytics";
-import type { DebateMessage } from "@/lib/mock/types";
+import type { DebateMessage, MemoryReceipt } from "@/lib/mock/types";
 
 function formatPredictionDigest(
   history: Awaited<ReturnType<typeof listUserPredictions>>,
@@ -47,7 +47,7 @@ function formatPredictionDigest(
 
 function mergeCatalogs(
   recalled: Awaited<ReturnType<typeof buildDebateMemoryCatalog>>,
-  allReceipts: ReturnType<typeof storedMemoryToReceipt>[],
+  allReceipts: MemoryReceipt[],
 ) {
   const seen = new Set(recalled.map((r) => r.id));
   const merged = [...recalled];
@@ -106,7 +106,7 @@ export async function buildDebateContext(
     memoryTexts,
   );
 
-  const allReceipts = chronologicalMemories.map(storedMemoryToReceipt);
+  const allReceipts = storedMemoriesToReceipts(chronologicalMemories);
   const rawCatalog = await buildDebateMemoryCatalog(
     userId,
     input.userMessage,

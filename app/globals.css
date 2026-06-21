@@ -46,6 +46,7 @@
   --color-hoolclone-green-100: var(--hoolclone-green-100);
   --color-hoolclone-yellow-500: var(--hoolclone-yellow-500);
   --color-hoolclone-gray-50: var(--hoolclone-gray-50);
+  --color-hoolclone-page-bg: var(--hoolclone-page-bg);
   --color-hoolclone-gray-900: var(--hoolclone-gray-900);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -96,6 +97,7 @@
   --hoolclone-green-100: #e8f5ee;
   --hoolclone-yellow-500: #f5c518;
   --hoolclone-gray-50: #f4f6f5;
+  --hoolclone-page-bg: #fcfbfb;
   --hoolclone-gray-900: #1a1a1a;
 
   /* Soft UI / neumorphic button depth (HoolClone green-tinted) */
@@ -131,4 +133,73 @@
       rgba(26, 107, 74, 0.75) 100%
     ),
     url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.landing-hero-bg {
+  background-color: #fcfbfb;
+}
+
+@keyframes flags-marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes flags-marquee-right {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.flags-marquee-row--left {
+  animation: flags-marquee-left 75s linear infinite;
+}
+
+.flags-marquee-row--right {
+  animation: flags-marquee-right 85s linear infinite;
+}
+
+.flags-marquee-mask {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 3%,
+    black 97%,
+    transparent
+  );
+}
+
+.flags-marquee-animated:hover .flags-marquee-row {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flags-marquee-animated {
+    display: none;
+  }
+
+  .flags-marquee-static {
+    display: flex;
+  }
+}
+
+/* Landing page motion — hidden until GSAP runs (prevents flash/blink) */
+.landing-motion [data-hero-item],
+.landing-motion [data-reveal-item] {
+  opacity: 0;
+  transform: translate3d(0, 14px, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-motion [data-hero-item],
+  .landing-motion [data-reveal-item] {
+    opacity: 1;
+    transform: none;
+  }
 }

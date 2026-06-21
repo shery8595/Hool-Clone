@@ -1,5 +1,5 @@
 import { Brain, Bot } from "lucide-react";
-import { ButtonLink } from "@/components/ui/button-link";
+import { PredictButtonLink } from "@/components/predict/predict-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CloneAvatar } from "@/components/clone/clone-avatar";
 
@@ -33,13 +33,12 @@ export function WeakMemoryCloneCard({
             </p>
           </div>
         </div>
-        <ButtonLink
-          href="/train"
-          className="w-full"
-        >
-          <Brain className="mr-2 h-4 w-4" />
-          Answer training questions
-        </ButtonLink>
+        <div className="flex justify-center">
+          <PredictButtonLink href="/train" size="default">
+            <Brain className="h-4 w-4" />
+            Answer training questions
+          </PredictButtonLink>
+        </div>
         <p className="text-center text-xs text-muted-foreground">
           Complete at least 3 training memories, then regenerate your clone.
         </p>

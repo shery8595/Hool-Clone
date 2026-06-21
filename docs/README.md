@@ -10,6 +10,10 @@ This folder contains the planning and architecture documents for HoolClone, a Wo
 
 High-level explanation of what HoolClone is, why it fits the Walrus Memory World Cup challenge, who it is for, and what the MVP must prove.
 
+### [How It Works](./how-it-works.md)
+
+Operational guide: training, Walrus memory read/write, recall algorithms (RRF + rerank), match sync, Telegram live/post-match loops, and cron pipeline. **Start here** if you want to understand runtime behavior.
+
 ### [Architecture](./hoolclone-architecture.md)
 
 Full technical architecture covering system modules, memory architecture, data model, APIs, agent behavior, security, deployment, observability, testing, and demo strategy.
@@ -29,10 +33,11 @@ Likely technical, product, privacy, demo, and scope risks with practical mitigat
 ## Recommended Reading Order
 
 1. Read the project overview to understand the idea.
-2. Read the product design doc to understand the user experience.
-3. Read the architecture doc to understand the full system.
-4. Read the implementation plan to start building.
-5. Keep the risks doc open while cutting scope or preparing the demo.
+2. Read **[how it works](./how-it-works.md)** for training, memories, algorithms, and Telegram.
+3. Read the product design doc to understand the user experience.
+4. Read the architecture doc to understand the full system.
+5. Read the implementation plan to start building.
+6. Keep the risks doc open while cutting scope or preparing the demo.
 
 ## MVP North Star
 

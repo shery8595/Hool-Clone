@@ -110,34 +110,65 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
         .map((item) => item.blob_id)
         .filter((id): id is string => Boolean(id));
 
-      const memoryIdByBlob = new Map<string, string>();
+      const memoryMetaByBlob = new Map<
+        string,
+        {
+          id: string;
+          memory_type: string;
+          created_at: string;
+          metadata: Record<string, unknown>;
+        }
+      >();
       if (blobIds.length > 0) {
-        const rows = await query<{ id: string; walrus_blob_id: string }>(
-          `select id, metadata->>'walrusBlobId' as walrus_blob_id
+        const rows = await query<{
+          id: string;
+          memory_type: string;
+          created_at: Date;
+          metadata: Record<string, unknown>;
+          walrus_blob_id: string;
+        }>(
+          `select id, memory_type, created_at, metadata,
+                  metadata->>'walrusBlobId' as walrus_blob_id
            from memories
            where user_id = $1
-             and metadata->>'walrusBlobId' = any($2::text[])`,
+             and metadata->>'walrusBlobId' = any($2::text[])
+             and coalesce((metadata->>'disputed')::boolean, false) = false`,
           [userId, blobIds],
         );
         for (const row of rows) {
           if (row.walrus_blob_id) {
-            memoryIdByBlob.set(row.walrus_blob_id, row.id);
+            memoryMetaByBlob.set(row.walrus_blob_id, {
+              id: row.id,
+              memory_type: row.memory_type,
+              created_at: row.created_at.toISOString(),
+              metadata: row.metadata ?? {},
+            });
           }
         }
       }
 
-      return result.results.map((item) => ({
-        text: item.text,
-        score: distanceToScore(item.distance),
-        metadata: {
-          blobId: item.blob_id,
-          walrusNamespace: namespace,
-          source: "walrus",
-          memoryId: item.blob_id
-            ? memoryIdByBlob.get(item.blob_id)
-            : undefined,
-        },
-      }));
+      return result.results.map((item) => {
+        const rowMeta = item.blob_id
+          ? memoryMetaByBlob.get(item.blob_id)
+          : undefined;
+        const rowMetadata = rowMeta?.metadata ?? {};
+
+        return {
+          text: item.text,
+          score: distanceToScore(item.distance),
+          metadata: {
+            ...rowMetadata,
+            blobId: item.blob_id,
+            walrusNamespace: namespace,
+            backendSource: "walrus",
+            memoryId: rowMeta?.id,
+            memoryType: rowMeta?.memory_type,
+            createdAt: rowMeta?.created_at,
+            source: rowMetadata.source,
+            matchId: rowMetadata.matchId,
+          },
+        };
+      });
     } catch {
       return recallMemoriesLocal(userId, queryText);
     }

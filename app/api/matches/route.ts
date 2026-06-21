@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getMatchDataAdapter } from "@/lib/match-data";
+import { maybeSyncMatchResultsInDev } from "@/lib/match-data/dev-sync";
 
 export async function GET() {
   try {
+    await maybeSyncMatchResultsInDev();
     const adapter = getMatchDataAdapter();
     const matches = await adapter.listMatches();
     return NextResponse.json({ matches, count: matches.length });

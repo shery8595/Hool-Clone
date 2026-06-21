@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireUserId } from "@/lib/auth/require-user";
-import { storedMemoryToReceipt } from "@/lib/api/memory-mapper";
+import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import { getMemoryAdapter, getMemoryBackendLabel } from "@/lib/memory";
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
     const userId = await requireUserId();
     const adapter = getMemoryAdapter();
     const stored = await adapter.listMemories(userId);
-    const memories = stored.map(storedMemoryToReceipt);
+    const memories = storedMemoriesToReceipts(stored);
 
     return NextResponse.json({
       memories,

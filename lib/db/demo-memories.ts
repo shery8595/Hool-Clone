@@ -111,3 +111,86 @@ export const DEMO_MEMORIES: DemoMemorySeed[] = [
 export function getDemoNamespace(slug: string = DEMO_SLUG): string {
   return `hoolclone:demo:${slug}`;
 }
+
+export const RIVAL_SLUG = "hoolclone-rival";
+export const RIVAL_WALLET =
+  "0x0000000000000000000000000000000000000000000000000000000000demo02";
+
+/** Opposing Colombia-first fan for Clone Clash demos vs hoolclone-demo */
+export const RIVAL_MEMORIES: DemoMemorySeed[] = [
+  {
+    text: "Colombia are my team — Los Cafeteros play with heart every World Cup.",
+    type: "remembered",
+    metadata: { driver: "loyalty", team: "Colombia", source: "onboarding" },
+    daysAgo: 14,
+  },
+  {
+    text: "I pick underdogs with pace. Portugal slow down in heat — Colombia win.",
+    type: "remembered",
+    metadata: { driver: "chaos", team: "Colombia", source: "onboarding" },
+    daysAgo: 13,
+  },
+  {
+    text: "Stats say Portugal. My Walrus receipts say Colombia nick tight games.",
+    type: "remembered",
+    metadata: { driver: "vibes", team: "Colombia" },
+    daysAgo: 12,
+  },
+  {
+    text: "Portugal rely on Ronaldo nostalgia — I fade European favorites in Americas.",
+    type: "remembered",
+    metadata: { driver: "stats", team: "Portugal" },
+    daysAgo: 11,
+  },
+  {
+    text: "Physical South American teams beat technical European sides in group chaos.",
+    type: "remembered",
+    metadata: { driver: "loyalty", team: "Colombia" },
+    daysAgo: 10,
+  },
+  {
+    text: "Predicted Colombia 2-1 Portugal — James Rodríguez energy beats Ronaldo age.",
+    type: "used",
+    metadata: {
+      driver: "loyalty",
+      team: "Colombia",
+      source: "prediction",
+      matchId: "m071",
+    },
+    daysAgo: 6,
+  },
+  {
+    text: "Debate: argued Colombia press beats Portugal full-backs. Clone cited my chaos receipts.",
+    type: "remembered",
+    metadata: {
+      source: "debate_highlight",
+      exchangeCount: 3,
+      citedMemoryCount: 2,
+      topics: ["Colombia press", "Portugal aging"],
+    },
+    daysAgo: 4,
+  },
+  {
+    text: "User correction: I do respect Portugal in knockouts — but group stage Colombia is different.",
+    type: "correction",
+    metadata: { driver: "chaos", team: "Colombia", source: "correction" },
+    daysAgo: 3,
+  },
+  {
+    text: "COL vs POR: Colombia 2-1. Portugal sit deep, Colombia counter with pace.",
+    type: "used",
+    metadata: {
+      driver: "chaos",
+      team: "Colombia",
+      source: "prediction",
+      matchId: "m071",
+    },
+    daysAgo: 1,
+  },
+  {
+    text: "Portugal fans overrate group-stage form — Colombia are live underdogs.",
+    type: "inferred",
+    metadata: { driver: "stats", team: "Portugal" },
+    daysAgo: 1,
+  },
+];

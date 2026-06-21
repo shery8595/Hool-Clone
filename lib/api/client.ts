@@ -12,6 +12,7 @@ import type {
 } from "@/lib/mock/types";
 import type { DashboardData } from "@/lib/dashboard/types";
 import type { PublicProfileData } from "@/lib/db/public-profile-types";
+import type { ClashDebateResult, WalrusBlobProof } from "@/lib/clash/types";
 import { cacheKeys, fetchCached, invalidateCache } from "@/lib/api/data-cache";
 
 export type MeData = {
@@ -185,6 +186,59 @@ export async function completeOnboarding(): Promise<{ maturityLabel: CloneMaturi
   return parseJson(response);
 }
 
+export async function fetchTelegramLinkUrl(): Promise<{
+  url: string;
+  expiresIn: number;
+}> {
+  const response = await fetch("/api/telegram/link-token", {
+    method: "POST",
+    credentials: "include",
+  });
+  return parseJson(response);
+}
+
+export async function fetchTelegramStatus(): Promise<{
+  linked: boolean;
+  notificationsEnabled: boolean;
+}> {
+  const response = await fetchWithTimeout("/api/telegram/status", {
+    credentials: "include",
+  });
+  return parseJson(response);
+}
+
+export async function fetchTelegramHistory(): Promise<{
+  messages: Array<{
+    id: string;
+    matchId: string | null;
+    messageType: "live_goal" | "post_match_roast" | "post_match_congrats";
+    body: string;
+    metadata: Record<string, unknown>;
+    sentAt: string;
+    recallSource?: "walrus" | "postgres_fallback";
+    citedMemories: Array<{
+      id?: string;
+      text: string;
+      type?: string;
+      source?: string;
+      walrusBlobId?: string;
+      recallSource?: "walrus" | "postgres_fallback";
+    }>;
+    match: {
+      externalId: string;
+      teamACode: string | null;
+      teamBCode: string | null;
+      scoreA: number | null;
+      scoreB: number | null;
+    } | null;
+  }>;
+}> {
+  const response = await fetchWithTimeout("/api/telegram/history", {
+    credentials: "include",
+  });
+  return parseJson(response);
+}
+
 export async function fetchMemoriesRaw(): Promise<{
   memories: MemoryReceipt[];
   backend: "Local" | "Walrus";
@@ -253,6 +307,12 @@ export type PredictionHistoryItem = {
   prediction: Prediction;
   match: Match;
   savedAt: string;
+  matchResult?: {
+    status: string;
+    winner: string | null;
+    scoreA: number | null;
+    scoreB: number | null;
+  };
 };
 
 export async function fetchMatchPredictionRaw(
@@ -434,4 +494,32 @@ export async function submitCloneCorrection(
     body: JSON.stringify(input),
   });
   return parseJson(response);
+}
+
+export async function generateClashDebate(input: {
+  slugA: string;
+  slugB: string;
+  matchId: string;
+}): Promise<ClashDebateResult> {
+  const response = await fetchWithTimeout(
+    "/api/clash/generate",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+    },
+    90_000,
+  );
+  return parseJson<ClashDebateResult>(response);
+}
+
+export async function fetchWalrusBlobProof(
+  blobId: string,
+): Promise<WalrusBlobProof> {
+  const response = await fetchWithTimeout(
+    `/api/walrus/blobs/${encodeURIComponent(blobId)}`,
+    undefined,
+    20_000,
+  );
+  return parseJson<WalrusBlobProof>(response);
 }

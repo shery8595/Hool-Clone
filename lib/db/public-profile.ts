@@ -17,21 +17,69 @@ import {
   findLatestDisagreement,
 } from "@/lib/stats/user-analytics";
 import { computeMaturityProgress } from "@/lib/auth/maturity";
-import { storedMemoryToReceipt } from "@/lib/api/memory-mapper";
+import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import {
   huntContradictions,
   pickDashboardContradiction,
 } from "@/lib/clone/contradiction-hunter";
 import { buildMemoryTimeMachine } from "@/lib/clone/build-memory-time-machine";
+import { buildCloneAnalyticsBundle } from "@/lib/stats/clone-analytics";
 import { getOnboardingDrivers } from "@/lib/onboarding/service";
 import { getMatchDataAdapter } from "@/lib/match-data";
 import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
 import type { DebateHighlight, MemoryReceipt } from "@/lib/mock/types";
+import { memoryCountToMaturity } from "@/lib/auth/maturity";
 import { findUserById, getFanProfile, type DbUser } from "@/lib/db/users";
 import type { PublicProfileData } from "@/lib/db/public-profile-types";
+import type { ClashParticipantMeta } from "@/lib/clash/types";
 
 export type { PublicProfileData };
+
+export async function getPublicProfileIdsBySlug(
+  slug: string,
+): Promise<ClashParticipantMeta | null> {
+  const normalized = slug.trim();
+  if (!normalized) return null;
+
+  const row = await query<{
+    id: string;
+    display_name: string | null;
+    public_slug: string;
+    memwal_namespace: string;
+  }>(
+    `select u.id, u.display_name, u.public_slug, u.memwal_namespace
+     from users u
+     join fan_profiles fp on fp.user_id = u.id
+     where lower(u.public_slug) = lower($1) and fp.public_enabled = true`,
+    [normalized],
+  ).then((rows) => rows[0]);
+
+  if (!row) return null;
+
+  const [profile, memoryRows] = await Promise.all([
+    getFanProfile(row.id),
+    query<{ count: string }>(
+      `select count(*)::text as count from memories where user_id = $1`,
+      [row.id],
+    ),
+  ]);
+
+  const memoriesCount = Number(memoryRows[0]?.count ?? 0);
+  const { label } = memoryCountToMaturity(memoriesCount);
+
+  return {
+    userId: row.id,
+    slug: row.public_slug,
+    displayName: row.display_name ?? row.public_slug,
+    handle: row.public_slug,
+    maturityLabel: label,
+    namespace: row.memwal_namespace,
+    favoriteTeam: profile?.favorite_team ?? null,
+    rivalTeam: profile?.rival_team ?? null,
+    memoriesCount,
+  };
+}
 
 type MemoryRow = {
   id: string;
@@ -113,21 +161,18 @@ async function listPublicMemoryReceipts(
     [userId, limit],
   );
 
-  return rows.map((row, index) =>
-    storedMemoryToReceipt(
-      {
-        id: row.id,
-        type: row.memory_type,
-        text: row.text,
-        metadata: row.metadata ?? {},
-        storageStatus: row.storage_status,
-        publicVisible: row.public_visible,
-        createdAt: row.created_at.toISOString(),
-        questionId: row.question_id ?? undefined,
-      } satisfies StoredMemory,
-      index,
-    ),
-  );
+  const stored = rows.map((row) => ({
+    id: row.id,
+    type: row.memory_type,
+    text: row.text,
+    metadata: row.metadata ?? {},
+    storageStatus: row.storage_status,
+    publicVisible: row.public_visible,
+    createdAt: row.created_at.toISOString(),
+    questionId: row.question_id ?? undefined,
+  } satisfies StoredMemory));
+
+  return storedMemoriesToReceipts(stored);
 }
 
 function collectCloneReceipts(
@@ -221,6 +266,17 @@ export async function buildPublicProfile(
     cloneDisagreement,
   );
 
+  const cloneAnalytics = await buildCloneAnalyticsBundle({
+    joinedAt: user.created_at,
+    memories: chronologicalMemories,
+    profile,
+    history,
+    cloneByMatchId,
+    memoryDrivers,
+    memoryTexts: chronologicalMemories.map((m) => m.text),
+    walrusNamespace: user.memwal_namespace,
+  });
+
   return {
     slug,
     displayName,
@@ -262,6 +318,7 @@ export async function buildPublicProfile(
     topContradiction,
     contradictionCount: contradictionFindings.length,
     memoryTimeMachine: buildMemoryTimeMachine({
+      joinedAt: user.created_at,
       memoriesCount,
       profile,
       history,
@@ -271,5 +328,6 @@ export async function buildPublicProfile(
       memoryDrivers,
     }),
     debateHighlights,
+    cloneAnalytics,
   };
 }

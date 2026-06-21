@@ -127,3 +127,30 @@ create table if not exists telegram_chats (
 );
 
 create index if not exists idx_telegram_chats_chat_id on telegram_chats(chat_id);
+
+create table if not exists telegram_live_events (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid not null references matches(id) on delete cascade,
+  score_a integer not null,
+  score_b integer not null,
+  scoring_team_code text,
+  occurred_at timestamptz not null default now(),
+  unique (match_id, score_a, score_b)
+);
+
+create index if not exists idx_telegram_live_events_match_id on telegram_live_events(match_id);
+
+create table if not exists telegram_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  chat_id bigint not null,
+  match_id uuid references matches(id) on delete set null,
+  message_type text not null,
+  body text not null,
+  metadata jsonb not null default '{}',
+  telegram_message_id bigint,
+  sent_at timestamptz not null default now()
+);
+
+create index if not exists idx_telegram_messages_user_id on telegram_messages(user_id);
+create index if not exists idx_telegram_messages_sent_at on telegram_messages(sent_at desc);

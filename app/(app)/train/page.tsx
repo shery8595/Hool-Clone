@@ -9,6 +9,7 @@ import { CloneAvatar } from "@/components/clone/clone-avatar";
 import { MascotSpeechBubble } from "@/components/train/mascot-speech-bubble";
 import { TrainingProgress } from "@/components/train/training-progress";
 import { StoredMemoryBanner } from "@/components/train/stored-memory-banner";
+import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { TrainingQuestionCard } from "@/components/train/training-question-card";
 import {
   completeOnboarding,
@@ -192,14 +193,17 @@ export default function TrainPage() {
           {storedSummary && <StoredMemoryBanner summary={storedSummary} />}
 
           {completed ? (
-            <div className="rounded-xl bg-hoolclone-green-100/60 p-6 text-center">
-              <p className="font-semibold text-hoolclone-green-900">
-                All {questions.length} questions answered
-              </p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Your clone maturity is now {maturity}. Head to Memory to review
-                receipts or Predict to test your clone.
-              </p>
+            <div className="space-y-4">
+              <div className="rounded-xl bg-hoolclone-green-100/60 p-6 text-center">
+                <p className="font-semibold text-hoolclone-green-900">
+                  All {questions.length} questions answered
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Your clone maturity is now {maturity}. Head to Memory to review
+                  receipts or Predict to test your clone.
+                </p>
+              </div>
+              <TelegramConnectCard />
             </div>
           ) : question ? (
             <>

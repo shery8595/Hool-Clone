@@ -25,7 +25,7 @@ export function RecallSourceBadge({ source, className }: RecallSourceBadgeProps)
       ) : (
         <HardDrive className="h-3 w-3" />
       )}
-      {isWalrus ? "Recalled from Walrus" : "Postgres fallback recall"}
+      {isWalrus ? "Walrus: Verified recall" : "Postgres fallback recall"}
     </span>
   );
 }

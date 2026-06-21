@@ -4,6 +4,7 @@ import { Wallet } from "lucide-react";
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { Button } from "@/components/ui/button";
 import { truncateAddress } from "@/lib/mock/demo-user";
+import { suiWalletFilter } from "@/lib/wallet/config";
 import { useUser } from "@/components/providers/user-provider";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +35,7 @@ export function WalletButton() {
         )}
         aria-hidden={connected}
       >
-        <ConnectButton />
+        <ConnectButton connectText="Connect wallet" walletFilter={suiWalletFilter} />
       </div>
     </div>
   );

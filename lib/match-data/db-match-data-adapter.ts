@@ -10,6 +10,11 @@ const MATCH_LIST_TTL_MS = 60_000;
 let cachedMatches: Match[] | null = null;
 let cachedMatchesAt = 0;
 
+export function invalidateMatchDataCache(): void {
+  cachedMatches = null;
+  cachedMatchesAt = 0;
+}
+
 export class DbMatchDataAdapter implements MatchDataAdapter {
   async listMatches(): Promise<Match[]> {
     const now = Date.now();

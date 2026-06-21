@@ -1,4 +1,4 @@
-export type TimeMachinePhaseId = "day1" | "day3" | "day7";
+export type TimeMachinePhaseId = "day1" | "day3" | "day4" | "day7";
 
 export type TimeMachineReceipt = {
   summary: string;
@@ -18,6 +18,7 @@ export type TimeMachineSnapshot = {
   confidence: number;
   receipts: TimeMachineReceipt[];
   traits: string[];
+  knowledgeBullets: string[];
 };
 
 export type MemoryTimeMachine = {

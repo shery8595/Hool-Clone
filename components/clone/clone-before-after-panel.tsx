@@ -3,12 +3,13 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CloneAvatar, MaturityBadge } from "@/components/clone/clone-avatar";
-import type { MemoryTimeMachine } from "@/lib/clone/memory-time-machine-types";
+import type { MemoryTimeMachine, TimeMachinePhaseId } from "@/lib/clone/memory-time-machine-types";
 import type { CloneMaturity } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
 
 type CloneBeforeAfterPanelProps = {
   data: MemoryTimeMachine;
+  comparePhase?: TimeMachinePhaseId;
   className?: string;
 };
 
@@ -37,14 +38,22 @@ function JudgeColumn({
         <CloneAvatar size="sm" />
         <MaturityBadge maturity={phase.maturityLabel as CloneMaturity} />
       </div>
+      <p className="mt-2 text-sm font-semibold text-hoolclone-green-800">
+        Confidence: {phase.confidence}%
+      </p>
+      <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+        {phase.knowledgeBullets.map((bullet) => (
+          <li key={bullet} className="flex gap-2">
+            <span className="text-hoolclone-green-700">·</span>
+            {bullet}
+          </li>
+        ))}
+      </ul>
       <p className="mt-3 text-2xl font-bold text-hoolclone-green-900">
         {phase.prediction}
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         {phase.reasoning}
-      </p>
-      <p className="mt-3 text-xs text-muted-foreground">
-        {phase.memoryCount} memories · {phase.confidence}% confidence
       </p>
     </div>
   );
@@ -52,11 +61,19 @@ function JudgeColumn({
 
 export function CloneBeforeAfterPanel({
   data,
+  comparePhase = "day7",
   className,
 }: CloneBeforeAfterPanelProps) {
   const day1 = data.phases.find((phase) => phase.id === "day1");
-  const day7 = data.phases.find((phase) => phase.id === "day7");
-  if (!day1 || !day7) return null;
+  const after = data.phases.find((phase) => phase.id === comparePhase);
+  if (!day1 || !after) return null;
+
+  const afterLabel =
+    comparePhase === "day4"
+      ? "Day 4 · Imitator clone"
+      : comparePhase === "day3"
+        ? "Day 3 · Learner clone"
+        : "Day 7 · Full HoolClone";
 
   return (
     <Card className={cn("rounded-2xl border-0 shadow-sm", className)}>
@@ -67,7 +84,7 @@ export function CloneBeforeAfterPanel({
         </CardTitle>
         <p className="text-sm text-muted-foreground">
           Same matchup ({data.matchLabel}): how your clone reasons with almost
-          no memory vs. a week of Walrus-backed training.
+          no memory vs. days of Walrus-backed training.
         </p>
       </CardHeader>
       <CardContent>
@@ -77,11 +94,7 @@ export function CloneBeforeAfterPanel({
             <ArrowRight className="hidden h-6 w-6 lg:block" />
             <span className="text-xs font-semibold lg:hidden">evolves into</span>
           </div>
-          <JudgeColumn
-            phase={day7}
-            label="Day 7 · Full HoolClone"
-            accent="highlight"
-          />
+          <JudgeColumn phase={after} label={afterLabel} accent="highlight" />
         </div>
       </CardContent>
     </Card>

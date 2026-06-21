@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AuthError, requireUser } from "@/lib/auth/require-user";
+import { rememberPredictionSubmission } from "@/lib/clone/remember-prediction";
 import {
   getUserPredictionForMatch,
   upsertPrediction,
 } from "@/lib/db/predictions";
 import { getMatchDataAdapter } from "@/lib/match-data";
-
 type RouteContext = { params: Promise<{ matchId: string }> };
 
 const bodySchema = z.object({
@@ -59,8 +59,24 @@ export async function POST(request: Request, context: RouteContext) {
     }
 
     const prediction = await upsertPrediction(me.id, matchId, body);
-    return NextResponse.json({ prediction });
-  } catch (error) {
+
+    try {
+      await rememberPredictionSubmission(me.id, match, {
+        winner: body.winner,
+        homeScore: body.homeScore,
+        awayScore: body.awayScore,
+        confidence: body.confidence,
+        reasoning: body.reasoning,
+        emotion: body.emotion,
+      });
+    } catch (memoryError) {
+      console.error(
+        "POST /api/matches/[matchId]/prediction memory write",
+        memoryError,
+      );
+    }
+
+    return NextResponse.json({ prediction });  } catch (error) {
     if (error instanceof AuthError) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

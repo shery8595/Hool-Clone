@@ -2,13 +2,17 @@
 
 import { useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
+import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
+import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
+import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
 import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
 import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
 import { CloneStatusCard } from "@/components/clone/clone-status-card";
 import { HumanVsClonePanel } from "@/components/clone/human-vs-clone-panel";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
+import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { MatchCard } from "@/components/match/match-card";
 import { MemoryReceiptList } from "@/components/memory/memory-receipt-list";
 import { cacheKeys } from "@/lib/api/data-cache";
@@ -16,6 +20,7 @@ import { fetchDashboardRaw } from "@/lib/api/client";
 import { buildDashboardFallback } from "@/lib/dashboard/dashboard-fallback";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
+import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { useUser } from "@/components/providers/user-provider";
 
 export default function DashboardPage() {
@@ -73,6 +78,7 @@ export default function DashboardPage() {
     biasRadarReady,
     contradiction,
     memoryTimeMachine,
+    cloneAnalytics,
   } = dashboard;
 
   return (
@@ -92,9 +98,23 @@ export default function DashboardPage() {
         predictionsCount={stats.predictionsCount}
       />
 
+      <CloneMoodBadge mood={cloneAnalytics.cloneMood} />
+
+      {stats.memoriesCount >= 3 && (
+        <TelegramConnectCard variant="compact" />
+      )}
+
       {memoryTimeMachine && (
         <>
-          <CloneBeforeAfterPanel data={memoryTimeMachine} />
+          {me.publicSlug && (
+            <Link
+              href={`/u/${me.publicSlug}/evolution`}
+              className="block rounded-xl border border-hoolclone-yellow-300 bg-hoolclone-yellow-50 px-4 py-3 text-center text-sm font-semibold text-hoolclone-green-900 hover:bg-hoolclone-yellow-100"
+            >
+              See your clone evolve (Day 1 → Day 4) →
+            </Link>
+          )}
+          <CloneBeforeAfterPanel data={memoryTimeMachine} comparePhase="day4" />
           <MemoryTimeMachine data={memoryTimeMachine} />
         </>
       )}
@@ -174,6 +194,20 @@ export default function DashboardPage() {
           predictionsCount={stats.predictionsCount}
         />
       </div>
+
+      <ContradictionScoreCard
+        contradictions={cloneAnalytics.temporalContradictions}
+        consistencyScore={cloneAnalytics.consistencyScore}
+        totalCount={
+          cloneAnalytics.temporalContradictions.length +
+          (dashboard.contradictionCount ?? 0)
+        }
+        roastLine={contradiction?.text}
+      />
+
+      <CloneDriftChart data={cloneAnalytics.driftSeries} />
+
+      <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
 
       {biasRadarReady ? (
         <BiasRadarChart

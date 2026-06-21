@@ -1,9 +1,16 @@
-import { ArrowRight, CalendarDays, MapPin, Target } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, MapPin, Radio, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button-link";
+import { PredictButtonLink } from "@/components/predict/predict-button";
 import type { Match, Team } from "@/lib/mock/types";
 import { formatKickoff } from "@/lib/mock/demo-user";
 import { formatMatchTitle, formatVenueLine } from "@/lib/mock/matches";
+import {
+  formatFinalScore,
+  isMatchFinished,
+  isMatchLive,
+  winnerTeamName,
+} from "@/lib/match-data/match-status";
 import { cn } from "@/lib/utils";
 import { TeamFlag } from "./team-flag";
 
@@ -195,35 +202,88 @@ function TeamBlock({
 
 export function MatchListCard({ match }: { match: Match }) {
   const canPredict = Boolean(match.homeTeam && match.awayTeam);
+  const finished = isMatchFinished(match);
+  const live = isMatchLive(match);
+  const scoreLine = formatFinalScore(match);
+  const winner = winnerTeamName(match);
 
   return (
-    <Card className="rounded-2xl border-0 shadow-sm transition-shadow hover:shadow-md">
+    <Card
+      className={cn(
+        "rounded-2xl border shadow-sm transition-shadow hover:shadow-md",
+        finished && "border-muted bg-muted/20",
+        live && "border-hoolclone-yellow-300/80 bg-hoolclone-yellow-50/30",
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-medium text-muted-foreground">
             #{match.matchNumber} · {match.stage}
           </p>
+          {finished && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+              <CheckCircle2 className="h-3 w-3" />
+              Full time
+            </span>
+          )}
+          {live && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-hoolclone-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-hoolclone-yellow-800">
+              <Radio className="h-3 w-3" />
+              Live
+            </span>
+          )}
         </div>
+
         <div className="mt-2">
-          <MatchTeamsDisplay match={match} size="lg" />
+          {finished && scoreLine && match.homeTeam && match.awayTeam ? (
+            <div className="flex items-center justify-center gap-3 py-2">
+              <ScoreTeam team={match.homeTeam} score={match.homeScore!} won={match.winnerCode === match.homeTeam.code} />
+              <span className="text-lg font-bold tabular-nums text-muted-foreground">–</span>
+              <ScoreTeam team={match.awayTeam} score={match.awayScore!} won={match.winnerCode === match.awayTeam.code} align="right" />
+            </div>
+          ) : (
+            <MatchTeamsDisplay match={match} size="lg" />
+          )}
         </div>
+
         <p className="mt-2 text-center text-xs font-medium">
           {formatMatchTitle(match)}
         </p>
+
+        {finished && winner && (
+          <p className="mt-1 text-center text-xs font-semibold text-hoolclone-green-800">
+            {winner} win
+          </p>
+        )}
+
         <p className="mt-1 text-center text-xs text-muted-foreground">
           {formatKickoff(match.kickoffAt)}
         </p>
         <p className="mt-0.5 text-center text-[10px] text-muted-foreground">
           {formatVenueLine(match)}
         </p>
-        {canPredict ? (
-          <ButtonLink
-            href={`/predict/${match.id}`}
-            className="mt-4 w-full"
-            size="sm"
-          >
-            Predict
-          </ButtonLink>
+
+        {canPredict && !finished ? (
+          <div className="mt-3 flex justify-center">
+            <PredictButtonLink
+              href={`/predict/${match.id}`}
+              size="sm"
+              variant={live ? "accent" : "default"}
+            >
+              {live ? "Predict live" : "Predict"}
+            </PredictButtonLink>
+          </div>
+        ) : finished ? (
+          <div className="mt-3 flex justify-center">
+            <PredictButtonLink
+              href={`/predict/${match.id}`}
+              variant="outline"
+              size="sm"
+            >
+              View result
+              <ArrowRight className="h-3.5 w-3.5" />
+            </PredictButtonLink>
+          </div>
         ) : (
           <p className="mt-4 text-center text-xs text-muted-foreground">
             Teams TBD
@@ -231,5 +291,44 @@ export function MatchListCard({ match }: { match: Match }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function ScoreTeam({
+  team,
+  score,
+  won,
+  align = "left",
+}: {
+  team: Team;
+  score: number;
+  won: boolean;
+  align?: "left" | "right";
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 flex-1 flex-col items-center gap-1.5",
+        align === "right" && "items-center",
+      )}
+    >
+      <TeamFlag team={team} size="md" />
+      <span
+        className={cn(
+          "max-w-[5.5rem] truncate text-center text-xs font-semibold",
+          won ? "text-hoolclone-green-900" : "text-muted-foreground",
+        )}
+      >
+        {team.name}
+      </span>
+      <span
+        className={cn(
+          "text-2xl font-bold tabular-nums",
+          won ? "text-hoolclone-green-900" : "text-foreground/70",
+        )}
+      >
+        {score}
+      </span>
+    </div>
   );
 }

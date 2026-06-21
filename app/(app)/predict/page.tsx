@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Target } from "lucide-react";
+import { MatchBrowseGrid, MatchSummaryStats, partitionMatches } from "@/components/match/match-schedule-sections";
 import { MatchListCard } from "@/components/match/match-card";
 import { PredictionHistory } from "@/components/match/prediction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,12 +12,12 @@ import {
   fetchPredictionHistoryRaw,
 } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
+import { useIntervalRefresh } from "@/lib/hooks/use-interval-refresh";
 import type { Match } from "@/lib/mock/types";
-import {
-  getGroupMatches,
-  matches as mockMatches,
-} from "@/lib/mock/matches";
+import { matches as mockMatches } from "@/lib/mock/matches";
 import { useUser } from "@/components/providers/user-provider";
+
+const MATCH_POLL_MS = 60_000;
 
 const GROUPS = "ABCDEFGHIJKL".split("");
 
@@ -34,7 +35,7 @@ export default function PredictListPage() {
   const initialMatches =
     peekCached<Match[]>(cacheKeys.matches()) ?? mockMatches;
 
-  const { data: matches = initialMatches, hydrating: matchesHydrating } =
+  const { data: matches = initialMatches, hydrating: matchesHydrating, refresh: refreshMatches } =
     useCachedData(cacheKeys.matches(), fetchMatchesRaw, initialMatches);
 
   const { data: history = [], hydrating: historyHydrating } = useCachedData(
@@ -42,6 +43,18 @@ export default function PredictListPage() {
     fetchPredictionHistoryRaw,
     [],
   );
+
+  const { upcoming, finished, live } = useMemo(
+    () => partitionMatches(matches),
+    [matches],
+  );
+
+  const needsMatchPoll = useMemo(
+    () => live.length > 0 || matches.some((m) => m.status === "live"),
+    [live.length, matches],
+  );
+
+  useIntervalRefresh(refreshMatches, MATCH_POLL_MS, needsMatchPoll);
 
   const knockoutByStage = useMemo(() => {
     const r32 = matches.filter((m) => m.stage === "Round of 32");
@@ -54,77 +67,156 @@ export default function PredictListPage() {
     return { r32, r16, qf, sf, finals };
   }, [matches]);
 
+  const groupMatchesFor = (g: string) =>
+    matches.filter((m) => m.group === g);
+
   const showMockLayout =
     matchesHydrating && initialMatches === mockMatches;
-
-  const groupMatchesFor = (g: string) =>
-    showMockLayout ? getGroupMatches(g) : matches.filter((m) => m.group === g);
-
   const syncing = matchesHydrating || historyHydrating;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center gap-2">
-        <Target className="h-6 w-6 text-hoolclone-green-700" />
-        <div>
-          <h1 className="text-2xl font-bold">Predict Match</h1>
-          <p className="text-sm text-muted-foreground">
-            Official FIFA World Cup 2026 schedule · {matches.length} matches ·
-            48 nations
-            {showMockLayout && " · showing schedule preview (syncing live data...)"}
-            {syncing && !showMockLayout && " · Syncing..."}
-          </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Target className="h-6 w-6 text-hoolclone-green-700" />
+          <div>
+            <h1 className="text-2xl font-bold">Predict Match</h1>
+            <p className="text-sm text-muted-foreground">
+              Official FIFA World Cup 2026 schedule · {matches.length} matches ·
+              48 nations
+              {showMockLayout && " · showing schedule preview (syncing live data...)"}
+              {syncing && !showMockLayout && " · Syncing..."}
+            </p>
+          </div>
         </div>
+        <MatchSummaryStats matches={matches} />
       </div>
 
       <PredictionHistory items={history} />
 
-      <Tabs defaultValue="group-A">
-        <TabsList className="flex h-auto max-h-32 flex-wrap gap-1 overflow-y-auto">
-          {GROUPS.map((g) => (
-            <TabsTrigger key={g} value={`group-${g}`}>
-              Group {g}
-            </TabsTrigger>
-          ))}
-          {KNOCKOUT_TABS.map(({ id, label }) => (
-            <TabsTrigger key={id} value={id}>
-              {label}
-            </TabsTrigger>
-          ))}
+      <Tabs defaultValue="upcoming">
+        <TabsList className="mb-4 grid h-auto w-full max-w-md grid-cols-3">
+          <TabsTrigger value="upcoming">
+            Upcoming
+            {upcoming.length > 0 && (
+              <span className="ml-1 rounded-full bg-hoolclone-green-100 px-1.5 text-[10px] font-bold tabular-nums">
+                {upcoming.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="results">
+            Results
+            {finished.length > 0 && (
+              <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] font-bold tabular-nums">
+                {finished.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="browse">Browse</TabsTrigger>
         </TabsList>
 
-        {GROUPS.map((g) => (
-          <TabsContent key={g} value={`group-${g}`} className="mt-4">
-            <MatchGrid matches={groupMatchesFor(g)} />
-          </TabsContent>
-        ))}
+        <TabsContent value="upcoming" className="mt-0 space-y-6">
+          {upcoming.length === 0 && live.length === 0 ? (
+            <p className="rounded-2xl border border-dashed bg-white px-6 py-12 text-center text-sm text-muted-foreground">
+              No upcoming fixtures — check Results for completed matches.
+            </p>
+          ) : (
+            <>
+              {live.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-hoolclone-yellow-800">
+                    Live now
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {live.map((match) => (
+                      <MatchListCard key={match.id} match={match} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {upcoming.length > 0 && (
+                <>
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Next up
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {upcoming.slice(0, 3).map((match) => (
+                        <MatchListCard key={match.id} match={match} />
+                      ))}
+                    </div>
+                  </div>
+                  {upcoming.length > 3 && (
+                    <div>
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Later
+                      </p>
+                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {upcoming.slice(3).map((match) => (
+                          <MatchListCard key={match.id} match={match} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </TabsContent>
 
-        <TabsContent value="r32" className="mt-4">
-          <MatchGrid matches={knockoutByStage.r32} />
+        <TabsContent value="results" className="mt-0">
+          {finished.length === 0 ? (
+            <p className="rounded-2xl border border-dashed bg-white px-6 py-12 text-center text-sm text-muted-foreground">
+              No completed matches yet. Final scores appear here after full time.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {finished.map((match) => (
+                <MatchListCard key={match.id} match={match} />
+              ))}
+            </div>
+          )}
         </TabsContent>
-        <TabsContent value="r16" className="mt-4">
-          <MatchGrid matches={knockoutByStage.r16} />
-        </TabsContent>
-        <TabsContent value="qf" className="mt-4">
-          <MatchGrid matches={knockoutByStage.qf} />
-        </TabsContent>
-        <TabsContent value="sf" className="mt-4">
-          <MatchGrid matches={knockoutByStage.sf} />
-        </TabsContent>
-        <TabsContent value="final" className="mt-4">
-          <MatchGrid matches={knockoutByStage.finals} />
+
+        <TabsContent value="browse" className="mt-0 space-y-4">
+          <Tabs defaultValue="group-A">
+            <TabsList className="flex h-auto max-h-32 flex-wrap gap-1 overflow-y-auto">
+              {GROUPS.map((g) => (
+                <TabsTrigger key={g} value={`group-${g}`}>
+                  Group {g}
+                </TabsTrigger>
+              ))}
+              {KNOCKOUT_TABS.map(({ id, label }) => (
+                <TabsTrigger key={id} value={id}>
+                  {label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {GROUPS.map((g) => (
+              <TabsContent key={g} value={`group-${g}`} className="mt-4">
+                <MatchBrowseGrid matches={groupMatchesFor(g)} />
+              </TabsContent>
+            ))}
+
+            <TabsContent value="r32" className="mt-4">
+              <MatchBrowseGrid matches={knockoutByStage.r32} />
+            </TabsContent>
+            <TabsContent value="r16" className="mt-4">
+              <MatchBrowseGrid matches={knockoutByStage.r16} />
+            </TabsContent>
+            <TabsContent value="qf" className="mt-4">
+              <MatchBrowseGrid matches={knockoutByStage.qf} />
+            </TabsContent>
+            <TabsContent value="sf" className="mt-4">
+              <MatchBrowseGrid matches={knockoutByStage.sf} />
+            </TabsContent>
+            <TabsContent value="final" className="mt-4">
+              <MatchBrowseGrid matches={knockoutByStage.finals} />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function MatchGrid({ matches: list }: { matches: Match[] }) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {list.map((match) => (
-        <MatchListCard key={match.id} match={match} />
-      ))}
     </div>
   );
 }

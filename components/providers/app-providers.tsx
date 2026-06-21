@@ -29,9 +29,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork={defaultNetwork}>
         <WalletProvider
-          autoConnect
+          autoConnect={false}
           preferredWallets={PREFERRED_SUI_WALLETS}
           walletFilter={suiWalletFilter}
+          slushWallet={{ name: "HoolClone" }}
         >
           <UserProvider>{children}</UserProvider>
         </WalletProvider>

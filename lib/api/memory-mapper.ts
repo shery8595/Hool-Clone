@@ -1,4 +1,9 @@
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
+import {
+  buildLineageContextFromMemories,
+  buildMemoryLineage,
+  type MemoryLineageContext,
+} from "@/lib/api/memory-lineage";
 import type { MemoryReceipt, RecallSource } from "@/lib/mock/types";
 
 function metadataString(
@@ -22,6 +27,7 @@ function metadataRecallSource(
 export function storedMemoryToReceipt(
   memory: StoredMemory,
   index: number,
+  context?: MemoryLineageContext,
 ): MemoryReceipt {
   const metadata = memory.metadata ?? {};
   const metadataType = metadata.source;
@@ -36,12 +42,15 @@ export function storedMemoryToReceipt(
           ? "inferred"
           : "remembered";
 
+  const matchId = metadataString(metadata, "matchId");
+
   return {
     id: memory.id,
     number: index + 1,
     type,
     text: memory.text,
     date: memory.createdAt,
+    matchContext: matchId ? `Match ${matchId}` : undefined,
     publicVisible: memory.publicVisible,
     usedInPrediction: type === "used",
     storageStatus: memory.storageStatus as
@@ -53,5 +62,15 @@ export function storedMemoryToReceipt(
     walrusNamespace: metadataString(metadata, "walrusNamespace"),
     walrusJobId: metadataString(metadata, "walrusJobId"),
     recallSource: metadataRecallSource(metadata),
+    lineage: buildMemoryLineage(memory, context),
   };
+}
+
+export function storedMemoriesToReceipts(
+  memories: StoredMemory[],
+): MemoryReceipt[] {
+  const context = buildLineageContextFromMemories(memories);
+  return memories.map((memory, index) =>
+    storedMemoryToReceipt(memory, index, context),
+  );
 }

@@ -26,6 +26,7 @@ import {
   setNotificationsEnabled,
   setPendingLink,
 } from "@/lib/telegram/link-account";
+import { verifyTelegramLinkToken } from "@/lib/telegram/link-token";
 import { buildRoastMessage } from "@/lib/telegram/roast";
 
 let bot: Bot | null = null;
@@ -44,13 +45,51 @@ export function getTelegramBot(): Bot | null {
 
 function registerHandlers(instance: Bot): void {
   instance.command("start", async (ctx) => {
+    const payload = ctx.match?.trim() ?? "";
+
+    if (payload.startsWith("link_")) {
+      const token = payload.slice("link_".length);
+      try {
+        const { userId } = await verifyTelegramLinkToken(token);
+        await linkChatToUser(userId, ctx.chat.id, {
+          enableNotifications: true,
+        });
+
+        const me = await buildMeResponse(userId);
+        const evolutionUrl =
+          me?.publicSlug && me.profile.publicEnabled
+            ? `${getAppUrl()}/u/${me.publicSlug}/evolution`
+            : null;
+
+        const lines = [
+          `Linked as ${me?.displayName ?? "HoolClone fan"}!`,
+          "Match alerts are ON.",
+          "Your clone will DM you after every result — congrats or roast, with Walrus receipts.",
+          "/notifications off — mute alerts",
+          "/roast — get roasted on demand",
+        ];
+        if (evolutionUrl) {
+          lines.push(`Evolution: ${evolutionUrl}`);
+        }
+
+        await ctx.reply(lines.join("\n"));
+      } catch (error) {
+        await ctx.reply(
+          error instanceof Error
+            ? `Link failed: ${error.message}. Request a new link from the web app.`
+            : "Link failed. Request a new link from the web app.",
+        );
+      }
+      return;
+    }
+
     const linked = await findUserByChatId(ctx.chat.id);
     if (linked) {
       const profile = await getFanProfile(linked.userId);
       const count = await countMemories(linked.userId);
       const maturity = memoryCountToMaturity(count);
       await ctx.reply(
-        `HoolClone linked.\nMaturity: ${maturity.label}\nFavorite: ${profile?.favorite_team ?? "unknown"}\n\n/roast — get roasted\n/predict m071 — your picks\n/notifications on — post-loss DMs`,
+        `HoolClone linked.\nMaturity: ${maturity.label}\nFavorite: ${profile?.favorite_team ?? "unknown"}\n\n/roast — get roasted\n/predict m071 — your picks\n/notifications on|off — match alerts`,
       );
       return;
     }
@@ -152,7 +191,7 @@ function registerHandlers(instance: Bot): void {
 
     await ctx.reply(
       arg === "on"
-        ? "Post-loss roasts enabled. Your clone will DM you when your team or pick loses."
+        ? "Match alerts enabled. Your clone will DM you after every result — congrats or roast."
         : "Notifications off.",
     );
   });

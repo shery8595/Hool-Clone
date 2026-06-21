@@ -9,6 +9,7 @@ import {
   Target,
   User,
   Brain,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { prefetchRoute } from "@/lib/api/prefetch";
@@ -17,11 +18,12 @@ import { WalrusMemoryBadge } from "./walrus-memory-badge";
 import { useUser } from "@/components/providers/user-provider";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/train", label: "Train", icon: Brain },
   { href: "/predict", label: "Predict", icon: Target },
   { href: "/debate", label: "Debate", icon: MessageCircle },
   { href: "/memory", label: "Memory", icon: Database },
+  { href: "/telegram-history", label: "Telegram", icon: History },
 ];
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -41,7 +43,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col bg-hoolclone-green-900 pitch-pattern text-white">
       <div className="border-b border-white/10 px-5 py-6">
-        <Link href="/" onClick={onNavigate}>
+        <Link href="/dashboard" onClick={onNavigate}>
           <HoolCloneLogo size="md" showWordmark />
         </Link>
       </div>
@@ -49,8 +51,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 space-y-1 px-3 py-4">
         {allNavItems.map(({ href, label, icon: Icon }) => {
           const active =
-            href === "/"
-              ? pathname === "/"
+            href === "/dashboard"
+              ? pathname === "/dashboard"
               : pathname === href || pathname.startsWith(`${href}/`);
 
           return (

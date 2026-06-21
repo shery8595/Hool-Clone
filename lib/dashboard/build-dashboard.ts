@@ -1,10 +1,10 @@
-import { storedMemoryToReceipt } from "@/lib/api/memory-mapper";
+import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import {
   huntContradictions,
   pickDashboardContradiction,
 } from "@/lib/clone/contradiction-hunter";
 import { buildMemoryTimeMachine } from "@/lib/clone/build-memory-time-machine";
-import { buildMeResponse, getFanProfile } from "@/lib/db/users";
+import { buildMeResponse, findUserById, getFanProfile } from "@/lib/db/users";
 import { listClonePredictionsForUser } from "@/lib/db/clone-predictions";
 import {
   listMemoriesChronologicalForUser,
@@ -23,15 +23,17 @@ import {
   findLatestComparison,
   findLatestDisagreement,
 } from "@/lib/stats/user-analytics";
+import { buildCloneAnalyticsBundle } from "@/lib/stats/clone-analytics";
 import type { DashboardData } from "@/lib/dashboard/types";
 
 export type { DashboardData };
 
 export async function buildDashboard(userId: string): Promise<DashboardData | null> {
-  const [me, fanProfile, matches, history, cloneByMatchId, recentStored, chronologicalMemories, onboardingDrivers] =
+  const [me, fanProfile, userRow, matches, history, cloneByMatchId, recentStored, chronologicalMemories, onboardingDrivers] =
     await Promise.all([
       buildMeResponse(userId),
       getFanProfile(userId),
+      findUserById(userId),
       getMatchDataAdapter().listMatches(),
       listUserPredictions(userId),
       listClonePredictionsForUser(userId),
@@ -52,7 +54,15 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
     matches.find((m) => m.homeTeam && m.awayTeam) ??
     null;
 
-  const recentMemories = recentStored.map(storedMemoryToReceipt);
+  const receiptById = new Map(
+    storedMemoriesToReceipts(chronologicalMemories).map((receipt) => [
+      receipt.id,
+      receipt,
+    ]),
+  );
+  const recentMemories = recentStored
+    .map((memory) => receiptById.get(memory.id))
+    .filter((receipt): receipt is NonNullable<typeof receipt> => Boolean(receipt));
   const comparisons = buildPredictionComparisonsFromHistory(
     history,
     cloneByMatchId,
@@ -79,6 +89,18 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
     (profile.favoriteTeam
       ? `Loyal to ${profile.favoriteTeam} — still learning the rest.`
       : null);
+
+  const joinedAt = userRow?.created_at ?? new Date();
+  const cloneAnalytics = await buildCloneAnalyticsBundle({
+    joinedAt,
+    memories: chronologicalMemories,
+    profile: fanProfile,
+    history,
+    cloneByMatchId,
+    memoryDrivers,
+    memoryTexts: chronologicalMemories.map((m) => m.text),
+    walrusNamespace: userRow?.memwal_namespace,
+  });
 
   return {
     featuredMatch,
@@ -111,6 +133,7 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
     contradiction,
     contradictionCount: contradictionFindings.length,
     memoryTimeMachine: buildMemoryTimeMachine({
+      joinedAt,
       memoriesCount: me.profile.memoriesCount,
       profile: fanProfile,
       history,
@@ -119,5 +142,6 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
       chronologicalMemories,
       memoryDrivers,
     }),
+    cloneAnalytics,
   };
 }

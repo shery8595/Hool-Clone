@@ -34,7 +34,13 @@ type DbPredictionRow = {
   updated_at: Date;
 };
 
-type JoinedRow = DbPredictionRow & Omit<DbMatchRow, "id"> & { match_row_id: string };
+type JoinedRow = DbPredictionRow &
+  Omit<DbMatchRow, "id"> & {
+    match_row_id: string;
+    winner: string | null;
+    score_a: number | null;
+    score_b: number | null;
+  };
 
 function joinedRowToMatchRow(row: JoinedRow): DbMatchRow {
   return {
@@ -50,6 +56,9 @@ function joinedRowToMatchRow(row: JoinedRow): DbMatchRow {
     city: row.city,
     kickoff_at: row.kickoff_at,
     status: row.status,
+    score_a: row.score_a,
+    score_b: row.score_b,
+    winner: row.winner,
     featured: row.featured,
   };
 }
@@ -58,6 +67,12 @@ export type PredictionHistoryItem = {
   prediction: Prediction;
   match: Match;
   savedAt: string;
+  matchResult?: {
+    status: string;
+    winner: string | null;
+    scoreA: number | null;
+    scoreB: number | null;
+  };
 };
 
 function rowToHistoryItem(row: JoinedRow): PredictionHistoryItem {
@@ -75,6 +90,12 @@ function rowToHistoryItem(row: JoinedRow): PredictionHistoryItem {
       reasoning: row.reasoning ?? "",
       emotion: (row.emotional_state as EmotionState) ?? "calm",
     },
+    matchResult: {
+      status: row.status,
+      winner: row.winner ?? null,
+      scoreA: row.score_a ?? null,
+      scoreB: row.score_b ?? null,
+    },
   };
 }
 
@@ -87,6 +108,7 @@ const PREDICTION_SELECT = `
     m.external_id, m.match_number, m.tournament_stage,
     m.group_code, m.team_a_code, m.team_b_code, m.matchup_label,
     m.venue, m.city, m.kickoff_at, m.status, m.featured,
+    m.winner, m.score_a, m.score_b,
     m.id as match_row_id
   from predictions p
   join matches m on m.id = p.match_id

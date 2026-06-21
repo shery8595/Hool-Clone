@@ -14,6 +14,8 @@ const envSchema = z.object({
   TELEGRAM_BOT_USERNAME: z.string().min(1).optional(),
   CRON_SECRET: z.string().min(1).optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  WALRUS_AGGREGATOR_URL: z.string().url().optional(),
+  WORLDCUP26_BASE_URL: z.string().url().optional(),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
@@ -46,6 +48,8 @@ export function getEnv(): Env {
     TELEGRAM_BOT_USERNAME: envOrUndefined(process.env.TELEGRAM_BOT_USERNAME),
     CRON_SECRET: envOrUndefined(process.env.CRON_SECRET),
     NEXT_PUBLIC_APP_URL: envOrUndefined(process.env.NEXT_PUBLIC_APP_URL),
+    WALRUS_AGGREGATOR_URL: envOrUndefined(process.env.WALRUS_AGGREGATOR_URL),
+    WORLDCUP26_BASE_URL: envOrUndefined(process.env.WORLDCUP26_BASE_URL),
     NODE_ENV: envOrUndefined(process.env.NODE_ENV),
   });
   return cached;
@@ -112,10 +116,25 @@ export function getTelegramBotToken(): string | undefined {
   return getEnv().TELEGRAM_BOT_TOKEN;
 }
 
+export function getTelegramBotUsername(): string | undefined {
+  return getEnv().TELEGRAM_BOT_USERNAME;
+}
+
 export function getCronSecret(): string | undefined {
   return getEnv().CRON_SECRET;
 }
 
 export function getAppUrl(): string {
   return getEnv().NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
+const DEFAULT_WORLDCUP26_BASE_URL = "https://worldcup26.ir";
+
+/** Match sync uses worldcup26.ir (public API, no key required). */
+export function isFootballApiConfigured(): boolean {
+  return true;
+}
+
+export function getWorldCup26BaseUrl(): string {
+  return getEnv().WORLDCUP26_BASE_URL ?? DEFAULT_WORLDCUP26_BASE_URL;
 }

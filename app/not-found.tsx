@@ -7,7 +7,7 @@ export default function NotFound() {
       <p className="text-muted-foreground">
         This public clone profile does not exist.
       </p>
-      <ButtonLink href="/">Back to Dashboard</ButtonLink>
+      <ButtonLink href="/dashboard">Back to Dashboard</ButtonLink>
     </div>
   );
 }

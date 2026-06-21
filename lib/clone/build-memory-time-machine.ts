@@ -1,4 +1,4 @@
-import { memoryCountToMaturity, maturityLevelToLabel } from "@/lib/auth/maturity";
+import { memoryCountToMaturity } from "@/lib/auth/maturity";
 import { buildCloneInsight } from "@/lib/clone/clone-insight";
 import { huntContradictions } from "@/lib/clone/contradiction-hunter";
 import {
@@ -7,6 +7,12 @@ import {
   toRecalledMemories,
 } from "@/lib/clone/clone-showcase";
 import { fallbackClonePrediction } from "@/lib/clone/fallback-clone-prediction";
+import {
+  buildCloneKnowledgeSnapshot,
+} from "@/lib/stats/clone-analytics";
+import {
+  detectTemporalContradictions,
+} from "@/lib/clone/temporal-contradictions";
 import type {
   MemoryTimeMachine,
   TimeMachinePhaseId,
@@ -20,6 +26,7 @@ import type { StoredMemory } from "@/lib/memory/memory-adapter";
 import type { DriverChip, Match } from "@/lib/mock/types";
 
 const DAY3_MEMORY_CAP = 3;
+const DAY4_MEMORY_CAP = 10;
 const DAY7_MEMORY_CAP = 8;
 
 function teamInMatch(
@@ -187,7 +194,7 @@ function snapshotFromFallback(
   },
 ): Omit<
   TimeMachineSnapshot,
-  "id" | "dayLabel" | "title" | "subtitle" | "traits"
+  "id" | "dayLabel" | "title" | "subtitle" | "traits" | "knowledgeBullets"
 > {
   const home = input.match.homeTeam!;
   const away = input.match.awayTeam!;
@@ -216,6 +223,12 @@ function snapshotFromFallback(
     reasoning = buildDay3Reasoning(input.profile, input.memories, input.match);
     confidence = Math.min(48, output.confidence + 8);
     receipts = memoriesToReceipts(input.memories.slice(0, DAY3_MEMORY_CAP));
+  }
+
+  if (phase === "day4") {
+    reasoning = buildDay3Reasoning(input.profile, input.memories, input.match);
+    confidence = Math.min(72, 52 + input.memories.length * 3);
+    receipts = memoriesToReceipts(input.memories, true);
   }
 
   if (phase === "day7") {
@@ -275,6 +288,12 @@ const PHASE_META: Record<
     subtitle: "Remembers favorite teams, rival grudges, and prediction style.",
     traits: ["Team loyalty", "Rival grudges", "Style bias"],
   },
+  day4: {
+    dayLabel: "Day 4",
+    title: "Imitator clone",
+    subtitle: "Knows your teams, rivals, and prediction patterns — cites memories.",
+    traits: ["Team loyalty", "Rival hatred", "Prediction history"],
+  },
   day7: {
     dayLabel: "Day 7",
     title: "Contradiction hunter",
@@ -285,6 +304,7 @@ const PHASE_META: Record<
 };
 
 export function buildMemoryTimeMachine(input: {
+  joinedAt: Date;
   memoriesCount: number;
   profile: Pick<
     DbFanProfile,
@@ -329,6 +349,16 @@ export function buildMemoryTimeMachine(input: {
     historyItem: null,
   });
 
+  const day4Memories = input.chronologicalMemories.slice(0, DAY4_MEMORY_CAP);
+  const day4 = snapshotFromFallback("day4", {
+    ...snapshotBase,
+    memories: day4Memories,
+    memoriesCount: Math.max(day4Memories.length, 6),
+    useProfileHints: true,
+    cloneEntry: cloneEntry ?? null,
+    historyItem: historyItem ?? null,
+  });
+
   const day7Memories = input.chronologicalMemories.slice(0, DAY7_MEMORY_CAP);
   const day7 = snapshotFromFallback("day7", {
     ...snapshotBase,
@@ -339,12 +369,64 @@ export function buildMemoryTimeMachine(input: {
     historyItem,
   });
 
+  const temporalContradictions = detectTemporalContradictions(
+    input.chronologicalMemories,
+  );
+  const behavioralContradictionCount = huntContradictions({
+    profile: input.profile,
+    history: input.history,
+    memoryDrivers: input.memoryDrivers,
+    memoryTexts: input.chronologicalMemories.map((m) => m.text),
+  }).length;
+
+  const knowledgeByDay = {
+    day1: buildCloneKnowledgeSnapshot(1, {
+      joinedAt: input.joinedAt,
+      memories: input.chronologicalMemories,
+      profile: input.profile,
+      history: input.history,
+      temporalContradictions,
+      behavioralContradictionCount,
+    }),
+    day3: buildCloneKnowledgeSnapshot(3, {
+      joinedAt: input.joinedAt,
+      memories: input.chronologicalMemories,
+      profile: input.profile,
+      history: input.history,
+      temporalContradictions,
+      behavioralContradictionCount,
+    }),
+    day4: buildCloneKnowledgeSnapshot(4, {
+      joinedAt: input.joinedAt,
+      memories: input.chronologicalMemories,
+      profile: input.profile,
+      history: input.history,
+      temporalContradictions,
+      behavioralContradictionCount,
+    }),
+    day7: buildCloneKnowledgeSnapshot(7, {
+      joinedAt: input.joinedAt,
+      memories: input.chronologicalMemories,
+      profile: input.profile,
+      history: input.history,
+      temporalContradictions,
+      behavioralContradictionCount,
+    }),
+  };
+
   const phases: TimeMachineSnapshot[] = (
-    ["day1", "day3", "day7"] as const
+    ["day1", "day3", "day4", "day7"] as const
   ).map((id) => {
     const meta = PHASE_META[id];
     const body =
-      id === "day1" ? day1 : id === "day3" ? day3 : day7;
+      id === "day1"
+        ? day1
+        : id === "day3"
+          ? day3
+          : id === "day4"
+            ? day4
+            : day7;
+    const knowledge = knowledgeByDay[id];
     return {
       id,
       dayLabel: meta.dayLabel,
@@ -352,23 +434,20 @@ export function buildMemoryTimeMachine(input: {
       subtitle: meta.subtitle,
       traits: meta.traits,
       ...body,
-      maturityLabel:
-        id === "day1"
-          ? maturityLevelToLabel(0)
-          : id === "day3"
-            ? maturityLevelToLabel(1)
-            : memoryCountToMaturity(
-                Math.max(input.memoriesCount, 7),
-              ).label,
+      confidence: knowledge.confidence,
+      knowledgeBullets: knowledge.bullets,
+      maturityLabel: knowledge.maturityLabel,
     };
   });
 
   const defaultPhase: TimeMachinePhaseId =
     input.memoriesCount >= 7
       ? "day7"
-      : input.memoriesCount >= 3
-        ? "day3"
-        : "day1";
+      : input.memoriesCount >= 6
+        ? "day4"
+        : input.memoriesCount >= 3
+          ? "day3"
+          : "day1";
 
   return {
     matchId: match.id,
