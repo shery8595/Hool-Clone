@@ -12,7 +12,10 @@
     "db:seed-matches": "tsx scripts/seed-matches.ts",
     "db:seed-demo": "tsx scripts/seed-demo-user.ts",
     "db:seed-demo-walrus": "tsx scripts/seed-demo-walrus.ts",
+    "db:seed-demo-rival-walrus": "tsx scripts/seed-demo-rival-walrus.ts",
+    "db:retry-failed-demo-walrus": "tsx scripts/retry-failed-demo-walrus.ts",
     "verify:mainnet": "tsx scripts/verify-mainnet.ts",
+    "telegram:webhook": "node scripts/setup-telegram-webhook.mjs",
     "memwal:setup": "tsx scripts/memwal-setup.ts",
     "cron:setup": "node scripts/setup-cron-job.mjs",
     "test": "node --import tsx --test lib/**/*.test.ts"

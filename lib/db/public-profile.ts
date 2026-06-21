@@ -313,6 +313,7 @@ export async function buildPublicProfile(
     }),
     predictionHistory,
     publicMemories,
+    allMemoryReceipts: storedMemoriesToReceipts(chronologicalMemories),
     cloneReceipts,
     comparisons,
     topContradiction,

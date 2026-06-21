@@ -8,7 +8,17 @@ import { CloneSameQuestionProof } from "@/components/clone/clone-same-question-p
 import { CorrectionOverrideProof } from "@/components/clone/correction-override-proof";
 import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
 import {
+  EvolutionStakesHero,
+  evolutionMatchFromTimeMachine,
+} from "@/components/clone/evolution-stakes-hero";
+import { EvolutionAnalyticsAccordion } from "@/components/clone/evolution-analytics-accordion";
+import { MemoryProvenancePanel } from "@/components/clone/memory-provenance-panel";
+import { RoastRecordSection } from "@/components/clone/roast-record-section";
+import {
+  buildCorrectionOverrideFromProfile,
+  buildRoastRecordFromProfile,
   buildSameQuestionProofFromTimeMachine,
+  collectCitedMemoryIds,
   STATIC_CORRECTION_OVERRIDE_PROOF,
 } from "@/lib/clone/judge-proof-demo";
 import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
@@ -18,6 +28,7 @@ import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { SeasonReportCard } from "@/components/profile/season-report-card";
 import { getPublicProfileBySlug } from "@/lib/db/public-profile";
+import { DEMO_NAMESPACE } from "@/lib/landing/content";
 import type { CloneMaturity } from "@/lib/mock/types";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +55,7 @@ export default async function EvolutionPage({ params }: EvolutionPageProps) {
   const profile = await getPublicProfileBySlug(slug);
   if (!profile) notFound();
 
-  const { cloneAnalytics, memoryTimeMachine } = profile;
+  const { cloneAnalytics, memoryTimeMachine, allMemoryReceipts } = profile;
   const totalContradictions =
     cloneAnalytics.temporalContradictions.length +
     profile.contradictionCount;
@@ -56,9 +67,30 @@ export default async function EvolutionPage({ params }: EvolutionPageProps) {
         ? "hoolclone-demo"
         : "hoolclone-demo";
 
-  const sameQuestionProof = buildSameQuestionProofFromTimeMachine(
+  const sameQuestionResult = buildSameQuestionProofFromTimeMachine(
     memoryTimeMachine,
+    { slug, memories: allMemoryReceipts },
   );
+
+  const correctionResult =
+    buildCorrectionOverrideFromProfile(
+      allMemoryReceipts,
+      memoryTimeMachine,
+    ) ?? {
+      data: STATIC_CORRECTION_OVERRIDE_PROOF,
+      source: "fallback" as const,
+    };
+
+  const citedMemoryIds = collectCitedMemoryIds(
+    sameQuestionResult.data,
+    correctionResult.data,
+  );
+
+  const roastRecord = buildRoastRecordFromProfile(allMemoryReceipts);
+  const matchInfo = evolutionMatchFromTimeMachine(memoryTimeMachine);
+  const namespace =
+    allMemoryReceipts[0]?.walrusNamespace ??
+    (slug === "hoolclone-demo" ? DEMO_NAMESPACE : undefined);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -82,11 +114,18 @@ export default async function EvolutionPage({ params }: EvolutionPageProps) {
         clashOpponent={clashOpponent}
       />
 
+      <EvolutionStakesHero
+        matchLabel={matchInfo.matchLabel}
+        matchId={matchInfo.matchId ?? "m071"}
+        cloneAccuracy={cloneAnalytics.accuracyLeaderboard.cloneAccuracy}
+        resolvedCount={cloneAnalytics.accuracyLeaderboard.resolvedCount}
+      />
+
       <section className="rounded-2xl border bg-gradient-to-br from-hoolclone-green-50 to-white p-6">
         <h2 className="text-lg font-bold">Memory Evolution Timeline</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Judges: agent on day one vs agent after at least 4 days of Walrus-backed
-          memory.
+          Day 1 vs Day 4 clone — Portugal loyalty fan with Walrus-backed
+          memories across onboarding, debate, correction, and prediction.
         </p>
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           <EvolutionDayCard
@@ -101,9 +140,23 @@ export default async function EvolutionPage({ params }: EvolutionPageProps) {
         </div>
       </section>
 
-      <CloneSameQuestionProof data={sameQuestionProof} />
+      <MemoryProvenancePanel
+        memories={allMemoryReceipts}
+        namespace={namespace}
+        citedMemoryIds={citedMemoryIds}
+      />
 
-      <CorrectionOverrideProof data={STATIC_CORRECTION_OVERRIDE_PROOF} />
+      <CloneSameQuestionProof
+        data={sameQuestionResult.data}
+        dataSource={sameQuestionResult.source}
+      />
+
+      <CorrectionOverrideProof
+        data={correctionResult.data}
+        dataSource={correctionResult.source}
+      />
+
+      {roastRecord && <RoastRecordSection data={roastRecord} />}
 
       <CloneClashCta slug={slug} opponentSlug={clashOpponent} />
 
@@ -111,31 +164,33 @@ export default async function EvolutionPage({ params }: EvolutionPageProps) {
         <CloneMoodBadge mood={cloneAnalytics.cloneMood} />
       )}
 
-      {memoryTimeMachine && (
-        <>
-          <CloneBeforeAfterPanel
-            data={memoryTimeMachine}
-            comparePhase="day4"
-          />
-          <MemoryTimeMachine data={memoryTimeMachine} />
-        </>
-      )}
+      <EvolutionAnalyticsAccordion>
+        {memoryTimeMachine && (
+          <>
+            <CloneBeforeAfterPanel
+              data={memoryTimeMachine}
+              comparePhase="day4"
+            />
+            <MemoryTimeMachine data={memoryTimeMachine} />
+          </>
+        )}
 
-      <ContradictionScoreCard
-        contradictions={cloneAnalytics.temporalContradictions}
-        consistencyScore={cloneAnalytics.consistencyScore}
-        totalCount={totalContradictions}
-        roastLine={profile.topContradiction?.text}
-      />
+        <ContradictionScoreCard
+          contradictions={cloneAnalytics.temporalContradictions}
+          consistencyScore={cloneAnalytics.consistencyScore}
+          totalCount={totalContradictions}
+          roastLine={profile.topContradiction?.text}
+        />
 
-      <CloneDriftChart data={cloneAnalytics.driftSeries} />
+        <CloneDriftChart data={cloneAnalytics.driftSeries} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
-        <div className="flex items-center justify-center">
-          <SeasonReportCard report={cloneAnalytics.seasonReport} />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
+          <div className="flex items-center justify-center">
+            <SeasonReportCard report={cloneAnalytics.seasonReport} />
+          </div>
         </div>
-      </div>
+      </EvolutionAnalyticsAccordion>
     </div>
   );
 }

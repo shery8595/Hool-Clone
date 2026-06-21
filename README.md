@@ -44,16 +44,29 @@ Namespaces follow `hoolclone:user:<id>` per user; the demo lives at `hoolclone:d
 
 ## Live demo
 
+**Production:** [https://walrus-mu.vercel.app](https://walrus-mu.vercel.app)
+
 | Resource | URL |
 |----------|-----|
-| **Demo profile** | `/u/hoolclone-demo` — 15 real Mainnet memories with Walrus receipts |
-| **Judge evolution page** | `/u/hoolclone-demo/evolution` — same-question before/after, correction override proof, Clone Clash CTA |
-| **Clone Clash** | `/u/hoolclone-demo/clash?opponent=hoolclone-rival` — two Walrus namespaces debate |
-| **Telegram history** | `/telegram-history` — screenshot-ready roast/congrats cards with cited memories |
-| **MemWal health** | `GET /api/admin/memwal-health` |
-| **Mainnet verify** | `npm run verify:mainnet` (see output below) |
+| **Demo profile** | [https://walrus-mu.vercel.app/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) — 15 real Mainnet memories with Walrus receipts |
+| **Judge evolution page** | [https://walrus-mu.vercel.app/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) — provenance panel, same-question proof, correction loop, roast card |
+| **Clone Clash** | [https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) — two Walrus namespaces debate |
+| **Telegram history** | [https://walrus-mu.vercel.app/telegram-history](https://walrus-mu.vercel.app/telegram-history) — screenshot-ready roast/congrats cards |
+| **MemWal health** | `GET https://walrus-mu.vercel.app/api/admin/memwal-health` |
+| **Mainnet verify** | `npm run verify:mainnet` (see [Mainnet verification](#mainnet-verification)) |
 
-On the demo profile, expand any memory card to see **Verified on Walrus Mainnet** with a truncated blob ID and full proof on hover. The top bar shows **Walrus: Verified** when Mainnet recall is healthy.
+On the demo profile, expand any memory card to see **Verified on Walrus Mainnet** with a truncated blob ID and full proof on hover. Placeholder demo seeds show **Demo placeholder — not on Mainnet** (amber). The top bar shows **Walrus: Verified** when Mainnet recall is healthy.
+
+### What is real vs fallback
+
+| Layer | Real on production demo | Fallback |
+|-------|-------------------------|----------|
+| Memory storage | `db:seed-demo-walrus` + `db:seed-demo-rival-walrus` → real Mainnet blobs | `db:seed-demo` → `demo-blob-*` / `rival-blob-*` placeholders |
+| Recall | Walrus vector search (`Walrus: Verified recall` badge) | Postgres keyword search (`Postgres fallback recall` badge) |
+| Evolution judge panels | Built from stored memories + time machine when seeds are live | Panels labeled **Illustrative fallback** if Walrus seed missing |
+| LLM output | Gemini when `GEMINI_API_KEY` is set | Template fallbacks in Telegram when LLM unavailable |
+
+> **Curated demo, real storage.** The `hoolclone-demo` fan narrative is seeded for judging clarity, but every memory receipt is a **real Walrus Mainnet blob** after `db:seed-demo-walrus`. Evolution snapshots are **reconstructed** from stored memories (not replayed historical LLM sessions). If Walrus recall fails, the UI shows **Postgres fallback recall** explicitly.
 
 ---
 
@@ -63,18 +76,19 @@ On the demo profile, expand any memory card to see **Verified on Walrus Mainnet*
 
 | Proof | Where to see it |
 |-------|-----------------|
-| Same question, two answers (Day 1 vs Day 4+) with cited Walrus memory | [`/u/hoolclone-demo/evolution`](http://localhost:3000/u/hoolclone-demo/evolution) — **Same Question — Two Answers** panel |
-| Memory citations on predict with source/date provenance | [`/predict/[matchId]`](http://localhost:3000/predict) — receipt cards show `Your correction · N days ago` and Walrus recall badges |
-| Correction visibly overriding a stale take | Evolution page — **Correction Override Proof** panel (stale take → correction → updated pick) |
-| Live Walrus receipts | `/memory`, public profile, Telegram history |
+| Same question, two answers (Day 1 vs Day 4+) with cited Walrus memory | [Evolution page](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) — **Same Question — Two Answers** (live blob ID when seeded) |
+| Memory provenance (blob IDs, dates, sources) | Evolution page — **Memory Provenance** table (last 4 days) |
+| Memory citations on predict with source/date provenance | `/predict/[matchId]` — receipt cards show `Your correction · N days ago` and Walrus recall badges |
+| Correction visibly overriding a stale take | Evolution — **Correction Override Proof** (live when correction memory has real blob) |
+| Roast my record (web card) | Evolution — **Roast my record** section + `/telegram-history` |
 
 ### Creativity & Flair
 
 | Proof | Where to see it |
 |-------|-----------------|
-| Memory-only cross-user feature | **Clone Clash** — `/u/hoolclone-demo/clash?opponent=hoolclone-rival` (separate Walrus namespaces) |
-| Human vs clone accuracy leaderboard | Dashboard + evolution page |
-| Screenshot-ready roast/congrats | `/telegram-history` — share cards with cited memory + Walrus verified badge |
+| Memory-only cross-user feature | **Clone Clash** — [demo vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) (separate Walrus namespaces) |
+| Human vs clone accuracy leaderboard | Dashboard + evolution page (under **More analytics**) |
+| Screenshot-ready roast/congrats | Evolution **Roast my record** + [telegram-history](https://walrus-mu.vercel.app/telegram-history) |
 | Memory-driven clone mood | Dashboard + predict page — mood badge (`On Fire`, `Salty`, `Loyalist`, etc.) shapes LLM tone |
 
 ### Technical Execution & Completeness
@@ -93,6 +107,8 @@ On the demo profile, expand any memory card to see **Verified on Walrus Mainnet*
 Run after seeding demo memories on Walrus:
 
 ```bash
+npm run db:seed-demo-walrus        # 15 Mainnet writes (~10 min)
+npm run db:seed-demo-rival-walrus  # 10 rival writes (~7 min)
 npm run verify:mainnet
 ```
 
@@ -101,21 +117,39 @@ Expected passing checks:
 - `MEMORY_BACKEND=walrus`
 - `MemWal configured` (account ID + delegate key)
 - `Walrus relayer health` reachable
-- Demo user has **0 placeholder** blob IDs and **15+ real** Mainnet blobs
+- Demo user: **0** `demo-blob-*` placeholders and **15+** real Mainnet blobs
+- Rival user: **0** `rival-blob-*` placeholders and **5+** real Mainnet blobs
 
-Paste your latest run output here before submitting:
+After seeding, all checks should pass. Verified output (2026-06-22):
 
 ```
 HoolClone Mainnet readiness
 
 PASS MEMORY_BACKEND=walrus
+  current: walrus
+
 PASS MemWal configured
-PASS Walrus relayer health — Relayer reachable (mainnet)
-FAIL Demo memories use real blob IDs — run npm run db:seed-demo-walrus if placeholders remain
-FAIL Demo has Walrus-stored memories — 0 real blobs until seed-demo-walrus completes
+  MEMWAL_ACCOUNT_ID + delegate key set
+
+PASS Walrus relayer health
+  Relayer reachable (mainnet, package 0xcee7a6fd…)
+
+PASS Demo memories use real blob IDs
+  No demo-blob-* placeholders
+
+PASS Demo has Walrus-stored memories
+  15 real blobs on demo user (/u/hoolclone-demo)
+
+PASS Rival memories use real blob IDs
+  No rival-blob-* placeholders
+
+PASS Rival has Walrus-stored memories
+  10 real blobs on rival user (/u/hoolclone-rival)
+
+All checks passed. Safe to record demo video.
 ```
 
-After `npm run db:seed-demo-walrus`, all five checks should pass (15 real Mainnet blobs, 0 placeholders).
+If a single write fails during seeding, run `npm run db:retry-failed-demo-walrus` before re-running full seed.
 
 ---
 
@@ -194,9 +228,29 @@ Open [http://localhost:3000](http://localhost:3000) — demo at [http://localhos
 npm run memwal:setup -- --write-env
 # Set MEMORY_BACKEND=walrus in .env
 
-npm run db:seed-demo-walrus     # 15 real Mainnet writes (~10 min)
-npm run verify:mainnet          # must pass before recording demo video
+npm run db:seed-demo-walrus        # 15 real Mainnet writes (~10 min)
+npm run db:seed-demo-rival-walrus  # 10 rival writes for Clone Clash (~7 min)
+npm run verify:mainnet             # must pass before recording demo video
 ```
+
+### Production environment
+
+Set on Vercel (`https://walrus-mu.vercel.app`):
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_APP_URL` | `https://walrus-mu.vercel.app` |
+| `MEMORY_BACKEND` | `walrus` |
+| `MEMWAL_ACCOUNT_ID` / `MEMWAL_DELEGATE_PRIVATE_KEY` | Mainnet writes + recall |
+| `DATABASE_URL` | Same DB used by seed scripts |
+| `GEMINI_API_KEY` | Clone, debate, roast generation |
+| `CRON_SECRET` | Auth for `/api/cron/check-resolutions` |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` | Bot + web deep links |
+| `AUTH_SECRET` | Wallet session signing |
+
+**Cron:** `CRON_APP_URL=https://walrus-mu.vercel.app npm run cron:setup` — see [`docs/cron-job.md`](docs/cron-job.md).
+
+**Telegram webhook:** `CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook`
 
 ---
 
@@ -210,9 +264,12 @@ npm run verify:mainnet          # must pass before recording demo video
 | `npm run db:seed-matches` | Seed WC2026-style fixtures |
 | `npm run db:seed-demo` | Demo user (local metadata only) |
 | `npm run db:seed-demo-walrus` | Demo user with real Walrus Mainnet blobs |
+| `npm run db:seed-demo-rival-walrus` | Rival user with real Walrus Mainnet blobs (Clone Clash) |
+| `npm run db:retry-failed-demo-walrus` | Retry demo memories that failed Walrus write (no full re-seed) |
 | `npm run verify:mainnet` | Mainnet readiness checklist |
 | `npm run memwal:setup` | One-time MemWal account setup |
 | `npm run cron:setup` | Create check-resolutions job on cron-job.org (needs API key + env) |
+| `npm run telegram:webhook` | Register Telegram webhook to `/api/telegram/webhook` |
 
 ---
 
@@ -229,6 +286,8 @@ See [`docs/hoolclone-architecture.md`](docs/hoolclone-architecture.md) for the f
 - [x] Public profile with verifiable memory receipts
 - [x] Clone behavior driven by `recall()` from Walrus namespaces
 - [x] Telegram bot with post-match congrats/roasts + Walrus memory loop
-- [ ] Deploy to production + set `CRON_SECRET` + [cron-job.org scheduler](docs/cron-job.md)
-- [ ] Set Telegram webhook
+- [x] Deploy to production ([walrus-mu.vercel.app](https://walrus-mu.vercel.app))
+- [x] Production env documented in README (see `.env.example`)
+- [ ] Set `CRON_SECRET` + [cron-job.org scheduler](docs/cron-job.md) on production DB
+- [ ] Run `npm run telegram:webhook` against production
 - [ ] Record demo video (≤3 min)

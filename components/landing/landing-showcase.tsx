@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
-import { showcaseFans, showcaseStats } from "@/lib/landing/content";
+import { showcaseFans, showcaseStats, DEMO_EVOLUTION_URL } from "@/lib/landing/content";
 import { cn } from "@/lib/utils";
 
 const statIconMap = {
@@ -124,7 +124,7 @@ export function LandingShowcase() {
 
         <div className="mt-6 flex justify-end" data-reveal-item>
           <ButtonLink
-            href="/u/hoolclone-demo"
+            href={DEMO_EVOLUTION_URL}
             size="sm"
             className="gap-2 rounded-full px-5 shadow-[0_8px_24px_rgba(10,61,46,0.2)]"
           >

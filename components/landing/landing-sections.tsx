@@ -18,6 +18,8 @@ import { DemoNamespaceCopy } from "@/components/landing/demo-namespace-copy";
 import { LandingWalrusMemoryVisual } from "@/components/landing/landing-walrus-memory-visual";
 import {
   DEMO_NAMESPACE,
+  DEMO_EVOLUTION_URL,
+  DEMO_PROFILE_URL,
   walrusMemoryFeatures,
   walrusMemoryProofPoints,
 } from "@/lib/landing/content";
@@ -222,11 +224,11 @@ export function LandingWalrusMemory() {
             </ul>
 
             <ButtonLink
-              href="/u/hoolclone-demo"
+              href={DEMO_EVOLUTION_URL}
               className="mt-8 gap-2 rounded-full px-6 shadow-[0_10px_30px_rgba(10,61,46,0.18)]"
             >
               <Search className="h-4 w-4" />
-              Inspect Demo Memories
+              Judge evolution demo
             </ButtonLink>
           </div>
 
@@ -290,7 +292,7 @@ export function LandingWalrusMemory() {
                     with full proof.
                   </p>
                   <ButtonLink
-                    href="/u/hoolclone-demo"
+                    href={DEMO_PROFILE_URL}
                     variant="link"
                     className="mt-2 h-auto justify-start p-0 text-xs font-semibold text-hoolclone-green-800"
                   >

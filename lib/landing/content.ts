@@ -176,3 +176,10 @@ export const walrusMemoryProofPoints = [
 ] as const;
 
 export const DEMO_NAMESPACE = "hoolclone:demo:hoolclone-demo";
+
+/** Production deployment for judges and hackathon demo links */
+export const PRODUCTION_APP_URL = "https://walrus-mu.vercel.app";
+
+export const DEMO_EVOLUTION_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/evolution`;
+export const DEMO_PROFILE_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo`;
+export const DEMO_CLASH_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/clash?opponent=hoolclone-rival`;

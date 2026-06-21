@@ -1,4 +1,5 @@
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
+import { formatProvenanceLabel } from "@/lib/clone/memory-provenance";
 import { recallSourceFromMetadata } from "@/lib/memory/recall-provenance";
 import {
   buildLineageContextFromMemories,
@@ -42,6 +43,9 @@ export function storedMemoryToReceipt(
           : "remembered";
 
   const matchId = metadataString(metadata, "matchId");
+  const memorySource =
+    metadataString(metadata, "source") ??
+    (memory.type === "correction" ? "correction" : undefined);
 
   return {
     id: memory.id,
@@ -61,6 +65,12 @@ export function storedMemoryToReceipt(
     walrusNamespace: metadataString(metadata, "walrusNamespace"),
     walrusJobId: metadataString(metadata, "walrusJobId"),
     recallSource: metadataRecallSource(metadata),
+    memorySource,
+    provenanceLabel: formatProvenanceLabel(
+      memorySource,
+      memory.createdAt,
+      matchId,
+    ),
     lineage: buildMemoryLineage(memory, context),
   };
 }

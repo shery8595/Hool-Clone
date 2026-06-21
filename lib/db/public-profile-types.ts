@@ -28,6 +28,7 @@ export type PublicProfileData = {
   evolutionTimeline: EvolutionEvent[];
   predictionHistory: PredictionHistoryItem[];
   publicMemories: MemoryReceipt[];
+  allMemoryReceipts: MemoryReceipt[];
   cloneReceipts: MemoryReceipt[];
   comparisons: PredictionComparison[];
   topContradiction: DashboardContradiction | null;

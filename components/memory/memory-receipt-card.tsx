@@ -4,6 +4,7 @@ import { RecallSourceBadge } from "@/components/memory/recall-source-badge";
 import { cn } from "@/lib/utils";
 import type { MemoryReceipt } from "@/lib/mock/types";
 import { formatDate } from "@/lib/mock/demo-user";
+import { isPlaceholderBlobId } from "@/lib/walrus/fetch-blob";
 import { Database, ArrowRight, Loader2, AlertCircle, RotateCcw, GitBranch } from "lucide-react";
 
 const typeLabels: Record<string, string> = {
@@ -41,6 +42,9 @@ export function MemoryReceiptCard({
   const hasWalrusProof = Boolean(
     receipt.walrusBlobId || receipt.walrusNamespace || receipt.walrusJobId,
   );
+  const isPlaceholder =
+    receipt.walrusBlobId != null &&
+    isPlaceholderBlobId(receipt.walrusBlobId);
   const hasLineage = Boolean(receipt.lineage && receipt.lineage.length > 0);
   const isDashboard = variant === "dashboard";
   const revealProofOnHover = !compact && (hasWalrusProof || hasLineage);
@@ -144,14 +148,27 @@ export function MemoryReceiptCard({
         <div className="mt-2.5">
           <div
             className={cn(
-              "flex items-center gap-1.5 text-xs text-hoolclone-green-700",
+              "flex items-center gap-1.5 text-xs",
+              isPlaceholder
+                ? "text-amber-800"
+                : "text-hoolclone-green-700",
               isDashboard &&
+                !isPlaceholder &&
                 "rounded-md border border-hoolclone-green-100/80 bg-hoolclone-green-50/60 px-2 py-1 text-[11px]",
+              isDashboard &&
+                isPlaceholder &&
+                "rounded-md border border-amber-200/80 bg-amber-50/60 px-2 py-1 text-[11px]",
             )}
           >
             <Database className="h-3 w-3 shrink-0" />
             <span className="font-medium">
-              {isDashboard ? "Walrus verified" : "Verified on Walrus Mainnet"}
+              {isPlaceholder
+                ? isDashboard
+                  ? "Demo placeholder"
+                  : "Demo placeholder — not on Mainnet"
+                : isDashboard
+                  ? "Walrus verified"
+                  : "Verified on Walrus Mainnet"}
             </span>
             {receipt.walrusBlobId && (
               <span className="font-mono text-[10px] text-hoolclone-green-800/80">

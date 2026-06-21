@@ -4,11 +4,11 @@ loadEnv();
 
 import { query } from "@/lib/db/client";
 import {
-  DEMO_MEMORIES,
-  DEMO_SLUG,
   getDemoNamespace,
+  RIVAL_MEMORIES,
+  RIVAL_SLUG,
 } from "@/lib/db/demo-memories";
-import { seedDemoUser } from "@/lib/db/seed-demo-user";
+import { seedDemoRivalUser } from "@/lib/db/seed-demo-rival";
 import { getEnv, getMemWalServerUrl, isMemWalConfigured } from "@/lib/env";
 import { fetchRelayerConfig } from "@/lib/memwal/contract-config";
 import { sleep } from "@/scripts/sleep";
@@ -21,7 +21,7 @@ async function rememberWithRetry(
     Awaited<typeof import("@/lib/memory/walrus-memory-adapter")>["WalrusMemoryAdapter"]
   >,
   userId: string,
-  memory: (typeof DEMO_MEMORIES)[number],
+  memory: (typeof RIVAL_MEMORIES)[number],
 ): Promise<{ id?: string; status: string }> {
   let last: { id?: string; status: string } = { status: "failed" };
 
@@ -73,9 +73,9 @@ async function main() {
     "@/lib/memory/walrus-memory-adapter"
   );
 
-  const seeded = await seedDemoUser();
+  const seeded = await seedDemoRivalUser();
   const userId = seeded.userId;
-  const namespace = getDemoNamespace(DEMO_SLUG);
+  const namespace = getDemoNamespace(RIVAL_SLUG);
 
   await query(`delete from memories where user_id = $1`, [userId]);
 
@@ -83,13 +83,13 @@ async function main() {
   let stored = 0;
   let failed = 0;
 
-  for (let i = 0; i < DEMO_MEMORIES.length; i++) {
-    const memory = DEMO_MEMORIES[i]!;
+  for (let i = 0; i < RIVAL_MEMORIES.length; i++) {
+    const memory = RIVAL_MEMORIES[i]!;
     const createdAt = new Date();
     createdAt.setDate(createdAt.getDate() - memory.daysAgo);
 
     console.log(
-      `[${i + 1}/${DEMO_MEMORIES.length}] Writing: ${memory.text.slice(0, 60)}…`,
+      `[${i + 1}/${RIVAL_MEMORIES.length}] Writing: ${memory.text.slice(0, 60)}…`,
     );
 
     const result = await rememberWithRetry(adapter, userId, memory);
@@ -111,8 +111,8 @@ async function main() {
   }
 
   console.log("\nDone.");
-  console.log(`Demo user: ${userId}`);
-  console.log(`Public profile: /u/${DEMO_SLUG}`);
+  console.log(`Rival user: ${userId}`);
+  console.log(`Public profile: /u/${RIVAL_SLUG}`);
   console.log(`Memories stored on Walrus: ${stored}, failed: ${failed}`);
 
   if (failed > 0) {

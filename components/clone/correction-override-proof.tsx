@@ -7,11 +7,28 @@ import { cn } from "@/lib/utils";
 
 type CorrectionOverrideProofProps = {
   data: CorrectionOverrideProofData;
+  dataSource?: "live" | "fallback";
   className?: string;
 };
 
+function ProofSourceBadge({ source }: { source: "live" | "fallback" }) {
+  return (
+    <span
+      className={cn(
+        "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+        source === "live"
+          ? "bg-hoolclone-green-100 text-hoolclone-green-900"
+          : "bg-amber-100 text-amber-900",
+      )}
+    >
+      {source === "live" ? "Live Walrus proof" : "Illustrative fallback"}
+    </span>
+  );
+}
+
 export function CorrectionOverrideProof({
   data,
+  dataSource = "live",
   className,
 }: CorrectionOverrideProofProps) {
   return (
@@ -22,14 +39,24 @@ export function CorrectionOverrideProof({
       )}
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <GitBranch className="h-5 w-5 text-hoolclone-green-700" />
-          Correction Override Proof
-        </CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <GitBranch className="h-5 w-5 text-hoolclone-green-700" />
+            Correction Override Proof
+          </CardTitle>
+          <ProofSourceBadge source={dataSource} />
+        </div>
         <p className="text-sm text-muted-foreground">
           {data.matchLabel}: a stale memory drove the wrong take — your
           correction reranked higher and changed the clone pick.
         </p>
+        {dataSource === "fallback" && (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Demo fallback — run{" "}
+            <code className="font-mono">npm run db:seed-demo-walrus</code> for
+            live proof.
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto_1fr] lg:items-stretch">
@@ -49,6 +76,11 @@ export function CorrectionOverrideProof({
               <p className="mt-1 text-[10px] font-medium text-rose-700">
                 {data.staleTake.disputedLabel}
               </p>
+              {data.staleTake.walrusBlobId && (
+                <p className="mt-1 font-mono text-[10px] text-rose-800/80">
+                  Blob: {data.staleTake.walrusBlobId.slice(0, 16)}…
+                </p>
+              )}
             </div>
           </div>
 
@@ -59,6 +91,11 @@ export function CorrectionOverrideProof({
             <p className="max-w-[12rem] text-xs italic text-muted-foreground">
               &ldquo;{data.userCorrection}&rdquo;
             </p>
+            {data.correctionBlobId && (
+              <p className="font-mono text-[10px] text-muted-foreground">
+                Walrus write: {data.correctionBlobId.slice(0, 14)}…
+              </p>
+            )}
             <ArrowRight className="hidden h-5 w-5 text-hoolclone-green-700 lg:block" />
           </div>
 
@@ -82,6 +119,11 @@ export function CorrectionOverrideProof({
                   <p className="mt-1 text-[10px] font-semibold text-hoolclone-green-700">
                     {data.updatedTake.citedReceipt.provenanceLabel}
                   </p>
+                  {data.updatedTake.citedReceipt.walrusBlobId && (
+                    <p className="mt-1 font-mono text-[10px] text-hoolclone-green-800/90">
+                      Blob: {data.updatedTake.citedReceipt.walrusBlobId.slice(0, 16)}…
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
