@@ -18,3 +18,14 @@ export async function loadMatchByDbId(matchDbId: string): Promise<Match | null> 
   if (!row) return null;
   return dbMatchToMatch(row);
 }
+
+export async function loadMatchByExternalId(
+  externalId: string,
+): Promise<Match | null> {
+  const row = await queryOne<DbMatchRow>(
+    `${MATCH_SELECT} where external_id = $1`,
+    [externalId],
+  );
+  if (!row) return null;
+  return dbMatchToMatch(row);
+}

@@ -30,8 +30,8 @@ const SOURCE_BOOST: Record<string, number> = {
   clone_correction: 0.08,
   debate: 0.06,
   prediction_submit: 0.1,
-  telegram_post_match: 0.12,
-  telegram_live_goal: 0.12,
+  telegram_post_match: 0.05,
+  telegram_live_goal: 0.05,
   match_resolution: 0.12,
   onboarding: 0.02,
 };

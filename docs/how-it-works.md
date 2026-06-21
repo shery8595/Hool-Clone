@@ -282,9 +282,10 @@ syncMatchResultsFromApi()
 
 1. `recallMemoriesForTelegramMatch()` — RRF + rerank + pin prediction memory
 2. Gemini generates 1–2 sentences with `citedMemoryIds`
-3. Citation enforcement: if LLM cites nothing, append *"You literally said: …"* from top memory
-4. Receipt footer lists cited memories
-5. Store DM in `telegram_messages` + write `telegram_live_goal` memory to Walrus
+3. Citation enforcement validates IDs against the recalled set; invalid IDs are dropped with warnings
+4. If recall is strong and citations are missing, the system enforces top memories (`citationSource: enforced`)
+5. Receipt footer lists cited memories; full recalled snapshot is stored in `telegram_messages.metadata`
+6. Store DM in `telegram_messages` + write a factual `telegram_live_goal` follow-up memory to Walrus
 
 ### Post-match messages
 
@@ -299,7 +300,14 @@ Roasts also use **contradiction hunting** over memory history.
 
 ### Telegram history
 
-`/telegram-history` shows every sent DM with expandable **memory receipts** (text, source, Walrus blob link).
+`/telegram-history` shows every sent DM with:
+
+- **Recalled memories** — full ranked snapshot from Walrus recall at send time
+- **Used in message** — citations that shaped the DM (LLM-chosen or system-enforced)
+- **Recall backend** — `walrus`, `postgres_fallback`, or `none`
+- **Citation source** — `llm` when the model cited valid IDs, `enforced` when the system filled gaps
+
+On-demand `/roast` and `/roast m071` are persisted the same way as cron-driven messages.
 
 ### Key files
 

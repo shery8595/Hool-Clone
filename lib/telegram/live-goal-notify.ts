@@ -4,6 +4,9 @@ import { getMemoryAdapter } from "@/lib/memory";
 import { loadMatchByDbId } from "@/lib/match-data/load-match-by-id";
 import type { LiveGoalEvent } from "@/lib/match-data/sync-match-results";
 import { buildLiveGoalMessage } from "@/lib/telegram/live-goal-message";
+import { assemblyToStoreFields } from "@/lib/telegram/assembly-to-store";
+import type { CitedMemoryPayload } from "@/lib/telegram/citation-enforcement";
+import { buildLiveGoalFollowUpMemoryText } from "@/lib/telegram/telegram-follow-up-memory";
 import { getTelegramBot } from "@/lib/telegram/bot";
 import {
   hasTelegramMessageForEvent,
@@ -22,10 +25,9 @@ function buildLiveGoalMemoryText(input: {
   matchLabel: string;
   scoringTeam: string | null;
   situation: string;
-  oneLineTake: string;
+  citedMemories: CitedMemoryPayload[];
 }): string {
-  const scorer = input.scoringTeam ?? "unknown side";
-  return `[live_goal] ${input.matchLabel}: ${scorer} scored. Situation: ${input.situation}. ${input.oneLineTake}`;
+  return buildLiveGoalFollowUpMemoryText(input);
 }
 
 function resolveSituation(
@@ -103,10 +105,7 @@ export async function processLiveGoalNotifications(
         chatId: sub.chat_id,
         matchId: event.matchId,
         messageType: "live_goal",
-        body: messageResult.message,
-        citedMemoryIds: messageResult.citedMemoryIds,
-        citedMemories: messageResult.citedMemories,
-        recallSource: messageResult.recallSource,
+        ...assemblyToStoreFields(messageResult),
         metadata: {
           eventId: event.eventId,
           matchExternalId: event.externalId,
@@ -123,7 +122,7 @@ export async function processLiveGoalNotifications(
           matchLabel,
           scoringTeam: event.scoringTeamCode,
           situation,
-          oneLineTake: "Clone reacted live using Walrus-backed memory.",
+          citedMemories: messageResult.citedMemories,
         }),
         metadata: {
           source: "telegram_live_goal",

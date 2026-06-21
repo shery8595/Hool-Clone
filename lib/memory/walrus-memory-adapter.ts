@@ -169,7 +169,12 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
           },
         };
       });
-    } catch {
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Walrus recall failed";
+      console.warn(
+        `[WalrusMemoryAdapter] recall fallback to Postgres for user query: ${message}`,
+      );
       return recallMemoriesLocal(userId, queryText);
     }
   }

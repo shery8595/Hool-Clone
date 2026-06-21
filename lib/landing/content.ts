@@ -2,10 +2,7 @@ import type { BiasAxis } from "@/lib/mock/types";
 
 export const landingNavItems = [
   { href: "#how-it-works", label: "How It Works" },
-  { href: "#features", label: "Features" },
   { href: "#walrus-memory", label: "Walrus Memory" },
-  { href: "#leaderboard", label: "Leaderboard" },
-  { href: "#about", label: "About" },
 ] as const;
 
 export const landingFeatures = [

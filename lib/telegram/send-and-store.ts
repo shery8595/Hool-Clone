@@ -1,12 +1,15 @@
 import { query } from "@/lib/db/client";
 import { getTelegramBot } from "@/lib/telegram/bot";
+import type { CitationSource } from "@/lib/telegram/citation-enforcement";
 import type { CitedMemoryPayload } from "@/lib/telegram/citation-enforcement";
-import type { RecallSource } from "@/lib/mock/types";
+import type { MessageRecallBackend } from "@/lib/telegram/message-recall-backend";
+import type { RecalledMemorySnapshot } from "@/lib/telegram/recalled-memory-snapshot";
 
 export type TelegramMessageType =
   | "live_goal"
   | "post_match_roast"
-  | "post_match_congrats";
+  | "post_match_congrats"
+  | "on_demand_roast";
 
 export async function sendAndStoreTelegramMessage(input: {
   userId: string;
@@ -17,7 +20,11 @@ export async function sendAndStoreTelegramMessage(input: {
   metadata?: Record<string, unknown>;
   citedMemoryIds?: string[];
   citedMemories?: CitedMemoryPayload[];
-  recallSource?: RecallSource;
+  recalledMemorySnapshots?: RecalledMemorySnapshot[];
+  recallSource?: MessageRecallBackend;
+  citationSource?: CitationSource;
+  citationWarnings?: string[];
+  droppedInvalidIds?: string[];
 }): Promise<{ telegramMessageId?: number; storedId?: string }> {
   const bot = getTelegramBot();
   if (!bot) {
@@ -32,7 +39,11 @@ export async function sendAndStoreTelegramMessage(input: {
     ...(input.metadata ?? {}),
     citedMemoryIds: input.citedMemoryIds ?? [],
     citedMemories: input.citedMemories ?? [],
-    recallSource: input.recallSource,
+    recalledMemories: input.recalledMemorySnapshots ?? [],
+    recallSource: input.recallSource ?? "none",
+    citationSource: input.citationSource,
+    citationWarnings: input.citationWarnings ?? [],
+    droppedInvalidIds: input.droppedInvalidIds ?? [],
   };
 
   const rows = await query<{ id: string }>(

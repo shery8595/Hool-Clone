@@ -4,6 +4,9 @@ import { getMemoryAdapter } from "@/lib/memory";
 import { loadMatchByDbId } from "@/lib/match-data/load-match-by-id";
 import { buildCongratsMessage } from "@/lib/telegram/congrats";
 import { buildRoastMessage } from "@/lib/telegram/roast";
+import { assemblyToStoreFields } from "@/lib/telegram/assembly-to-store";
+import type { CitedMemoryPayload } from "@/lib/telegram/citation-enforcement";
+import { buildPostMatchFollowUpMemoryText } from "@/lib/telegram/telegram-follow-up-memory";
 import { getTelegramBot } from "@/lib/telegram/bot";
 import { sendAndStoreTelegramMessage } from "@/lib/telegram/send-and-store";
 
@@ -45,10 +48,9 @@ function buildPostMatchMemoryText(input: {
   predictedWinner: string | null;
   actualWinner: string;
   outcome: "win" | "loss";
-  oneLineTake: string;
+  citedMemories: CitedMemoryPayload[];
 }): string {
-  const pick = input.predictedWinner ?? "no pick";
-  return `[post_match] ${input.matchLabel}: I predicted ${pick}, winner ${input.actualWinner}. Outcome: ${input.outcome}. ${input.oneLineTake}`;
+  return buildPostMatchFollowUpMemoryText(input);
 }
 
 export async function processPostMatchNotifications(): Promise<{
@@ -148,10 +150,7 @@ export async function processPostMatchNotifications(): Promise<{
         chatId: sub.chat_id,
         matchId: match.match_id,
         messageType: shouldRoast ? "post_match_roast" : "post_match_congrats",
-        body: messageResult.message,
-        citedMemoryIds: messageResult.citedMemoryIds,
-        citedMemories: messageResult.citedMemories,
-        recallSource: messageResult.recallSource,
+        ...assemblyToStoreFields(messageResult),
         metadata: {
           matchExternalId: match.external_id,
           outcome,
@@ -160,10 +159,6 @@ export async function processPostMatchNotifications(): Promise<{
         },
       });
 
-      const oneLineTake = shouldRoast
-        ? "Clone roasted the user using Walrus-backed memory."
-        : "Clone celebrated the user's correct loyalty or pick.";
-
       await getMemoryAdapter().remember(sub.user_id, {
         type: "prediction_history_summary",
         text: buildPostMatchMemoryText({
@@ -171,7 +166,7 @@ export async function processPostMatchNotifications(): Promise<{
           predictedWinner: sub.predicted_winner,
           actualWinner: match.winner,
           outcome,
-          oneLineTake,
+          citedMemories: messageResult.citedMemories,
         }),
         metadata: {
           source: "telegram_post_match",

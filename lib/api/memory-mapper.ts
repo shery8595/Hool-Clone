@@ -1,4 +1,5 @@
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
+import { recallSourceFromMetadata } from "@/lib/memory/recall-provenance";
 import {
   buildLineageContextFromMemories,
   buildMemoryLineage,
@@ -18,10 +19,8 @@ function metadataString(
 
 function metadataRecallSource(
   metadata: Record<string, unknown>,
-): RecallSource | undefined {
-  if (metadata.source === "walrus") return "walrus";
-  if (metadata.source === "postgres_fallback") return "postgres_fallback";
-  return undefined;
+): ReturnType<typeof recallSourceFromMetadata> {
+  return recallSourceFromMetadata(metadata);
 }
 
 export function storedMemoryToReceipt(

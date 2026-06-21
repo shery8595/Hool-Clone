@@ -60,7 +60,7 @@ function buildLiveExtraQueries(
   return queries;
 }
 
-function pinPredictionMemory(
+export function pinPredictionMemory(
   ranked: TelegramRankedMemory[],
   pinned: NonNullable<Awaited<ReturnType<typeof getPredictionMemoryForMatch>>>,
   matchId: string,
@@ -115,12 +115,4 @@ export async function recallMemoriesForTelegramMatch(
   return memories;
 }
 
-export function primaryRecallSource(
-  memories: TelegramRankedMemory[],
-): "walrus" | "postgres_fallback" | undefined {
-  if (memories.some((m) => m.recallSource === "walrus")) return "walrus";
-  if (memories.some((m) => m.recallSource === "postgres_fallback")) {
-    return "postgres_fallback";
-  }
-  return undefined;
-}
+export { primaryRecallSource } from "@/lib/telegram/message-recall-backend";

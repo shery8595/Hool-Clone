@@ -211,11 +211,17 @@ export async function fetchTelegramHistory(): Promise<{
   messages: Array<{
     id: string;
     matchId: string | null;
-    messageType: "live_goal" | "post_match_roast" | "post_match_congrats";
+    messageType:
+      | "live_goal"
+      | "post_match_roast"
+      | "post_match_congrats"
+      | "on_demand_roast";
     body: string;
     metadata: Record<string, unknown>;
     sentAt: string;
-    recallSource?: "walrus" | "postgres_fallback";
+    recallSource?: "walrus" | "postgres_fallback" | "none";
+    citationSource?: "llm" | "enforced";
+    citationWarnings?: string[];
     citedMemories: Array<{
       id?: string;
       text: string;
@@ -223,6 +229,17 @@ export async function fetchTelegramHistory(): Promise<{
       source?: string;
       walrusBlobId?: string;
       recallSource?: "walrus" | "postgres_fallback";
+      citationSource?: "llm" | "enforced";
+    }>;
+    recalledMemories: Array<{
+      id?: string;
+      textExcerpt: string;
+      type?: string;
+      source?: string;
+      score?: number;
+      finalScore?: number;
+      recallSource?: "walrus" | "postgres_fallback";
+      walrusBlobId?: string;
     }>;
     match: {
       externalId: string;

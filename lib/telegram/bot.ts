@@ -27,7 +27,10 @@ import {
   setPendingLink,
 } from "@/lib/telegram/link-account";
 import { verifyTelegramLinkToken } from "@/lib/telegram/link-token";
+import { assemblyToStoreFields } from "@/lib/telegram/assembly-to-store";
 import { buildRoastMessage } from "@/lib/telegram/roast";
+import { inferRoastContext } from "@/lib/telegram/infer-roast-match";
+import { sendAndStoreTelegramMessage } from "@/lib/telegram/send-and-store";
 
 let bot: Bot | null = null;
 
@@ -67,6 +70,7 @@ function registerHandlers(instance: Bot): void {
           "Your clone will DM you after every result — congrats or roast, with Walrus receipts.",
           "/notifications off — mute alerts",
           "/roast — get roasted on demand",
+          "/roast m071 — roast a specific match",
         ];
         if (evolutionUrl) {
           lines.push(`Evolution: ${evolutionUrl}`);
@@ -89,7 +93,7 @@ function registerHandlers(instance: Bot): void {
       const count = await countMemories(linked.userId);
       const maturity = memoryCountToMaturity(count);
       await ctx.reply(
-        `HoolClone linked.\nMaturity: ${maturity.label}\nFavorite: ${profile?.favorite_team ?? "unknown"}\n\n/roast — get roasted\n/predict m071 — your picks\n/notifications on|off — match alerts`,
+        `HoolClone linked.\nMaturity: ${maturity.label}\nFavorite: ${profile?.favorite_team ?? "unknown"}\n\n/roast — get roasted\n/roast m071 — roast a match\n/predict m071 — your picks\n/notifications on|off — match alerts`,
       );
       return;
     }
@@ -208,14 +212,30 @@ function registerHandlers(instance: Bot): void {
       return;
     }
 
+    const matchArg = ctx.match?.trim() || undefined;
+    const inferred = await inferRoastContext(linked.userId, matchArg);
+
     const roast = await buildRoastMessage({
       userId: linked.userId,
       publicSlug: linked.publicSlug,
       appUrl: getAppUrl(),
+      match: inferred?.match,
+      matchContext: inferred?.matchContext,
+      wrongPick: inferred?.wrongPick,
+      actualWinner: inferred?.actualWinner,
     });
 
-    await ctx.reply(roast.message, {
-      link_preview_options: { is_disabled: false },
+    await sendAndStoreTelegramMessage({
+      userId: linked.userId,
+      chatId: String(ctx.chat.id),
+      matchId: inferred?.matchDbId,
+      messageType: "on_demand_roast",
+      ...assemblyToStoreFields(roast),
+      metadata: {
+        matchExternalId: inferred?.match.id,
+        inferred: Boolean(!matchArg && inferred),
+        requestedMatchId: matchArg,
+      },
     });
   });
 
@@ -251,6 +271,7 @@ function registerHandlers(instance: Bot): void {
       lines.push(
         `Clone pick: ${clone.clone.winner} ${clone.clone.homeScore}-${clone.clone.awayScore}`,
         clone.clone.reasoning ? `Clone: ${clone.clone.reasoning}` : "",
+        "Note: receipts below are from the stored clone prediction, not a fresh Walrus recall.",
       );
       if (clone.clone.receipts?.length) {
         lines.push("Receipts:");

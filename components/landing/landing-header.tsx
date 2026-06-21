@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ButtonLink } from "@/components/ui/button-link";
+import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { landingNavItems } from "@/lib/landing/content";
 import { suiWalletFilter } from "@/lib/wallet/config";
@@ -23,24 +24,16 @@ function LandingLogo({ className }: { className?: string }) {
     <Link
       href="/"
       className={cn(
-        "group flex items-center gap-3 rounded-xl transition-opacity hover:opacity-90",
+        "group rounded-xl transition-opacity hover:opacity-90",
         className,
       )}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/mascot/walrus.svg"
-        alt="HoolClone"
-        className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-sm ring-1 ring-hoolclone-green-200/60 transition-transform group-hover:scale-[1.02]"
+      <HoolCloneLogo
+        size="sm"
+        showWordmark
+        wordmarkVariant="light"
+        className="[&>div:last-child]:hidden [&>div:last-child]:sm:block"
       />
-      <div className="hidden min-w-0 sm:block">
-        <p className="text-base font-bold leading-tight text-hoolclone-gray-900">
-          HoolClone
-        </p>
-        <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
-          AI FAN CLONE
-        </p>
-      </div>
     </Link>
   );
 }

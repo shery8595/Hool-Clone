@@ -2,16 +2,15 @@ import { storedMemoriesToReceipts } from "@/lib/api/memory-mapper";
 import { recallMemoriesForMatch } from "@/lib/clone/recall-memories";
 import type { DbFanProfile } from "@/lib/db/users";
 import { getMemoryAdapter } from "@/lib/memory";
+import { recallSourceFromMetadata } from "@/lib/memory/recall-provenance";
 import type { MemorySearchResult } from "@/lib/memory/memory-adapter";
 import type { DebateMessage, MemoryReceipt, RecallSource } from "@/lib/mock/types";
 import { isUuid } from "@/lib/utils";
 
-function recallSourceFromMetadata(
+function recallSourceFromSearchMetadata(
   metadata: Record<string, unknown> | undefined,
 ): RecallSource | undefined {
-  if (metadata?.source === "walrus") return "walrus";
-  if (metadata?.source === "postgres_fallback") return "postgres_fallback";
-  return undefined;
+  return recallSourceFromMetadata(metadata);
 }
 
 function mergeRecalledResults(
@@ -29,7 +28,7 @@ function mergeRecalledResults(
         : byText.get(result.text.trim().toLowerCase())?.id;
     if (!id || seen.has(id) || !byId.has(id)) continue;
 
-    const recallSource = recallSourceFromMetadata(metadata);
+    const recallSource = recallSourceFromSearchMetadata(metadata);
     seen.add(id);
     ranked.push({
       ...byId.get(id)!,

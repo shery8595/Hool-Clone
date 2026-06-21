@@ -131,5 +131,6 @@ export async function buildRoastMessage(
     citedMemoryIds,
     publicSlug: input.publicSlug,
     appUrl: input.appUrl,
+    requireStrongCitations: true,
   });
 }

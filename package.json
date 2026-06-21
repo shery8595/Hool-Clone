@@ -14,7 +14,8 @@
     "db:seed-demo-walrus": "tsx scripts/seed-demo-walrus.ts",
     "verify:mainnet": "tsx scripts/verify-mainnet.ts",
     "memwal:setup": "tsx scripts/memwal-setup.ts",
-    "cron:setup": "node scripts/setup-cron-job.mjs"
+    "cron:setup": "node scripts/setup-cron-job.mjs",
+    "test": "node --import tsx --test lib/**/*.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
