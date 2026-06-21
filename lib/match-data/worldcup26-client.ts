@@ -82,24 +82,76 @@ function normalizeGame(raw: RawGame): NormalizedFixture | null {
   };
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableFetchError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const cause = error.cause;
+  if (cause instanceof Error) {
+    const code = (cause as NodeJS.ErrnoException).code;
+    if (
+      code === "ECONNRESET" ||
+      code === "ECONNREFUSED" ||
+      code === "ETIMEDOUT" ||
+      code === "UND_ERR_CONNECT_TIMEOUT"
+    ) {
+      return true;
+    }
+  }
+  return error.message === "fetch failed";
+}
+
+async function fetchGamesWithRetry(url: string): Promise<GamesResponse> {
+  const maxAttempts = 3;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: "application/json" },
+        next: { revalidate: 0 },
+        signal: AbortSignal.timeout(12_000),
+      });
+
+      if (response.ok) {
+        return (await response.json()) as GamesResponse;
+      }
+
+      if (response.status >= 500 && attempt < maxAttempts) {
+        lastError = new Error(
+          `worldcup26.ir request failed (${response.status} ${response.statusText})`,
+        );
+        await sleep(400 * attempt);
+        continue;
+      }
+
+      throw new Error(
+        `worldcup26.ir request failed (${response.status} ${response.statusText})`,
+      );
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxAttempts && isRetryableFetchError(error)) {
+        await sleep(400 * attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("worldcup26.ir request failed after retries");
+}
+
 export async function fetchWorldCup26FixturesForSync(): Promise<
   NormalizedFixture[]
 > {
   const baseUrl = getWorldCup26BaseUrl() ?? DEFAULT_BASE_URL;
   const url = `${baseUrl.replace(/\/$/, "")}/get/games`;
 
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 0 },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `worldcup26.ir request failed (${response.status} ${response.statusText})`,
-    );
-  }
-
-  const data = (await response.json()) as GamesResponse;
+  const data = await fetchGamesWithRetry(url);
   const games = data.games ?? [];
 
   return games
