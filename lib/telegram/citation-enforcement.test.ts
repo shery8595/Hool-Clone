@@ -50,7 +50,7 @@ describe("enforceCitationInMessage", () => {
     assert.equal(result.citationSource, "enforced");
     assert.equal(result.citedMemories[0]?.id, "a");
     assert.equal(result.citedMemories[0]?.citationSource, "enforced");
-    assert.ok(result.message.includes("You literally said"));
+    assert.equal(result.message, "Generic roast.");
   });
 
   it("enforces two citations when recall is strong", () => {

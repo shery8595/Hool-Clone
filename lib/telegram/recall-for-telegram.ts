@@ -46,23 +46,20 @@ export async function recallMemoriesForTelegram(
   return recalled.slice(0, 6);
 }
 
+export function formatMemoryExcerpt(text: string, max = 96): string {
+  const cleaned = text.replace(/^\[[^\]]+\]\s*/, "").replace(/\s+/g, " ").trim();
+  if (cleaned.length <= max) return cleaned;
+  return `${cleaned.slice(0, max)}…`;
+}
+
 export function formatReceiptFooter(
   recalledMemories: Array<{ text: string; id?: string }>,
-  profilePath?: string,
 ): string {
-  const receiptFooter =
-    recalledMemories.length > 0
-      ? `\n\nMemory Receipts Used:\n${recalledMemories
-          .slice(0, 3)
-          .map((m, i) => {
-            const letter = String.fromCharCode(65 + i);
-            const id = m.id ? `#${letter}` : `#${i + 1}`;
-            return `${id} ${m.text.slice(0, 72)}${m.text.length > 72 ? "…" : ""}`;
-          })
-          .join("\n")}`
-      : "";
+  if (recalledMemories.length === 0) return "";
 
-  return profilePath
-    ? `${receiptFooter}\n\nClone evidence: ${profilePath}`
-    : receiptFooter;
+  const lines = recalledMemories
+    .slice(0, 2)
+    .map((m) => `• ${formatMemoryExcerpt(m.text)}`);
+
+  return `\n\nWalrus receipt\n${lines.join("\n")}`;
 }

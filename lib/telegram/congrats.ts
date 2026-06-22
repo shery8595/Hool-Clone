@@ -28,6 +28,30 @@ export type BuildCongratsInput = {
   actualWinner?: string;
 };
 
+function isTeamInMatch(team: string | null | undefined, match: Match): boolean {
+  if (!team) return false;
+  return match.homeTeam?.code === team || match.awayTeam?.code === team;
+}
+
+function buildCongratsFallback(
+  match: Match,
+  favoriteTeam: string | null | undefined,
+  userPick?: string,
+  actualWinner?: string,
+): string {
+  const winner = actualWinner ?? match.winner ?? undefined;
+
+  if (userPick && winner && userPick === winner) {
+    return `Nailed it — you had ${winner} and they delivered. Your clone is impressed.`;
+  }
+
+  if (favoriteTeam && isTeamInMatch(favoriteTeam, match) && winner === favoriteTeam) {
+    return `${favoriteTeam} got the W. You saw it coming.`;
+  }
+
+  return "You got this one right. Your clone has to give you that.";
+}
+
 export async function buildCongratsMessage(
   input: BuildCongratsInput,
 ): Promise<TelegramMessageAssembly> {
@@ -42,9 +66,12 @@ export async function buildCongratsMessage(
     userPick: input.userPick,
   });
 
-  const fallbackMessage = profile?.favorite_team
-    ? `Called it — your ${profile.favorite_team} loyalty paid off. Even your clone is impressed.`
-    : "You got this one right. Your clone is taking notes.";
+  const fallbackMessage = buildCongratsFallback(
+    input.match,
+    profile?.favorite_team,
+    input.userPick,
+    input.actualWinner,
+  );
 
   const llm = getLlmAdapter();
   let llmMessage = fallbackMessage;

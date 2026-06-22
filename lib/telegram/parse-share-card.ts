@@ -34,7 +34,11 @@ export function primaryQuoteFromBody(body: string): string {
   for (const line of lines) {
     if (
       line.startsWith("Memory Receipts") ||
+      line.startsWith("Walrus receipt") ||
+      line.startsWith("Clone evidence") ||
       line.startsWith("Receipt:") ||
+      line.startsWith("— Walrus") ||
+      line.startsWith("• ") ||
       /^#[A-Z]\s/.test(line)
     ) {
       break;

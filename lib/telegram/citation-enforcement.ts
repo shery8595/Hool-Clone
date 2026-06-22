@@ -63,19 +63,6 @@ export function resolveCitedMemories(
   return cited;
 }
 
-function truncateQuote(text: string, max = 120): string {
-  const cleaned = text.replace(/^\[[^\]]+\]\s*/, "").trim();
-  if (cleaned.length <= max) return cleaned;
-  return `${cleaned.slice(0, max)}…`;
-}
-
-function appendQuoteIfMissing(message: string, quote: string): string {
-  if (!quote || message.toLowerCase().includes(quote.slice(0, 24).toLowerCase())) {
-    return message;
-  }
-  return `${message.trim()}\n\nYou literally said: "${quote}"`;
-}
-
 function enforceMinimumCitations(
   cited: CitedMemoryPayload[],
   recalled: TelegramRankedMemory[],
@@ -136,13 +123,11 @@ export function enforceCitationInMessage(
 
   let cited = resolveCitedMemories(recalled, citedIds, "llm");
   let citationSource: CitationSource = cited.length > 0 ? "llm" : "enforced";
-  let outputMessage = message;
 
   if (cited.length === 0 && recalled.length > 0) {
     cited = [toCitedMemoryPayload(recalled[0], "enforced")];
     citationSource = "enforced";
     citationWarnings.push("No valid LLM citations; enforced top recalled memory.");
-    outputMessage = appendQuoteIfMissing(outputMessage, truncateQuote(recalled[0].text));
   }
 
   const minResult = enforceMinimumCitations(cited, recalled, effectiveMin);
@@ -156,16 +141,10 @@ export function enforceCitationInMessage(
     citationWarnings.push(
       `Enforced minimum ${effectiveMin} citation(s) from recalled memories.`,
     );
-    if (recalled[1]) {
-      outputMessage = appendQuoteIfMissing(
-        outputMessage,
-        truncateQuote(recalled[1].text),
-      );
-    }
   }
 
   return {
-    message: outputMessage,
+    message,
     citedMemories: cited,
     citationSource,
     citationWarnings,
