@@ -33,6 +33,15 @@ import { inferRoastContext } from "@/lib/telegram/infer-roast-match";
 import { sendAndStoreTelegramMessage } from "@/lib/telegram/send-and-store";
 
 let bot: Bot | null = null;
+let botInitPromise: Promise<void> | null = null;
+
+async function ensureBotInitialized(instance: Bot): Promise<void> {
+  if (instance.isInited()) return;
+  if (!botInitPromise) {
+    botInitPromise = instance.init();
+  }
+  await botInitPromise;
+}
 
 export function getTelegramBot(): Bot | null {
   const token = getTelegramBotToken();
@@ -296,5 +305,6 @@ export async function handleTelegramUpdate(
   if (!instance) {
     throw new Error("Telegram bot is not configured");
   }
+  await ensureBotInitialized(instance);
   await instance.handleUpdate(update);
 }
