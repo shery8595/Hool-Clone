@@ -181,7 +181,7 @@ export function TopBar({
           </Sheet>
 
           <Link
-            href="/dashboard"
+            href="/"
             className="flex items-center rounded-lg transition-opacity hover:opacity-90"
           >
             <HoolCloneLogo size="sm" />

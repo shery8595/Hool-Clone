@@ -20,8 +20,10 @@ import {
   CLONE_PREDICTION_SYSTEM,
 } from "@/lib/prompts/clone-prediction";
 import { getMatchDataAdapter } from "@/lib/match-data";
-import { formatProvenanceLabel } from "@/lib/clone/memory-provenance";
-import { isUuid } from "@/lib/utils";
+import {
+  buildStoredCloneReceipts,
+  sortReceiptsForMatch,
+} from "@/lib/clone/clone-memory-receipts";
 import type { ClonePrediction, Match, Prediction } from "@/lib/mock/types";
 import type { RecalledMemory } from "@/lib/clone/recall-memories";
 
@@ -159,11 +161,10 @@ export async function generateClonePrediction(
   const awayCode = match.awayTeam.code;
   const winner = normalizeWinner(output, homeCode, awayCode);
   const weakMemory = memoriesCount < 3;
-  const trainingQuestion =
-    output.trainingQuestion ??
-    (weakMemory
-      ? "Who is your favorite team and why? I need a few real takes before I can clone you properly."
-      : null);
+  const trainingQuestion = weakMemory
+    ? (output.trainingQuestion ??
+      "Who is your favorite team and why? I need a few real takes before I can clone you properly.")
+    : null;
 
   const recallById = new Map(
     recalledMemories
@@ -171,33 +172,15 @@ export async function generateClonePrediction(
       .map((memory) => [memory.id!, memory]),
   );
 
-  const validReceipts = output.memoryReceipts
-    .filter((r) => r.summary.trim().length > 0)
-    .map((r) => {
-      const memoryId = isUuid(r.memoryId) ? r.memoryId : undefined;
-      const recalled = memoryId ? recallById.get(memoryId) : undefined;
-      const memorySource = recalled?.source;
-      const createdAt = recalled?.createdAt ?? new Date().toISOString();
-      const walrusBlobId = recalled?.walrusBlobId;
-      return {
-        memoryId,
-        summary: r.summary,
-        memoryType: r.memoryType,
-        strength: r.strength,
-        date: createdAt,
-        recallSource: recalled?.recallSource,
-        memorySource,
-        provenanceLabel: formatProvenanceLabel(
-          memorySource,
-          createdAt,
-          recalled?.metadataMatchId,
-        ),
-        walrusBlobId,
-        storageStatus: walrusBlobId
-          ? ("stored" as const)
-          : undefined,
-      };
-    });
+  const validReceipts = sortReceiptsForMatch(
+    buildStoredCloneReceipts(output.memoryReceipts, recallById, {
+      match,
+      favoriteTeam: profile?.favorite_team,
+      rivalTeam: profile?.rival_team,
+    }),
+    recallById,
+    matchExternalId,
+  );
 
   const homeScore = output.predictedScore.teamA;
   const awayScore = output.predictedScore.teamB;

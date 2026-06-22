@@ -5,7 +5,10 @@ import {
   buildDebateSystemPrompt,
   buildDebateUserPrompt,
 } from "@/lib/debate/prompts";
-import { trySpecializedDebateReply } from "@/lib/debate/specialized-replies";
+import {
+  shouldUseSpecializedDebateReply,
+  trySpecializedDebateReply,
+} from "@/lib/debate/specialized-replies";
 import {
   isRepeatingReply,
   pickContradictionForTurn,
@@ -51,16 +54,9 @@ export async function generateDebateReply(
     userMessage: input.userMessage,
     analysis: ctx.analysis,
     catalog: ctx.rankedCatalog,
+    profileFavoriteTeam: ctx.profile?.favorite_team,
   });
-  if (
-    specialized &&
-    (ctx.analysis.denyingPriorClaim ||
-      ctx.analysis.denyingStyleClaim ||
-      ctx.analysis.playerComparison ||
-      ctx.analysis.matchupQuestion ||
-      (ctx.analysis.winnerClaim && ctx.analysis.searchTerms.length > 0) ||
-      /\b(despise|hate most)\b/i.test(input.userMessage))
-  ) {
+  if (specialized && shouldUseSpecializedDebateReply(ctx.analysis, input.userMessage)) {
     return specialized;
   }
 

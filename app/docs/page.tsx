@@ -11,11 +11,17 @@ const README_PATH = path.join(process.cwd(), "docs", "README.md");
 
 export default function DocsIndexPage() {
   const raw = fs.readFileSync(README_PATH, "utf-8");
-  const content = rewriteDocLinks(raw);
+  const content = rewriteDocLinks(raw).replace(
+    /^#\s+HoolClone Documentation\s*\n+/,
+    "",
+  );
 
   return (
     <>
       <DocsPageActions markdown={raw} />
+      <h1 className="mb-6 font-serif text-3xl font-normal tracking-tight text-hoolclone-gray-900 sm:text-4xl">
+        HoolClone Documentation
+      </h1>
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Link
           href="/docs/judges"
@@ -74,7 +80,7 @@ export default function DocsIndexPage() {
           <FlaskConical className="mb-2 h-5 w-5 text-hoolclone-green-700" />
           <p className="font-semibold text-hoolclone-gray-900">Testing</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            151 unit tests · coverage map
+            165 unit tests · coverage map
           </p>
         </Link>
       </div>

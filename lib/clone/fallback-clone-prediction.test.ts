@@ -27,7 +27,7 @@ describe("fallbackClonePrediction", () => {
       match,
       recalledMemories: [
         makeRecalledMemory({
-          id: "11111111-2222-3333-4444-555555555555",
+          id: "11111111-2222-4333-8444-555555555555",
           text: "Always back Brazil with loyalty",
           score: 0.8,
         }),
@@ -49,7 +49,11 @@ describe("fallbackClonePrediction", () => {
     const result = fallbackClonePrediction({
       match: engFra,
       recalledMemories: [
-        makeRecalledMemory({ text: "Distrust England", score: 0.7 }),
+        makeRecalledMemory({
+          id: "22222222-3333-4333-8444-666666666666",
+          text: "Distrust England",
+          score: 0.7,
+        }),
       ],
       memoriesCount: 12,
       rivalTeam: "England",

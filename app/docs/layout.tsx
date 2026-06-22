@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { DocsMobileNav } from "@/components/docs/docs-mobile-nav";
-import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { DocsLayoutShell } from "@/components/docs/docs-layout-shell";
+import { DocsPageProvider } from "@/components/docs/docs-page-context";
 
 export const metadata: Metadata = {
   title: "Documentation — HoolClone",
@@ -14,16 +14,8 @@ export default function DocsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-hoolclone-page-bg lg:flex">
-      <DocsSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <DocsMobileNav />
-        <main className="flex-1">
-          <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+    <DocsPageProvider>
+      <DocsLayoutShell>{children}</DocsLayoutShell>
+    </DocsPageProvider>
   );
 }

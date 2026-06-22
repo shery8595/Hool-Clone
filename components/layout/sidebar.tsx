@@ -68,7 +68,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           )}
         >
           <Link
-            href="/dashboard"
+            href="/"
             onClick={onNavigate}
             className={cn(
               "min-w-0 transition-opacity hover:opacity-90",

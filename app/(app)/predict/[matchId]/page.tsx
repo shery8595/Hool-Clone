@@ -14,6 +14,7 @@ import { PredictButton } from "@/components/predict/predict-button";
 import { buildDashboardFallback } from "@/lib/dashboard/dashboard-fallback";
 import { cacheKeys, peekCached } from "@/lib/api/data-cache";
 import {
+  fetchClonePredictionRaw,
   fetchDashboardRaw,
   fetchMatchPredictionRaw,
   fetchMatchRaw,
@@ -35,7 +36,7 @@ type PredictMatchPageProps = {
 
 export default function PredictMatchPage({ params }: PredictMatchPageProps) {
   const { matchId } = use(params);
-  const { me } = useUser();
+  const { me, refresh: refreshMe } = useUser();
 
   const initialMatch =
     peekCached<Match>(cacheKeys.match(matchId)) ?? getMockMatch(matchId) ?? undefined;
@@ -75,30 +76,44 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
 
   const [prediction, setPrediction] = useState<Prediction | null>(null);
   const [trainingQuestion, setTrainingQuestion] = useState<string | null>(null);
-  const [weakMemory, setWeakMemory] = useState(false);
   const [locked, setLocked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [cloneLoading, setCloneLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const usingMock = matchHydrating && !!getMockMatch(matchId) && match === initialMatch;
 
+  const loadCloneMeta = useCallback(async () => {
+    if (!me?.id) return;
+    const meta = await fetchClonePredictionRaw(matchId);
+    if (!meta) return;
+    setTrainingQuestion(meta.trainingQuestion);
+  }, [matchId, me?.id, me?.profile.memoriesCount]);
+
   useEffect(() => {
     if (savedPrediction) {
       setPrediction(savedPrediction);
       setLocked(true);
-      if (savedPrediction.clone) {
-        setWeakMemory(false);
-        setTrainingQuestion(null);
-      }
     }
   }, [savedPrediction]);
+
+  useEffect(() => {
+    void loadCloneMeta();
+  }, [loadCloneMeta]);
+
+  useEffect(() => {
+    const refreshOnFocus = () => {
+      void refreshMe();
+      void loadCloneMeta();
+    };
+    window.addEventListener("focus", refreshOnFocus);
+    return () => window.removeEventListener("focus", refreshOnFocus);
+  }, [loadCloneMeta, refreshMe]);
 
   const runClonePrediction = useCallback(async () => {
     setCloneLoading(true);
     setError(null);
     try {
       const result = await generateClonePrediction(matchId);
-      setWeakMemory(result.weakMemory);
       setTrainingQuestion(result.trainingQuestion);
       if (result.prediction) {
         setPrediction(result.prediction);
@@ -183,8 +198,13 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
     emotion: "hyped" as const,
   };
 
-  const showWeakMemory = locked && Boolean(trainingQuestion);
-  const showClonePanel = locked && prediction?.clone && !trainingQuestion;
+  const memoriesCount = me?.profile.memoriesCount ?? 0;
+  const stillNeedsTraining = memoriesCount < 3;
+  const showWeakMemory = locked && Boolean(trainingQuestion) && stillNeedsTraining;
+  const showTrainedSuccess =
+    locked && Boolean(trainingQuestion) && !stillNeedsTraining;
+  const showClonePanel =
+    locked && prediction?.clone && !trainingQuestion && !showTrainedSuccess;
   const showCorrection =
     showClonePanel &&
     prediction?.clone &&
@@ -268,7 +288,14 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
             match={match}
             clone={prediction.clone}
             maturity={me?.profile.cloneMaturityLabel}
-            memoriesCount={me?.profile.memoriesCount}
+          />
+        ) : showTrainedSuccess && trainingQuestion ? (
+          <WeakMemoryCloneCard
+            trainingQuestion={trainingQuestion}
+            variant="trained"
+            memoriesCount={memoriesCount}
+            regenerating={cloneLoading}
+            onRegenerate={() => void runClonePrediction()}
           />
         ) : showWeakMemory && trainingQuestion ? (
           <WeakMemoryCloneCard

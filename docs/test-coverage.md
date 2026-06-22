@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **151 unit tests** across **31 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **165 unit tests** across **39 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -10,9 +10,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Metric | Value |
 |--------|-------|
-| Test files | 31 (`lib/**/*.test.ts`) |
-| Test cases | 151 |
-| Test suites | 67 |
+| Test files | 39 (`lib/**/*.test.ts`) |
+| Test cases | 165 |
+| Test suites | 75 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -23,11 +23,11 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | User flow | What's tested | Test files |
 |-----------|---------------|------------|
 | **Train / onboarding** | Maturity levels, memory extraction fallback, profile hints | `lib/auth/maturity.test.ts`, `lib/onboarding/extract-memory.test.ts` |
-| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, post-match text | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/post-match-resolution.test.ts` |
+| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, post-match text, clone receipt filtering | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
 | **Recall / Walrus** | RRF, diversity, type weights, recency, entity overlap, blob parse, provenance | `lib/clone/memory-rerank.test.ts`, `lib/clone/memory-provenance.test.ts`, `lib/walrus/parse-blob-payload.test.ts`, `lib/memory/recall-provenance.test.ts` |
-| **Debate** | Full pipeline: analyze → rank → align → cite → contradict → fallback | 10 files under `lib/debate/*.test.ts` |
+| **Debate** | Full pipeline: intent → analyze → rank → align → cite → contradict → fallback | 11 files under `lib/debate/*.test.ts` |
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
-| **Cron / matches** | Match status, team code mapping | `lib/match-data/match-status.test.ts`, `lib/match-data/football-team-map.test.ts` |
+| **Cron / matches** | Match status, team code mapping, sync-on-read | `lib/match-data/match-status.test.ts`, `lib/match-data/football-team-map.test.ts`, `lib/match-data/sync-match-results.test.ts` |
 | **Public profile / dashboard** | Contradictions, temporal drift, bias radar, clone mood, judge-proof panels | `lib/clone/contradiction-hunter.test.ts`, `lib/clone/temporal-contradictions.test.ts`, `lib/stats/bias-radar.test.ts`, `lib/clone/clone-mood.test.ts`, `lib/clone/judge-proof-demo.test.ts` |
 | **Auth** | Wallet challenge JWT round-trip | `lib/auth/wallet-challenge.test.ts` |
 | **API shaping** | Memory receipt mapper, lineage | `lib/api/memory-mapper.test.ts` |
@@ -36,13 +36,14 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 ## All test files
 
-### Debate pipeline (10 files · ~42 tests)
+### Debate pipeline (11 files · ~47 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/debate/extract-entities.test.ts`](../lib/debate/extract-entities.test.ts) | `extractSearchTerms`, `extractDebateEntities`, `pickReceiptsBySearchTerms`, `isCorrectionReceipt` |
 | [`lib/debate/score-memory-relevance.test.ts`](../lib/debate/score-memory-relevance.test.ts) | `scoreMemoryRelevance`, `rankMemoriesForTurn` |
 | [`lib/debate/analyze-debate-turn.test.ts`](../lib/debate/analyze-debate-turn.test.ts) | `analyzeDebateTurn` — topics, dispute, denial, winner claims |
+| [`lib/debate/parse-user-intent.test.ts`](../lib/debate/parse-user-intent.test.ts) | `parseDebateUserIntent`, `shouldUseSpecializedDebateReply` — head-to-head, favorite switches |
 | [`lib/debate/infer-citations.test.ts`](../lib/debate/infer-citations.test.ts) | `inferCitedReceipts` — UUID and `#N` refs |
 | [`lib/debate/align-citations.test.ts`](../lib/debate/align-citations.test.ts) | `alignCitationsToTurn` |
 | [`lib/debate/filter-contradictions.test.ts`](../lib/debate/filter-contradictions.test.ts) | `filterDebateContradictions` |
@@ -51,7 +52,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/debate/thread-variation.test.ts`](../lib/debate/thread-variation.test.ts) | `isRepeatingReply`, `pickContradictionForTurn` |
 | [`lib/debate/prediction-rebuttal.test.ts`](../lib/debate/prediction-rebuttal.test.ts) | `findPredictionRebuttal` |
 
-### Clone & memory recall (11 files · ~48 tests)
+### Clone & memory recall (12 files · ~52 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
@@ -66,6 +67,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/clone/clone-mood.test.ts`](../lib/clone/clone-mood.test.ts) | `computeCloneMood` |
 | [`lib/clone/judge-proof-demo.test.ts`](../lib/clone/judge-proof-demo.test.ts) | `buildSameQuestionProofFromTimeMachine`, `buildCorrectionOverrideFromProfile`, `buildRoastRecordFromProfile` |
 | [`lib/clone/memory-provenance.test.ts`](../lib/clone/memory-provenance.test.ts) | `formatMemorySourceLabel`, `formatProvenanceLabel` |
+| [`lib/clone/clone-memory-receipts.test.ts`](../lib/clone/clone-memory-receipts.test.ts) | `memoryRelevantToMatch`, `buildStoredCloneReceipts`, `pickInfluentialReceiptsForFallback` |
 
 ### Telegram (5 files · ~22 tests)
 
@@ -85,13 +87,20 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/auth/wallet-challenge.test.ts`](../lib/auth/wallet-challenge.test.ts) | `createWalletChallenge`, `verifyWalletChallengeToken` |
 | [`lib/onboarding/extract-memory.test.ts`](../lib/onboarding/extract-memory.test.ts) | `fallbackExtraction` |
 
-### Match data & stats (3 files · ~14 tests)
+### Match data & stats (4 files · ~18 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/match-data/match-status.test.ts`](../lib/match-data/match-status.test.ts) | `effectiveMatchStatus`, kickoff inference |
 | [`lib/match-data/football-team-map.test.ts`](../lib/match-data/football-team-map.test.ts) | `apiTeamNameToCode`, `codesMatchFixture` |
+| [`lib/match-data/sync-match-results.test.ts`](../lib/match-data/sync-match-results.test.ts) | `findDbMatch` — team-only sync matching |
 | [`lib/stats/bias-radar.test.ts`](../lib/stats/bias-radar.test.ts) | `extractMemoryDrivers`, `hasBiasRadarData`, `buildBiasRadar` |
+
+### Predictions (1 file · ~2 tests)
+
+| File | Functions / behavior covered |
+|------|------------------------------|
+| [`lib/predictions/predicted-match-ids.test.ts`](../lib/predictions/predicted-match-ids.test.ts) | Predicted match id merge and case-insensitive lookup |
 
 ### API & Walrus (3 files · ~11 tests)
 

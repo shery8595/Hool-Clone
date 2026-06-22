@@ -83,6 +83,30 @@ export function scoreMemoryRelevance(
     }
   }
 
+  if (analysis.declaringFavoriteTeam && receiptMentionsEntity(receipt, analysis.declaringFavoriteTeam)) {
+    score += 12;
+  }
+
+  if (analysis.backedTeam && receiptMentionsEntity(receipt, analysis.backedTeam)) {
+    score += 10;
+    if (
+      analysis.opponentTeam &&
+      /\b(attack|best|picked|hyped|fav|win|confidence)\b/i.test(receipt.text)
+    ) {
+      score += 6;
+    }
+  }
+
+  if (
+    analysis.backedTeam &&
+    analysis.opponentTeam &&
+    receiptMentionsEntity(receipt, analysis.opponentTeam) &&
+    /\b(underperform|distrust|never trust|choke)\b/i.test(receipt.text) &&
+    !receiptMentionsEntity(receipt, analysis.backedTeam)
+  ) {
+    score -= 10;
+  }
+
   if (analysis.priorCitedIds.includes(receipt.id)) score -= 6;
 
   if (receipt.usedInPrediction) score += 1;

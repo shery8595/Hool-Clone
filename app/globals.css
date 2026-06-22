@@ -190,10 +190,15 @@
 }
 
 /* Landing page motion — hidden until GSAP runs (prevents flash/blink) */
-.landing-motion [data-hero-item],
-.landing-motion [data-reveal-item] {
+.landing-motion [data-hero-item]:not(.landing-revealed),
+.landing-motion [data-reveal-item]:not(.landing-revealed) {
   opacity: 0;
   transform: translate3d(0, 14px, 0);
+}
+
+.landing-motion [data-hero-item].landing-revealed,
+.landing-motion [data-reveal-item].landing-revealed {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

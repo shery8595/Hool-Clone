@@ -1,6 +1,6 @@
 import type { ClonePredictionOutput } from "@/lib/llm/schemas/clone-prediction";
+import { pickInfluentialReceiptsForFallback } from "@/lib/clone/clone-memory-receipts";
 import type { RecalledMemory } from "@/lib/clone/recall-memories";
-import { isUuid } from "@/lib/utils";
 import type { Match } from "@/lib/mock/types";
 
 const WEAK_MEMORY_QUESTION =
@@ -53,12 +53,7 @@ export function fallbackClonePrediction(input: {
       confidence: 25,
       reasoning:
         "I do not know your football instincts yet. My memory is too thin to clone you properly.",
-      memoryReceipts: recalledMemories.slice(0, 2).map((m) => ({
-        memoryId: isUuid(m.id) ? m.id : undefined,
-        summary: m.text,
-        memoryType: m.type ?? "remembered",
-        strength: "low" as const,
-      })),
+      memoryReceipts: [],
       trainingQuestion: WEAK_MEMORY_QUESTION,
     };
   }
@@ -85,12 +80,10 @@ export function fallbackClonePrediction(input: {
     awayScore = 2;
   }
 
-  const receipts = recalledMemories.slice(0, 3).map((m) => ({
-    memoryId: isUuid(m.id) ? m.id : undefined,
-    summary: m.text,
-    memoryType: m.type ?? "prediction_style",
-    strength: (m.score >= 0.6 ? "high" : "medium") as "medium" | "high",
-  }));
+  const receipts = pickInfluentialReceiptsForFallback(recalledMemories, match, {
+    favoriteTeam: input.favoriteTeam,
+    rivalTeam: input.rivalTeam,
+  });
 
   return {
     predictedWinner: winner,

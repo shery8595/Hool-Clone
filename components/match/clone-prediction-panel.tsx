@@ -10,14 +10,12 @@ type ClonePredictionPanelProps = {
   match: Match;
   clone: ClonePrediction;
   maturity?: CloneMaturity;
-  memoriesCount?: number;
 };
 
 export function ClonePredictionPanel({
   match,
   clone,
   maturity = "Learner",
-  memoriesCount,
 }: ClonePredictionPanelProps) {
   if (!match.homeTeam || !match.awayTeam) return null;
 
@@ -43,7 +41,8 @@ export function ClonePredictionPanel({
             <p className="font-semibold">Your HoolClone</p>
             <p className="text-xs text-muted-foreground">
               {confidenceLabel}
-              {memoriesCount !== undefined && ` · ${memoriesCount} memories`}
+              {clone.receipts.length > 0 &&
+                ` · ${clone.receipts.length} memories cited`}
             </p>
           </div>
           <MaturityBadge maturity={maturity} className="ml-auto hidden sm:inline-flex" />
@@ -71,6 +70,9 @@ export function ClonePredictionPanel({
 
         {clone.receipts.length > 0 && (
           <div className="space-y-3">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground">
+              MEMORIES CITED IN THIS PREDICTION
+            </p>
             {clone.receipts.map((receipt) => (
               <MemoryReceiptCard key={receipt.id} receipt={receipt} compact />
             ))}
@@ -88,7 +90,7 @@ export function ClonePredictionPanel({
 
         <WalrusMemoryBadge
           variant="inline"
-          memoriesUsed={memoriesCount}
+          memoriesUsed={clone.receipts.length}
         />
       </CardContent>
     </Card>

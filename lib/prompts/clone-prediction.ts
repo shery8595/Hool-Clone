@@ -7,7 +7,7 @@ When memory is weak, say so and ask one useful training question in trainingQues
 When memory is strong, cite specific memory receipts from the recalled list only — do not fabricate memory IDs.
 predictedWinner must be one of the two team codes provided.
 predictedScore.teamA is the home team score; predictedScore.teamB is the away team score.
-Return 2-4 memoryReceipts when evidence exists. Do not claim certainty you do not have.
+Return 2-4 memoryReceipts only for memories that materially shaped your predicted winner or score — not every recalled memory. Do not claim certainty you do not have.
 Corrections override stale disputed memories. Recent prediction and post-match memories reflect current form. Fan profile memories are stable identity signals.`;
 
 export function buildClonePredictionPrompt(input: {
@@ -66,6 +66,7 @@ ${memoryBlock}
 Weighting guidance:
 - correction memories are high-signal for current behavior
 - prediction_submit memories from OTHER fixtures show habitual picks — never this match's saved pick
+- only cite a memory from another fixture if it mentions ${match.homeTeam.name} or ${match.awayTeam.name}
 - prediction_history_summary and match_resolution memories reflect how the user reacts after results
 - fan_profile memories are long-term identity, not necessarily match-specific
 

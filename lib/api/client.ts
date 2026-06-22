@@ -410,6 +410,20 @@ export async function fetchPredictionHistory(
   return fetchCached(cacheKeys.predictionHistory(userId), fetchPredictionHistoryRaw);
 }
 
+export async function fetchClonePredictionRaw(
+  matchId: string,
+): Promise<{
+  clone: NonNullable<Prediction["clone"]> | null;
+  trainingQuestion: string | null;
+} | null> {
+  const response = await fetchWithTimeout(
+    `/api/matches/${matchId}/clone-prediction`,
+    { credentials: "include" },
+  );
+  if (response.status === 401) return null;
+  return parseJson(response);
+}
+
 export async function generateClonePrediction(matchId: string): Promise<{
   clone: NonNullable<Prediction["clone"]>;
   trainingQuestion: string | null;
@@ -420,7 +434,14 @@ export async function generateClonePrediction(matchId: string): Promise<{
     method: "POST",
     credentials: "include",
   });
-  return parseJson(response);
+  const data = await parseJson<{
+    clone: NonNullable<Prediction["clone"]>;
+    trainingQuestion: string | null;
+    weakMemory: boolean;
+    prediction: Prediction | null;
+  }>(response);
+  invalidateCache("match-pred");
+  return data;
 }
 
 export async function fetchDashboardRaw(): Promise<DashboardData | null> {
@@ -526,7 +547,16 @@ export async function submitCloneCorrection(
     credentials: "include",
     body: JSON.stringify(input),
   });
-  return parseJson(response);
+  const data = await parseJson<{
+    memoryId: string;
+    storageStatus: string;
+    clone?: NonNullable<Prediction["clone"]>;
+    prediction?: Prediction;
+    agreed?: boolean;
+    regenerated: boolean;
+  }>(response);
+  invalidateCache("match-pred");
+  return data;
 }
 
 export async function generateClashDebate(input: {

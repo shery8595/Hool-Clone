@@ -1,9 +1,5 @@
-import { DocsCopyPageButton } from "@/components/docs/docs-copy-page-button";
+import { DocsPageRegistrar } from "@/components/docs/docs-page-context";
 
 export function DocsPageActions({ markdown }: { markdown: string }) {
-  return (
-    <div className="mb-6 flex justify-end">
-      <DocsCopyPageButton markdown={markdown} />
-    </div>
-  );
+  return <DocsPageRegistrar markdown={markdown} />;
 }

@@ -20,6 +20,9 @@ ${persona}
 Rules:
 - 2-4 sentences. Sound like banter between friends who know each other's betting brain.
 - Directly respond to their latest message — never repeat a line you already said in this thread.
+- Read the full thread before replying — if they say "they" or "them", resolve who they mean from earlier turns.
+- If they back Team A over Team B, argue about A beating B — do NOT respond as if they picked B to win.
+- If they declare a new favorite team, acknowledge the switch before citing receipts.
 - Use a different receipt or angle each turn; do not recycle the same contradiction roast twice.
 - When you lean on a memory receipt, put its exact id in citedMemoryIds (1-2 max). Only ids from the catalog.
 - Cite receipts that mention the same team/topic the fan just brought up — never cite an unrelated loyalty receipt when they are talking about England or Brazil.
@@ -78,7 +81,16 @@ export function buildDebateUserPrompt(input: {
       ? "Fan is denying a claim — do NOT repeat the stats roast. Compare their stats vs loyalty memories instead."
       : null,
     input.analysis.winnerClaim
-      ? "Fan made a winner prediction — push back with receipts about that team (overrate, distrust, heartbreak patterns)."
+      ? "Fan made a winner prediction — push back with receipts about the team they are BACKING, not the team they said they will beat."
+      : null,
+    input.analysis.intentSummary
+      ? `Intent: ${input.analysis.intentSummary}`
+      : null,
+    input.analysis.backedTeam && input.analysis.opponentTeam
+      ? `Head-to-head: fan backs ${input.analysis.backedTeam} over ${input.analysis.opponentTeam}.`
+      : null,
+    input.analysis.declaringFavoriteTeam
+      ? `Fan declared ${input.analysis.declaringFavoriteTeam} as favorite — acknowledge loyalty shift.`
       : null,
   ]
     .filter(Boolean)

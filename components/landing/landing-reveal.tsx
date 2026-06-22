@@ -12,18 +12,36 @@ type LandingRevealProps = {
   className?: string;
 };
 
+function markRevealedElements(elements: gsap.TweenTarget) {
+  const nodes = gsap.utils.toArray<HTMLElement>(elements);
+  for (const node of nodes) {
+    node.classList.add("landing-revealed");
+  }
+  // Keep GSAP's final transform in place. Clearing it can cause a last-frame snap.
+  gsap.set(nodes, { opacity: 1, y: 0 });
+}
+
 /**
  * Scopes GSAP scroll + hero animations for the marketing landing page.
- * Elements start hidden via CSS; GSAP only animates to visible (no from/fromTo snap).
+ * Elements start hidden via CSS; GSAP animates to visible, then a revealed
+ * class keeps them visible while GSAP holds the final transform.
  */
 export function LandingReveal({ children, className }: LandingRevealProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
+      const root = containerRef.current;
+      if (!root) return;
+
       const mm = gsap.matchMedia();
 
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const heroItems = gsap.utils.toArray<HTMLElement>(
+          "[data-hero-item]",
+          root,
+        );
+
         const revealTo = {
           opacity: 1,
           y: 0,
@@ -31,22 +49,25 @@ export function LandingReveal({ children, className }: LandingRevealProps) {
           ease: "power1.out",
         } as const;
 
-        gsap.to("[data-hero-item]", {
+        gsap.to(heroItems, {
           ...revealTo,
           stagger: 0.18,
           delay: 0.08,
           onComplete: () => {
-            gsap.set("[data-hero-item]", { clearProps: "transform" });
+            markRevealedElements(heroItems);
           },
         });
 
         const sections = gsap.utils.toArray<HTMLElement>(
           "[data-reveal-section]",
-          containerRef.current,
+          root,
         );
 
         for (const section of sections) {
-          const items = section.querySelectorAll("[data-reveal-item]");
+          const items = gsap.utils.toArray<HTMLElement>(
+            "[data-reveal-item]",
+            section,
+          );
           if (!items.length) continue;
 
           ScrollTrigger.create({
@@ -58,7 +79,7 @@ export function LandingReveal({ children, className }: LandingRevealProps) {
                 ...revealTo,
                 stagger: 0.07,
                 onComplete: () => {
-                  gsap.set(items, { clearProps: "transform" });
+                  markRevealedElements(items);
                 },
               });
             },
@@ -67,11 +88,11 @@ export function LandingReveal({ children, className }: LandingRevealProps) {
       });
 
       mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.set("[data-hero-item], [data-reveal-item]", {
-          opacity: 1,
-          y: 0,
-          clearProps: "transform",
-        });
+        const items = gsap.utils.toArray<HTMLElement>(
+          "[data-hero-item], [data-reveal-item]",
+          root,
+        );
+        markRevealedElements(items);
       });
 
       return () => mm.revert();

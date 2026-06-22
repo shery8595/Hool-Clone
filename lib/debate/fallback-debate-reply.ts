@@ -31,6 +31,7 @@ export function buildFallbackDebateReply(input: {
     userMessage: input.userMessage,
     analysis: input.analysis,
     catalog: input.catalog,
+    profileFavoriteTeam: undefined,
   });
   if (specialized) return specialized;
 

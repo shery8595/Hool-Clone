@@ -22,10 +22,60 @@ function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function pickBackedTeamReceipt(
+  ranked: MemoryReceipt[],
+  backedTeam: string,
+  opponentTeam: string,
+): MemoryReceipt | undefined {
+  const matches = pickReceiptsBySearchTerms(ranked, [backedTeam], {
+    includeCorrections: true,
+    limit: 4,
+    minScore: 12,
+  });
+
+  const supportive = matches.find((receipt) => {
+    const text = receipt.text.toLowerCase();
+    if (!text.includes(backedTeam)) return false;
+    if (
+      text.includes(opponentTeam) &&
+      /\b(underperform|distrust|never trust|choke|bias)\b/i.test(text) &&
+      !text.includes(`vs ${capitalize(opponentTeam)}`.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  return supportive ?? matches[0];
+}
+
+const NON_MATCHUP_OPPONENTS = new Set(["world cup"]);
+
+export function shouldUseSpecializedDebateReply(
+  analysis: DebateTurnAnalysis,
+  userMessage: string,
+): boolean {
+  if (analysis.denyingPriorClaim || analysis.denyingStyleClaim) return true;
+  if (analysis.playerComparison) return true;
+  if (/\b(despise|hate most|loathe the most|can't stand most)\b/i.test(userMessage)) {
+    return true;
+  }
+  if (analysis.declaringFavoriteTeam) return true;
+  if (
+    analysis.backedTeam &&
+    analysis.opponentTeam &&
+    !NON_MATCHUP_OPPONENTS.has(analysis.opponentTeam)
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export function trySpecializedDebateReply(input: {
   userMessage: string;
   analysis: DebateTurnAnalysis;
   catalog: MemoryReceipt[];
+  profileFavoriteTeam?: string | null;
 }): { text: string; citedReceipts: MemoryReceipt[] } | null {
   const ranked = rankMemoriesForTurn(
     input.catalog,
@@ -35,6 +85,39 @@ export function trySpecializedDebateReply(input: {
   const { analysis } = input;
   const entities = analysis.mentionedEntities;
   const searchTerms = analysis.searchTerms;
+
+  if (analysis.declaringFavoriteTeam) {
+    const team = analysis.declaringFavoriteTeam;
+    const receipts = pickReceiptsBySearchTerms(ranked, [team], {
+      includeCorrections: true,
+      limit: 2,
+      minScore: 12,
+    });
+    const primary = receipts[0];
+    if (primary) {
+      const profileFav = input.profileFavoriteTeam?.toLowerCase();
+      const shiftNote =
+        profileFav && profileFav !== team
+          ? ` I'll weight ${capitalize(team)} over ${capitalize(profileFav)} from here.`
+          : "";
+      return {
+        text: `Noted — ${capitalize(team)} is your team now.${shiftNote} Receipt #${primary.number} already backs that shift: "${primary.text.slice(0, 120)}${primary.text.length > 120 ? "…" : ""}"`,
+        citedReceipts: [primary],
+      };
+    }
+  }
+
+  if (analysis.backedTeam && analysis.opponentTeam) {
+    const backed = analysis.backedTeam;
+    const opponent = analysis.opponentTeam;
+    const primary = pickBackedTeamReceipt(ranked, backed, opponent);
+    if (primary) {
+      return {
+        text: `You're backing ${capitalize(backed)} over ${capitalize(opponent)} — receipt #${primary.number} lines up with that: "${primary.text.slice(0, 120)}${primary.text.length > 120 ? "…" : ""}"`,
+        citedReceipts: [primary],
+      };
+    }
+  }
 
   if (analysis.playerComparison && searchTerms.length > 0) {
     const primary = pickReceiptsBySearchTerms(ranked, searchTerms, {
@@ -97,39 +180,7 @@ export function trySpecializedDebateReply(input: {
     }
   }
 
-  if (
-    (analysis.winnerClaim || analysis.matchupQuestion) &&
-    searchTerms.length > 0
-  ) {
-    const termMatches = pickReceiptsBySearchTerms(ranked, searchTerms, {
-      includeCorrections: true,
-      limit: 2,
-      minScore: 12,
-    });
-    const primary = termMatches[0];
-    if (primary) {
-      const focusTerm =
-        searchTerms.find((term) => receiptMentionsEntity(primary, term)) ??
-        searchTerms[0]!;
-      const cap = capitalize(focusTerm);
-      if (
-        /overrate|distrust|never trust|lets them down|underperform/i.test(
-          primary.text,
-        )
-      ) {
-        return {
-          text: `${cap} to win? Receipt #${primary.number} cuts against that — "${primary.text.slice(0, 120)}${primary.text.length > 120 ? "…" : ""}"`,
-          citedReceipts: [primary],
-        };
-      }
-      return {
-        text: `On ${focusTerm} — receipt #${primary.number} is what I'm working from: "${primary.text.slice(0, 120)}${primary.text.length > 120 ? "…" : ""}"`,
-        citedReceipts: [primary],
-      };
-    }
-  }
-
-  if (entities.length > 0) {
+  if (entities.length > 0 && !analysis.winnerClaim) {
     const entityReceipts = pickEntityReceipts(ranked, entities, {
       excludeCorrections: false,
       limit: 1,

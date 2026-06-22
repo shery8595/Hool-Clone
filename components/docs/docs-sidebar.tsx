@@ -5,23 +5,23 @@ import { usePathname } from "next/navigation";
 import { ChevronLeft, Database } from "lucide-react";
 import { docSections } from "@/lib/docs/navigation";
 import { docsHomeIcon, getDocPageIcon } from "@/lib/docs/page-icons";
-import { useSidebarCollapsed } from "@/lib/hooks/use-sidebar-collapsed";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
 import { SidebarCollapseToggle } from "@/components/layout/sidebar-collapse-toggle";
 import { cn } from "@/lib/utils";
 
-const DOCS_SIDEBAR_KEY = "hoolclone-docs-sidebar-collapsed";
-
 export function DocsSidebar({
+  collapsed,
+  onToggleCollapsed,
   onNavigate,
   className,
 }: {
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
   onNavigate?: () => void;
   className?: string;
 }) {
   const pathname = usePathname();
   const isMobileSheet = Boolean(onNavigate);
-  const { collapsed, toggle } = useSidebarCollapsed(DOCS_SIDEBAR_KEY);
   const isCollapsed = isMobileSheet ? false : collapsed;
 
   const DocsHomeIcon = docsHomeIcon;
@@ -30,9 +30,7 @@ export function DocsSidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 z-30 flex h-screen shrink-0 flex-col border-r border-border bg-white transition-[width] duration-300 ease-in-out",
-        isCollapsed ? "w-[4.75rem]" : "w-72",
-        isMobileSheet ? "h-full w-full" : "hidden lg:flex",
+        "flex h-full w-full flex-col border-r border-border bg-white transition-[width] duration-300 ease-in-out",
         className,
       )}
     >
@@ -49,13 +47,13 @@ export function DocsSidebar({
           )}
         >
           <Link
-            href="/docs"
+            href="/"
             onClick={onNavigate}
             className={cn(
               "min-w-0 transition-opacity hover:opacity-90",
               isCollapsed && "flex justify-center",
             )}
-            title="Documentation"
+            title="HoolClone"
           >
             {isCollapsed ? (
               <HoolCloneLogo size="sm" />
@@ -72,7 +70,7 @@ export function DocsSidebar({
           {!isMobileSheet && (
             <SidebarCollapseToggle
               collapsed={isCollapsed}
-              onToggle={toggle}
+              onToggle={onToggleCollapsed}
               className={isCollapsed ? "mt-3" : undefined}
             />
           )}

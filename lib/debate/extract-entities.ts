@@ -10,6 +10,8 @@ export const KNOWN_ENTITIES = [
   "haiti",
   "scotland",
   "uzbekistan",
+  "iraq",
+  "saudi arabia",
   "mexico",
   "korea",
   "south africa",

@@ -2,6 +2,7 @@ import {
   extractDebateEntities,
   extractSearchTerms,
 } from "@/lib/debate/extract-entities";
+import { parseDebateUserIntent } from "@/lib/debate/parse-user-intent";
 import { extractPriorCloneTexts } from "@/lib/debate/thread-variation";
 import type { DebateMessage } from "@/lib/mock/types";
 
@@ -31,6 +32,11 @@ export type DebateTurnAnalysis = {
   priorCloneTexts: string[];
   cloneTurnIndex: number;
   threadSummary: string;
+  backedTeam: string | null;
+  opponentTeam: string | null;
+  declaringFavoriteTeam: string | null;
+  affirmingPriorPoint: boolean;
+  intentSummary: string | null;
 };
 
 const DISPUTE_RE =
@@ -92,17 +98,28 @@ export function analyzeDebateTurn(
 
   const threadLines = recentMessages
     .filter((m) => m.id !== "opening")
-    .slice(-4)
-    .map((m) => `${m.role === "user" ? "Fan" : "Clone"}: ${m.text.slice(0, 120)}`);
+    .slice(-6)
+    .map(
+      (m) =>
+        `${m.role === "user" ? "Fan" : "Clone"}: ${m.text.slice(0, 200)}`,
+    );
 
   const priorCloneTexts = extractPriorCloneTexts(recentMessages);
   const cloneTurnIndex = recentMessages.filter((m) => m.role === "clone").length;
 
-  const searchTerms = extractSearchTerms(userMessage, {
+  const intent = parseDebateUserIntent(userMessage, recentMessages, {
+    favoriteTeam: hints?.favoriteTeam,
+    rivalTeam: hints?.rivalTeam,
+  });
+
+  const baseSearchTerms = extractSearchTerms(userMessage, {
     favoriteTeam: hints?.favoriteTeam,
     rivalTeam: hints?.rivalTeam,
     memoryTexts: hints?.memoryTexts,
   });
+  const searchTerms = [
+    ...new Set([...baseSearchTerms, ...intent.contextualSearchTerms]),
+  ];
   const mentionedEntities = extractDebateEntities(userMessage, {
     favoriteTeam: hints?.favoriteTeam,
     rivalTeam: hints?.rivalTeam,
@@ -136,5 +153,10 @@ export function analyzeDebateTurn(
       threadLines.length > 0
         ? threadLines.join(" | ")
         : "Fresh debate — no prior back-and-forth.",
+    backedTeam: intent.backedTeam,
+    opponentTeam: intent.opponentTeam,
+    declaringFavoriteTeam: intent.declaringFavoriteTeam,
+    affirmingPriorPoint: intent.affirmingPriorPoint,
+    intentSummary: intent.intentSummary,
   };
 }
