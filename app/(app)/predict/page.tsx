@@ -13,11 +13,17 @@ import {
 } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
 import { useIntervalRefresh } from "@/lib/hooks/use-interval-refresh";
+import { resolveMatches } from "@/lib/match-data/match-status";
 import type { Match } from "@/lib/mock/types";
 import { matches as mockMatches } from "@/lib/mock/matches";
 import { useUser } from "@/components/providers/user-provider";
 
 const MATCH_POLL_MS = 60_000;
+const USE_MOCK_SCHEDULE_FALLBACK = process.env.NODE_ENV === "development";
+
+function scheduleFallback(): Match[] {
+  return USE_MOCK_SCHEDULE_FALLBACK ? mockMatches : [];
+}
 
 const GROUPS = "ABCDEFGHIJKL".split("");
 
@@ -33,10 +39,12 @@ export default function PredictListPage() {
   const { me } = useUser();
 
   const initialMatches =
-    peekCached<Match[]>(cacheKeys.matches()) ?? mockMatches;
+    peekCached<Match[]>(cacheKeys.matches()) ?? scheduleFallback();
 
-  const { data: matches = initialMatches, hydrating: matchesHydrating, refresh: refreshMatches } =
+  const { data: rawMatches = initialMatches, hydrating: matchesHydrating, refresh: refreshMatches } =
     useCachedData(cacheKeys.matches(), fetchMatchesRaw, initialMatches);
+
+  const matches = useMemo(() => resolveMatches(rawMatches), [rawMatches]);
 
   const { data: history = [], hydrating: historyHydrating } = useCachedData(
     me?.id ? cacheKeys.predictionHistory(me.id) : null,
@@ -76,7 +84,7 @@ export default function PredictListPage() {
   );
 
   const showMockLayout =
-    matchesHydrating && initialMatches === mockMatches;
+    matchesHydrating && USE_MOCK_SCHEDULE_FALLBACK && initialMatches === mockMatches;
   const syncing = matchesHydrating || historyHydrating;
 
   return (

@@ -89,7 +89,7 @@ describe("findDbMatch", () => {
     assert.equal(match?.match_number, 36);
   });
 
-  it("does not pair by match number when teams disagree", () => {
+  it("never pairs by API match number when team codes disagree", () => {
     const rows: Row[] = [
       makeRow({
         match_number: 39,

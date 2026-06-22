@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { getMatchDataAdapter } from "@/lib/match-data";
-import { maybeSyncMatchResultsInDev } from "@/lib/match-data/dev-sync";
+import { maybeSyncMatchResultsOnRead } from "@/lib/match-data/match-sync-on-read";
+import { resolveMatches } from "@/lib/match-data/match-status";
 
 export async function GET() {
   try {
-    await maybeSyncMatchResultsInDev();
+    await maybeSyncMatchResultsOnRead();
     const adapter = getMatchDataAdapter();
-    const matches = await adapter.listMatches();
+    const matches = resolveMatches(await adapter.listMatches());
     return NextResponse.json({ matches, count: matches.length });
   } catch (error) {
     console.error("GET /api/matches", error);

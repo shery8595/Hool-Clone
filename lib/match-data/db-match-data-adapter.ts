@@ -6,7 +6,7 @@ import {
 } from "@/lib/match-data/mapper";
 import type { MatchDataAdapter } from "@/lib/match-data/match-data-adapter";
 
-const MATCH_LIST_TTL_MS = 60_000;
+const MATCH_LIST_TTL_MS = 15_000;
 let cachedMatches: Match[] | null = null;
 let cachedMatchesAt = 0;
 

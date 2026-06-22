@@ -123,36 +123,17 @@ function pickByKickoff(
   });
 }
 
-/** Prefer unique team pairing — worldcup26 ids and kickoff times often diverge from FIFA. */
+/** Team pairing only — worldcup26 `id` values do not match FIFA match numbers. */
 export function findDbMatch(
   rows: DbMatchRow[],
   fixture: NormalizedFixture,
   apiHomeCode: string,
   apiAwayCode: string,
 ): DbMatchRow | undefined {
-  const byTeams = pickByKickoff(
+  return pickByKickoff(
     findTeamMatches(rows, apiHomeCode, apiAwayCode),
     fixture.kickoffAt,
   );
-  if (byTeams) return byTeams;
-
-  if (fixture.matchNumber == null) return undefined;
-
-  const byNumber = rows.find((row) => row.match_number === fixture.matchNumber);
-  if (
-    !byNumber?.team_a_code ||
-    !byNumber.team_b_code ||
-    !codesMatchFixture(
-      apiHomeCode,
-      apiAwayCode,
-      byNumber.team_a_code,
-      byNumber.team_b_code,
-    )
-  ) {
-    return undefined;
-  }
-
-  return byNumber;
 }
 
 function rowNeedsUpdate(

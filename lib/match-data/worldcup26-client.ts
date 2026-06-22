@@ -36,8 +36,9 @@ function mapWorldCup26Status(
   finished: boolean,
   timeElapsed: string | null,
 ): MatchStatus {
-  if (finished || timeElapsed === "finished") return "final";
-  if (!timeElapsed || timeElapsed === "notstarted") return "scheduled";
+  const elapsed = timeElapsed?.trim().toLowerCase() ?? null;
+  if (finished || elapsed === "finished") return "final";
+  if (!elapsed || elapsed === "notstarted") return "scheduled";
   return "live";
 }
 
@@ -112,7 +113,7 @@ async function fetchGamesWithRetry(url: string): Promise<GamesResponse> {
       const response = await fetch(url, {
         headers: { Accept: "application/json" },
         next: { revalidate: 0 },
-        signal: AbortSignal.timeout(12_000),
+        signal: AbortSignal.timeout(25_000),
       });
 
       if (response.ok) {

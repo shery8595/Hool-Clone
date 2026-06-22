@@ -309,7 +309,7 @@ export async function fetchMatchesRaw(): Promise<Match[]> {
 }
 
 export async function fetchMatches(): Promise<Match[]> {
-  return fetchCached(cacheKeys.matches(), fetchMatchesRaw, 120_000);
+  return fetchCached(cacheKeys.matches(), fetchMatchesRaw, 45_000);
 }
 
 export async function fetchMatchRaw(matchId: string): Promise<Match> {
