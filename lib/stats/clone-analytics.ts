@@ -1,7 +1,10 @@
 import type { CloneKnowledgeSnapshot } from "@/lib/clone/clone-knowledge-snapshot";
 import { computeCloneMood, type CloneMood } from "@/lib/clone/clone-mood";
 import { huntContradictions } from "@/lib/clone/contradiction-hunter";
-import { synthesizeHistoricalSnapshot } from "@/lib/clone/historical-snapshot";
+import {
+  buildDeterministicHistoricalSnapshot,
+  synthesizeHistoricalSnapshot,
+} from "@/lib/clone/historical-snapshot";
 import { averagePredictionAlignment } from "@/lib/clone/prediction-alignment";
 import {
   computeConsistencyScore,
@@ -252,6 +255,7 @@ export async function buildCloneAnalyticsBundle(input: {
   memoryDrivers: DriverChip[];
   memoryTexts: string[];
   walrusNamespace?: string;
+  preferFastSnapshots?: boolean;
 }): Promise<CloneAnalyticsBundle> {
   const temporalContradictions = detectTemporalContradictions(input.memories);
   const behavioralFindings = huntContradictions({
@@ -263,7 +267,7 @@ export async function buildCloneAnalyticsBundle(input: {
   const behavioralContradictionCount = behavioralFindings.length;
   const consistencyScore = computeConsistencyScore(temporalContradictions);
 
-  const snapshotInput = {
+  const snapshotBase = {
     joinedAt: input.joinedAt,
     memories: input.memories,
     profile: input.profile,
@@ -273,10 +277,15 @@ export async function buildCloneAnalyticsBundle(input: {
     walrusNamespace: input.walrusNamespace,
   };
 
-  const [day1Snapshot, day4Snapshot] = await Promise.all([
-    synthesizeHistoricalSnapshot({ ...snapshotInput, day: 1 }),
-    synthesizeHistoricalSnapshot({ ...snapshotInput, day: 4 }),
-  ]);
+  const [day1Snapshot, day4Snapshot] = input.preferFastSnapshots
+    ? [
+        buildDeterministicHistoricalSnapshot({ ...snapshotBase, day: 1 }),
+        buildDeterministicHistoricalSnapshot({ ...snapshotBase, day: 4 }),
+      ]
+    : await Promise.all([
+        synthesizeHistoricalSnapshot({ ...snapshotBase, day: 1 }),
+        synthesizeHistoricalSnapshot({ ...snapshotBase, day: 4 }),
+      ]);
 
   const driftSeries = buildCloneDriftSeries(
     input.history,

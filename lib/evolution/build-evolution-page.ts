@@ -26,28 +26,21 @@ export async function buildEvolutionPageData(
   userId: string,
   options?: { isPublicView?: boolean },
 ): Promise<EvolutionPageData | null> {
-  const user = await findUserById(userId);
-  const profile = await getFanProfile(userId);
+  const [user, profile, memoryRows, history, cloneByMatchId, matches, chronologicalMemories, onboardingDrivers] =
+    await Promise.all([
+      findUserById(userId),
+      getFanProfile(userId),
+      query<{ count: string }>(
+        `select count(*)::text as count from memories where user_id = $1`,
+        [userId],
+      ),
+      listUserPredictions(userId),
+      listClonePredictionsForUser(userId),
+      getMatchDataAdapter().listMatches(),
+      listMemoriesChronologicalForUser(userId, 200),
+      getOnboardingDrivers(userId),
+    ]);
   if (!user) return null;
-
-  const [
-    memoryRows,
-    history,
-    cloneByMatchId,
-    matches,
-    chronologicalMemories,
-    onboardingDrivers,
-  ] = await Promise.all([
-    query<{ count: string }>(
-      `select count(*)::text as count from memories where user_id = $1`,
-      [userId],
-    ),
-    listUserPredictions(userId),
-    listClonePredictionsForUser(userId),
-    getMatchDataAdapter().listMatches(),
-    listMemoriesChronologicalForUser(userId),
-    getOnboardingDrivers(userId),
-  ]);
 
   const memoryDrivers = [
     ...extractMemoryDrivers(chronologicalMemories),
@@ -82,6 +75,7 @@ export async function buildEvolutionPageData(
     memoryDrivers,
     memoryTexts: chronologicalMemories.map((m) => m.text),
     walrusNamespace: user.memwal_namespace,
+    preferFastSnapshots: true,
   });
 
   const slug = user.public_slug ?? user.id.slice(0, 8);

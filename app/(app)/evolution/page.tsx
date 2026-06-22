@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   EvolutionProofPage,
@@ -19,6 +20,13 @@ type EvolutionAppPageProps = {
   searchParams: Promise<{ compare?: string }>;
 };
 
+const getEvolutionPageData = unstable_cache(
+  async (userId: string) =>
+    buildEvolutionPageData(userId, { isPublicView: false }),
+  ["evolution-page-data"],
+  { revalidate: 30 },
+);
+
 export default async function EvolutionAppPage({
   searchParams,
 }: EvolutionAppPageProps) {
@@ -30,7 +38,7 @@ export default async function EvolutionAppPage({
   const { compare } = await searchParams;
   const comparePhase = parseComparePhase(compare);
 
-  const data = await buildEvolutionPageData(userId, { isPublicView: false });
+  const data = await getEvolutionPageData(userId);
   if (!data) {
     redirect("/dashboard");
   }

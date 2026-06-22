@@ -95,6 +95,21 @@ function deterministicFallback(input: {
   return { ...snapshot, reflection };
 }
 
+export function buildDeterministicHistoricalSnapshot(input: {
+  day: number;
+  joinedAt: Date;
+  memories: StoredMemory[];
+  profile: Pick<
+    DbFanProfile,
+    "favorite_team" | "rival_team" | "preferred_style"
+  > | null;
+  history: PredictionHistoryItem[];
+  temporalContradictions: TemporalContradiction[];
+  behavioralContradictionCount: number;
+}): CloneKnowledgeSnapshot {
+  return deterministicFallback(input);
+}
+
 export async function synthesizeHistoricalSnapshot(input: {
   day: number;
   joinedAt: Date;

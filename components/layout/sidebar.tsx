@@ -17,7 +17,6 @@ import { prefetchRoute } from "@/lib/api/prefetch";
 import { useSidebarCollapsed } from "@/lib/hooks/use-sidebar-collapsed";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
 import { SidebarCollapseToggle } from "@/components/layout/sidebar-collapse-toggle";
-import { WalrusMemoryBadge } from "./walrus-memory-badge";
 import { useUser } from "@/components/providers/user-provider";
 
 const APP_SIDEBAR_KEY = "hoolclone-app-sidebar-collapsed";
@@ -168,13 +167,16 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className={cn("shrink-0 border-t border-white/10", isCollapsed ? "p-2.5" : "p-2.5")}>
         {isCollapsed ? (
-          <div className="flex justify-center py-1" title="Walrus Memory">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-hoolclone-yellow-500">
-              <Database className="h-4 w-4" />
-            </span>
-          </div>
+          <p
+            className="py-1 text-center font-mono text-[8px] font-semibold uppercase tracking-[0.12em] text-white/50"
+            title="Powered by Walrus"
+          >
+            Walrus
+          </p>
         ) : (
-          <WalrusMemoryBadge />
+          <p className="px-1 text-center font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-white/50">
+            Powered by Walrus
+          </p>
         )}
       </div>
     </aside>
