@@ -11,6 +11,8 @@ const EXCEPT_PRIMARY_RE =
 const PRIMARY_SUPPORT_RE =
   /\b(who\s+.*support|what(?:'s| is)\s+my\s+(?:fav|favorite|favourite)\s+team|favorite\s+team)\b/i;
 
+type EvolutionThreadMessage = Pick<DebateMessage, "role" | "text">;
+
 function isPredictionReceipt(receipt: MemoryReceipt): boolean {
   const text = receipt.text.toLowerCase();
   return (
@@ -32,7 +34,7 @@ function isPrimaryFavoriteReceipt(receipt: MemoryReceipt): boolean {
 
 export function isSecondFavoriteQuestion(
   message: string,
-  recentMessages: DebateMessage[] = [],
+  recentMessages: EvolutionThreadMessage[] = [],
 ): boolean {
   if (SECOND_FAVORITE_RE.test(message.trim())) return true;
 
@@ -81,7 +83,7 @@ export function rankEvolutionMemoriesForTurn(
   catalog: MemoryReceipt[],
   userMessage: string,
   analysis: DebateTurnAnalysis,
-  recentMessages: DebateMessage[] = [],
+  recentMessages: EvolutionThreadMessage[] = [],
 ): MemoryReceipt[] {
   const secondFavoriteQuestion = isSecondFavoriteQuestion(
     userMessage,

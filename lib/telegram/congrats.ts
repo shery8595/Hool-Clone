@@ -39,7 +39,7 @@ function buildCongratsFallback(
   userPick?: string,
   actualWinner?: string,
 ): string {
-  const winner = actualWinner ?? match.winner ?? undefined;
+  const winner = actualWinner ?? match.winnerCode ?? undefined;
 
   if (userPick && winner && userPick === winner) {
     return `Nailed it — you had ${winner} and they delivered. Your clone is impressed.`;
