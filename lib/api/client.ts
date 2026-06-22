@@ -302,14 +302,28 @@ export async function retryMemoryWrite(memoryId: string): Promise<{
   return parseJson(response);
 }
 
-export async function fetchMatchesRaw(): Promise<Match[]> {
-  const response = await fetchWithTimeout("/api/matches");
-  const data = await parseJson<{ matches: Match[] }>(response);
-  return data.matches;
+export type MatchesResponse = {
+  matches: Match[];
+  predictedMatchIds: string[];
+};
+
+export async function fetchMatchesRaw(): Promise<MatchesResponse> {
+  const response = await fetchWithTimeout("/api/matches", {
+    credentials: "include",
+  });
+  const data = await parseJson<{
+    matches: Match[];
+    predictedMatchIds?: string[];
+  }>(response);
+  return {
+    matches: data.matches,
+    predictedMatchIds: data.predictedMatchIds ?? [],
+  };
 }
 
 export async function fetchMatches(): Promise<Match[]> {
-  return fetchCached(cacheKeys.matches(), fetchMatchesRaw, 45_000);
+  const data = await fetchCached(cacheKeys.matches(), fetchMatchesRaw, 45_000);
+  return data.matches;
 }
 
 export async function fetchMatchRaw(matchId: string): Promise<Match> {
@@ -376,6 +390,7 @@ export async function submitMatchPrediction(
   invalidateCache("match-pred");
   invalidateCache("dashboard");
   invalidateCache("history");
+  invalidateCache("matches");
   return data.prediction;
 }
 

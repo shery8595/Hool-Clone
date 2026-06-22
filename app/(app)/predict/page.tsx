@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Target } from "lucide-react";
 import { MatchBrowseGrid, MatchSummaryStats, partitionMatches } from "@/components/match/match-schedule-sections";
 import { MatchListCard } from "@/components/match/match-card";
@@ -10,12 +10,17 @@ import { cacheKeys, peekCached } from "@/lib/api/data-cache";
 import {
   fetchMatchesRaw,
   fetchPredictionHistoryRaw,
+  type MatchesResponse,
 } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
 import { useIntervalRefresh } from "@/lib/hooks/use-interval-refresh";
 import { resolveMatches } from "@/lib/match-data/match-status";
 import type { Match } from "@/lib/mock/types";
 import { matches as mockMatches } from "@/lib/mock/matches";
+import {
+  buildPredictedMatchIdSet,
+  hasPredictedMatch,
+} from "@/lib/predictions/predicted-match-ids";
 import { useUser } from "@/components/providers/user-provider";
 
 const MATCH_POLL_MS = 60_000;
@@ -23,6 +28,10 @@ const USE_MOCK_SCHEDULE_FALLBACK = process.env.NODE_ENV === "development";
 
 function scheduleFallback(): Match[] {
   return USE_MOCK_SCHEDULE_FALLBACK ? mockMatches : [];
+}
+
+function emptyMatchesPayload(matches: Match[] = scheduleFallback()): MatchesResponse {
+  return { matches, predictedMatchIds: [] };
 }
 
 const GROUPS = "ABCDEFGHIJKL".split("");
@@ -38,19 +47,35 @@ const KNOCKOUT_TABS = [
 export default function PredictListPage() {
   const { me } = useUser();
 
-  const initialMatches =
-    peekCached<Match[]>(cacheKeys.matches()) ?? scheduleFallback();
+  const initialPayload =
+    peekCached<MatchesResponse>(cacheKeys.matches()) ??
+    emptyMatchesPayload();
 
-  const { data: rawMatches = initialMatches, hydrating: matchesHydrating, refresh: refreshMatches } =
-    useCachedData(cacheKeys.matches(), fetchMatchesRaw, initialMatches);
+  const {
+    data: matchesPayload = initialPayload,
+    hydrating: matchesHydrating,
+    refresh: refreshMatches,
+  } = useCachedData(cacheKeys.matches(), fetchMatchesRaw, initialPayload);
 
-  const matches = useMemo(() => resolveMatches(rawMatches), [rawMatches]);
+  const matches = useMemo(
+    () => resolveMatches(matchesPayload.matches),
+    [matchesPayload.matches],
+  );
 
-  const { data: history = [], hydrating: historyHydrating } = useCachedData(
+  const {
+    data: history = [],
+    hydrating: historyHydrating,
+    refresh: refreshHistory,
+  } = useCachedData(
     me?.id ? cacheKeys.predictionHistory(me.id) : null,
     fetchPredictionHistoryRaw,
     [],
   );
+
+  useEffect(() => {
+    if (!me?.id) return;
+    void refreshHistory();
+  }, [me?.id, refreshHistory]);
 
   const { upcoming, finished, live } = useMemo(
     () => partitionMatches(matches),
@@ -62,7 +87,14 @@ export default function PredictListPage() {
     [live.length, matches],
   );
 
-  useIntervalRefresh(refreshMatches, MATCH_POLL_MS, needsMatchPoll);
+  useIntervalRefresh(
+    () => {
+      void refreshMatches();
+      if (me?.id) void refreshHistory();
+    },
+    MATCH_POLL_MS,
+    needsMatchPoll,
+  );
 
   const knockoutByStage = useMemo(() => {
     const r32 = matches.filter((m) => m.stage === "Round of 32");
@@ -79,12 +111,18 @@ export default function PredictListPage() {
     matches.filter((m) => m.group === g);
 
   const predictedMatchIds = useMemo(
-    () => new Set(history.map((item) => item.prediction.matchId)),
-    [history],
+    () =>
+      buildPredictedMatchIdSet(history, matchesPayload.predictedMatchIds),
+    [history, matchesPayload.predictedMatchIds],
   );
 
+  const isPredicted = (matchId: string) =>
+    hasPredictedMatch(predictedMatchIds, matchId);
+
   const showMockLayout =
-    matchesHydrating && USE_MOCK_SCHEDULE_FALLBACK && initialMatches === mockMatches;
+    matchesHydrating &&
+    USE_MOCK_SCHEDULE_FALLBACK &&
+    initialPayload.matches === mockMatches;
   const syncing = matchesHydrating || historyHydrating;
 
   return (
@@ -145,7 +183,7 @@ export default function PredictListPage() {
                       <MatchListCard
                         key={match.id}
                         match={match}
-                        predicted={predictedMatchIds.has(match.id)}
+                        predicted={isPredicted(match.id)}
                       />
                     ))}
                   </div>
@@ -162,7 +200,7 @@ export default function PredictListPage() {
                         <MatchListCard
                           key={match.id}
                           match={match}
-                          predicted={predictedMatchIds.has(match.id)}
+                          predicted={isPredicted(match.id)}
                         />
                       ))}
                     </div>
@@ -177,7 +215,7 @@ export default function PredictListPage() {
                           <MatchListCard
                             key={match.id}
                             match={match}
-                            predicted={predictedMatchIds.has(match.id)}
+                            predicted={isPredicted(match.id)}
                           />
                         ))}
                       </div>
@@ -200,7 +238,7 @@ export default function PredictListPage() {
                 <MatchListCard
                   key={match.id}
                   match={match}
-                  predicted={predictedMatchIds.has(match.id)}
+                  predicted={isPredicted(match.id)}
                 />
               ))}
             </div>

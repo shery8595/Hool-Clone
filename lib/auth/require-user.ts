@@ -24,3 +24,8 @@ export async function requireUser(): Promise<MeResponse> {
   }
   return me;
 }
+
+export async function getOptionalUserId(): Promise<string | null> {
+  const session = await getSession();
+  return session?.userId ?? null;
+}

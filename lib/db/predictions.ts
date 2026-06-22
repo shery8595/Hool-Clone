@@ -208,3 +208,17 @@ export async function listUserPredictions(
 
   return rows.map(rowToHistoryItem);
 }
+
+export async function listUserPredictedMatchExternalIds(
+  userId: string,
+): Promise<string[]> {
+  const rows = await query<{ external_id: string }>(
+    `select distinct m.external_id
+     from predictions p
+     join matches m on m.id = p.match_id
+     where p.user_id = $1`,
+    [userId],
+  );
+
+  return rows.map((row) => row.external_id);
+}

@@ -3,6 +3,7 @@
 import { CalendarClock, CheckCircle2, Layers } from "lucide-react";
 import { MatchListCard } from "@/components/match/match-card";
 import type { Match } from "@/lib/mock/types";
+import { hasPredictedMatch } from "@/lib/predictions/predicted-match-ids";
 import { partitionMatches } from "@/lib/match-data/match-status";
 
 type MatchScheduleSectionsProps = {
@@ -25,7 +26,11 @@ function MatchGrid({
         <MatchListCard
           key={match.id}
           match={match}
-          predicted={predictedMatchIds?.has(match.id)}
+          predicted={
+            predictedMatchIds
+              ? hasPredictedMatch(predictedMatchIds, match.id)
+              : false
+          }
         />
       ))}
     </div>
