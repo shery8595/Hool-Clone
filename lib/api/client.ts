@@ -200,6 +200,7 @@ export async function fetchTelegramLinkUrl(): Promise<{
 export async function fetchTelegramStatus(): Promise<{
   linked: boolean;
   notificationsEnabled: boolean;
+  botConfigured: boolean;
 }> {
   const response = await fetchWithTimeout("/api/telegram/status", {
     credentials: "include",

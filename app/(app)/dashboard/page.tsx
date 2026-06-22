@@ -2,25 +2,26 @@
 
 import { useCallback, useMemo } from "react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
 import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
-import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
 import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
 import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
-import { CloneStatusCard } from "@/components/clone/clone-status-card";
-import { HumanVsClonePanel } from "@/components/clone/human-vs-clone-panel";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
 import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
-import { MatchCard } from "@/components/match/match-card";
-import { MemoryReceiptList } from "@/components/memory/memory-receipt-list";
+import { DashboardAtAGlance } from "@/components/dashboard/dashboard-at-a-glance";
+import { DashboardFlywheel } from "@/components/dashboard/dashboard-flywheel";
+import {
+  DashboardInsightCard,
+  DashboardInsightsSection,
+} from "@/components/dashboard/dashboard-insights";
+import { DashboardSetupChecklist } from "@/components/dashboard/dashboard-setup-checklist";
+import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
+import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { cacheKeys } from "@/lib/api/data-cache";
 import { fetchDashboardRaw } from "@/lib/api/client";
 import { buildDashboardFallback } from "@/lib/dashboard/dashboard-fallback";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
-import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
-import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { useUser } from "@/components/providers/user-provider";
 
 export default function DashboardPage() {
@@ -42,10 +43,12 @@ export default function DashboardPage() {
 
   if (!me) {
     return (
-      <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-12 text-center">
+      <div className="mx-auto max-w-lg rounded-2xl border border-border/50 bg-white p-12 text-center shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]">
         <HoolCloneLogo size="lg" className="mx-auto justify-center" />
-        <h1 className="mt-4 text-xl font-bold">Welcome to HoolClone</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="mt-4 text-xl font-semibold tracking-tight">
+          Welcome to HoolClone
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Connect your wallet to see your clone dashboard, memories, and
           predictions.
         </p>
@@ -56,7 +59,7 @@ export default function DashboardPage() {
   const dashboard = data ?? fallback;
   if (!dashboard) {
     return (
-      <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-12 text-center">
+      <div className="mx-auto max-w-lg rounded-2xl border border-border/50 bg-white p-12 text-center shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]">
         <p className="text-destructive">{error ?? "Could not load dashboard."}</p>
         <button
           type="button"
@@ -82,147 +85,101 @@ export default function DashboardPage() {
   } = dashboard;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-5 pb-4">
       {hydrating && (
-        <p className="text-center text-xs text-muted-foreground">Syncing dashboard...</p>
+        <p className="text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          Syncing dashboard
+        </p>
       )}
 
-      <CloneStatusCard
-        maturity={stats.maturityLabel}
+      <DashboardFlywheel
+        memoriesCount={stats.memoriesCount}
+        predictionsCount={stats.predictionsCount}
+        maturityLabel={stats.maturityLabel}
         level={stats.level}
         maxLevel={stats.maxLevel}
-        levelProgress={stats.levelProgress}
         quote={stats.quote}
-        memoriesCount={stats.memoriesCount}
-        cloneMatchPercent={stats.cloneMatchPercent}
-        predictionsCount={stats.predictionsCount}
+        mood={cloneAnalytics.cloneMood}
       />
 
-      <CloneMoodBadge mood={cloneAnalytics.cloneMood} />
-
-      {stats.memoriesCount >= 3 && (
-        <TelegramConnectCard variant="compact" />
-      )}
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <DashboardAtAGlance
+          featuredMatch={featuredMatch}
+          latestComparison={latestComparison}
+          recentMemories={recentMemories}
+          predictionsCount={stats.predictionsCount}
+          memoriesCount={stats.memoriesCount}
+          hydrating={hydrating}
+        />
+        <div className="space-y-5">
+          <DashboardSetupChecklist
+            me={me}
+            memoriesCount={stats.memoriesCount}
+            predictionsCount={stats.predictionsCount}
+          />
+          {stats.memoriesCount >= 3 && (
+            <TelegramConnectCard variant="compact" />
+          )}
+        </div>
+      </div>
 
       {memoryTimeMachine && (
-        <>
+        <DashboardInsightsSection title="Clone evolution">
           {me.publicSlug && (
             <Link
               href={`/u/${me.publicSlug}/evolution`}
-              className="block rounded-xl border border-hoolclone-yellow-300 bg-hoolclone-yellow-50 px-4 py-3 text-center text-sm font-semibold text-hoolclone-green-900 hover:bg-hoolclone-yellow-100"
+              className="block rounded-xl border border-hoolclone-green-200 bg-hoolclone-green-50/50 px-4 py-3 text-center text-sm font-semibold text-hoolclone-green-900 transition-colors hover:bg-hoolclone-green-50"
             >
-              See your clone evolve (Day 1 → Day 4) →
+              Open full evolution timeline →
             </Link>
           )}
-          <CloneBeforeAfterPanel data={memoryTimeMachine} comparePhase="day4" />
+          <CloneBeforeAfterPanel
+            data={memoryTimeMachine}
+            comparePhase="day4"
+          />
           <MemoryTimeMachine data={memoryTimeMachine} />
-        </>
+        </DashboardInsightsSection>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {featuredMatch ? (
-          <MatchCard
-            match={featuredMatch}
-            footer={
-              latestComparison
-                ? "Your latest human vs clone comparison is below."
-                : "Make a prediction to compare with your clone."
-            }
+      <DashboardInsightsSection title="Performance & bias">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <ContradictionHunterCard
+            contradiction={contradiction}
+            predictionsCount={stats.predictionsCount}
+            className="rounded-2xl border border-border/50 shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]"
+          />
+        </div>
+
+        <ContradictionScoreCard
+          contradictions={cloneAnalytics.temporalContradictions}
+          consistencyScore={cloneAnalytics.consistencyScore}
+          totalCount={
+            cloneAnalytics.temporalContradictions.length +
+            (dashboard.contradictionCount ?? 0)
+          }
+          roastLine={contradiction?.text}
+        />
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <CloneDriftChart data={cloneAnalytics.driftSeries} />
+          <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
+        </div>
+
+        {biasRadarReady ? (
+          <BiasRadarChart
+            data={biasRadar}
+            description="Computed from your predictions, training memories, and clone picks."
           />
         ) : (
-          <Card className="rounded-2xl border-dashed shadow-sm">
-            <CardContent className="p-8 text-center text-muted-foreground">
+          <DashboardInsightCard>
+            <p className="text-center text-sm text-muted-foreground">
               {hydrating
-                ? "Loading featured match..."
-                : (
-                  <>
-                    No matches available. Run{" "}
-                    <code className="rounded bg-muted px-1">npm run db:seed-matches</code>.
-                  </>
-                )}
-            </CardContent>
-          </Card>
+                ? "Building your bias radar..."
+                : "Make a few predictions to unlock your bias radar."}
+            </p>
+          </DashboardInsightCard>
         )}
-
-        {latestComparison ? (
-          <HumanVsClonePanel
-            match={latestComparison.match}
-            prediction={latestComparison.prediction}
-          />
-        ) : (
-          <Card className="rounded-2xl border-dashed shadow-sm">
-            <CardContent className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-              <p className="text-muted-foreground">
-                No predictions yet. Lock in a pick to see how your clone
-                compares.
-              </p>
-              {featuredMatch && (
-                <Link
-                  href={`/predict/${featuredMatch.id}`}
-                  className="text-sm font-semibold text-hoolclone-green-900 underline"
-                >
-                  Predict {featuredMatch.homeTeam?.name} vs{" "}
-                  {featuredMatch.awayTeam?.name}
-                </Link>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      <div className="grid items-stretch gap-6 lg:grid-cols-2">
-        {recentMemories.length > 0 ? (
-          <MemoryReceiptList receipts={recentMemories} />
-        ) : (
-          <Card className="rounded-2xl border-0 shadow-sm">
-            <CardContent className="p-8 text-center text-muted-foreground">
-              <p>{hydrating ? "Loading memories..." : "No memories yet."}</p>
-              {!hydrating && (
-                <Link
-                  href="/train"
-                  className="mt-2 inline-block text-sm font-semibold text-hoolclone-green-900 underline"
-                >
-                  Train your clone
-                </Link>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        <ContradictionHunterCard
-          contradiction={contradiction}
-          predictionsCount={stats.predictionsCount}
-        />
-      </div>
-
-      <ContradictionScoreCard
-        contradictions={cloneAnalytics.temporalContradictions}
-        consistencyScore={cloneAnalytics.consistencyScore}
-        totalCount={
-          cloneAnalytics.temporalContradictions.length +
-          (dashboard.contradictionCount ?? 0)
-        }
-        roastLine={contradiction?.text}
-      />
-
-      <CloneDriftChart data={cloneAnalytics.driftSeries} />
-
-      <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
-
-      {biasRadarReady ? (
-        <BiasRadarChart
-          data={biasRadar}
-          description="Computed from your predictions, training memories, and clone picks — not mock data."
-        />
-      ) : (
-        <Card className="rounded-2xl border-dashed shadow-sm">
-          <CardContent className="p-8 text-center text-sm text-muted-foreground">
-            {hydrating
-              ? "Building your bias radar..."
-              : "Make a few predictions to unlock your bias radar."}
-          </CardContent>
-        </Card>
-      )}
+      </DashboardInsightsSection>
 
       {error && (
         <p className="text-center text-sm text-destructive">

@@ -82,18 +82,12 @@ function kickoffMatches(fixtureKickoff: string, dbKickoff: Date): boolean {
   return Math.abs(apiMs - dbMs) <= KICKOFF_MATCH_WINDOW_MS;
 }
 
-function findDbMatch(
+function findTeamMatches(
   rows: DbMatchRow[],
-  fixture: NormalizedFixture,
   apiHomeCode: string,
   apiAwayCode: string,
-): DbMatchRow | undefined {
-  if (fixture.matchNumber != null) {
-    const byNumber = rows.find((row) => row.match_number === fixture.matchNumber);
-    if (byNumber) return byNumber;
-  }
-
-  return rows.find(
+): DbMatchRow[] {
+  return rows.filter(
     (row) =>
       row.team_a_code &&
       row.team_b_code &&
@@ -102,9 +96,63 @@ function findDbMatch(
         apiAwayCode,
         row.team_a_code,
         row.team_b_code,
-      ) &&
-      kickoffMatches(fixture.kickoffAt, row.kickoff_at),
+      ),
   );
+}
+
+function pickByKickoff(
+  candidates: DbMatchRow[],
+  fixtureKickoff: string,
+): DbMatchRow | undefined {
+  if (candidates.length === 0) return undefined;
+  if (candidates.length === 1) return candidates[0];
+
+  const inWindow = candidates.find((row) =>
+    kickoffMatches(fixtureKickoff, row.kickoff_at),
+  );
+  if (inWindow) return inWindow;
+
+  return candidates.reduce((best, row) => {
+    const rowDiff = Math.abs(
+      new Date(fixtureKickoff).getTime() - row.kickoff_at.getTime(),
+    );
+    const bestDiff = Math.abs(
+      new Date(fixtureKickoff).getTime() - best.kickoff_at.getTime(),
+    );
+    return rowDiff < bestDiff ? row : best;
+  });
+}
+
+/** Prefer unique team pairing — worldcup26 ids and kickoff times often diverge from FIFA. */
+export function findDbMatch(
+  rows: DbMatchRow[],
+  fixture: NormalizedFixture,
+  apiHomeCode: string,
+  apiAwayCode: string,
+): DbMatchRow | undefined {
+  const byTeams = pickByKickoff(
+    findTeamMatches(rows, apiHomeCode, apiAwayCode),
+    fixture.kickoffAt,
+  );
+  if (byTeams) return byTeams;
+
+  if (fixture.matchNumber == null) return undefined;
+
+  const byNumber = rows.find((row) => row.match_number === fixture.matchNumber);
+  if (
+    !byNumber?.team_a_code ||
+    !byNumber.team_b_code ||
+    !codesMatchFixture(
+      apiHomeCode,
+      apiAwayCode,
+      byNumber.team_a_code,
+      byNumber.team_b_code,
+    )
+  ) {
+    return undefined;
+  }
+
+  return byNumber;
 }
 
 function rowNeedsUpdate(

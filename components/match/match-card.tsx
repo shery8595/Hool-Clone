@@ -200,7 +200,13 @@ function TeamBlock({
   );
 }
 
-export function MatchListCard({ match }: { match: Match }) {
+export function MatchListCard({
+  match,
+  predicted = false,
+}: {
+  match: Match;
+  predicted?: boolean;
+}) {
   const canPredict = Boolean(match.homeTeam && match.awayTeam);
   const finished = isMatchFinished(match);
   const live = isMatchLive(match);
@@ -213,6 +219,7 @@ export function MatchListCard({ match }: { match: Match }) {
         "rounded-2xl border shadow-sm transition-shadow hover:shadow-md",
         finished && "border-muted bg-muted/20",
         live && "border-hoolclone-yellow-300/80 bg-hoolclone-yellow-50/30",
+        predicted && !finished && !live && "ring-1 ring-hoolclone-green-200/60",
       )}
     >
       <CardContent className="p-4">
@@ -220,18 +227,21 @@ export function MatchListCard({ match }: { match: Match }) {
           <p className="text-xs font-medium text-muted-foreground">
             #{match.matchNumber} · {match.stage}
           </p>
-          {finished && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-              <CheckCircle2 className="h-3 w-3" />
-              Full time
-            </span>
-          )}
-          {live && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-hoolclone-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-hoolclone-yellow-800">
-              <Radio className="h-3 w-3" />
-              Live
-            </span>
-          )}
+          <div className="flex flex-wrap items-center justify-end gap-1.5">
+            {predicted && <PredictedBadge />}
+            {finished && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                <CheckCircle2 className="h-3 w-3" />
+                Full time
+              </span>
+            )}
+            {live && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-hoolclone-yellow-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-hoolclone-yellow-800">
+                <Radio className="h-3 w-3" />
+                Live
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="mt-2">
@@ -291,6 +301,31 @@ export function MatchListCard({ match }: { match: Match }) {
         )}
       </CardContent>
     </Card>
+  );
+}
+
+function PredictedBadge() {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3",
+        "border border-hoolclone-green-400/40",
+        "bg-gradient-to-r from-hoolclone-green-600 via-hoolclone-green-700 to-hoolclone-green-800",
+        "text-[10px] font-bold uppercase tracking-wider text-white",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_2px_6px_rgba(10,61,46,0.28)]",
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full",
+          "bg-white/15 ring-1 ring-inset ring-white/25",
+        )}
+        aria-hidden
+      >
+        <CheckCircle2 className="h-3 w-3" strokeWidth={2.5} />
+      </span>
+      Predicted
+    </span>
   );
 }
 

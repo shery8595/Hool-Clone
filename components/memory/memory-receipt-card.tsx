@@ -47,7 +47,9 @@ export function MemoryReceiptCard({
     isPlaceholderBlobId(receipt.walrusBlobId);
   const hasLineage = Boolean(receipt.lineage && receipt.lineage.length > 0);
   const isDashboard = variant === "dashboard";
-  const revealProofOnHover = !compact && (hasWalrusProof || hasLineage);
+  const revealProofOnHover =
+    !compact && (hasWalrusProof || hasLineage);
+  const showInlineProof = !compact;
 
   return (
     <article
@@ -144,7 +146,7 @@ export function MemoryReceiptCard({
         </div>
       )}
 
-      {receipt.storageStatus === "stored" && (
+      {receipt.storageStatus === "stored" && showInlineProof && (
         <div className="mt-2.5">
           <div
             className={cn(

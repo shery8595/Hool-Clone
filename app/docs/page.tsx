@@ -3,6 +3,7 @@ import path from "path";
 import Link from "next/link";
 import { ArrowRight, BookOpen, Rocket, Database, Server, FlaskConical, Scale } from "lucide-react";
 import { DocsMarkdown } from "@/components/docs/docs-markdown";
+import { DocsPageActions } from "@/components/docs/docs-page-actions";
 import { rewriteDocLinks } from "@/lib/docs/load-doc";
 import { docSections } from "@/lib/docs/navigation";
 
@@ -14,6 +15,7 @@ export default function DocsIndexPage() {
 
   return (
     <>
+      <DocsPageActions markdown={raw} />
       <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Link
           href="/docs/judges"

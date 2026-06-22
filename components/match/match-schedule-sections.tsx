@@ -8,14 +8,25 @@ import { partitionMatches } from "@/lib/match-data/match-status";
 type MatchScheduleSectionsProps = {
   matches: Match[];
   emptyMessage?: string;
+  predictedMatchIds?: Set<string>;
 };
 
-function MatchGrid({ matches: list }: { matches: Match[] }) {
+function MatchGrid({
+  matches: list,
+  predictedMatchIds,
+}: {
+  matches: Match[];
+  predictedMatchIds?: Set<string>;
+}) {
   if (list.length === 0) return null;
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {list.map((match) => (
-        <MatchListCard key={match.id} match={match} />
+        <MatchListCard
+          key={match.id}
+          match={match}
+          predicted={predictedMatchIds?.has(match.id)}
+        />
       ))}
     </div>
   );
@@ -32,6 +43,7 @@ function EmptyState({ message }: { message: string }) {
 export function MatchScheduleSections({
   matches,
   emptyMessage = "No matches in this section.",
+  predictedMatchIds,
 }: MatchScheduleSectionsProps) {
   const { upcoming, finished } = partitionMatches(matches);
 
@@ -52,7 +64,7 @@ export function MatchScheduleSections({
               {upcoming.length}
             </span>
           </div>
-          <MatchGrid matches={upcoming} />
+          <MatchGrid matches={upcoming} predictedMatchIds={predictedMatchIds} />
         </section>
       )}
 
@@ -65,15 +77,27 @@ export function MatchScheduleSections({
               {finished.length}
             </span>
           </div>
-          <MatchGrid matches={finished} />
+          <MatchGrid matches={finished} predictedMatchIds={predictedMatchIds} />
         </section>
       )}
     </div>
   );
 }
 
-export function MatchBrowseGrid({ matches }: { matches: Match[] }) {
-  return <MatchScheduleSections matches={matches} emptyMessage="No matches in this round." />;
+export function MatchBrowseGrid({
+  matches,
+  predictedMatchIds,
+}: {
+  matches: Match[];
+  predictedMatchIds?: Set<string>;
+}) {
+  return (
+    <MatchScheduleSections
+      matches={matches}
+      emptyMessage="No matches in this round."
+      predictedMatchIds={predictedMatchIds}
+    />
+  );
 }
 
 export function MatchSummaryStats({ matches }: { matches: Match[] }) {

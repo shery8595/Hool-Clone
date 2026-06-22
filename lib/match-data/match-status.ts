@@ -44,7 +44,10 @@ export function effectiveMatchStatus(match: Match): MatchStatus {
   if (isFootballApiConfigured()) {
     const kickoff = kickoffMs(match);
     const now = Date.now();
-    if (stored === "scheduled" && now >= kickoff && now < kickoff + MATCH_DURATION_MS) {
+    if (now >= kickoff + MATCH_DURATION_MS) {
+      return "final";
+    }
+    if (stored === "scheduled" && now >= kickoff) {
       return "live";
     }
     return stored;

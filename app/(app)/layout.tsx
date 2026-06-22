@@ -10,12 +10,12 @@ export default function AppLayout({
   return (
     <div className="flex min-h-screen">
       <PrefetchOnAuth />
-      <div className="hidden lg:block">
-        <Sidebar />
-      </div>
+      <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar />
-        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-auto bg-hoolclone-page-bg p-4 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

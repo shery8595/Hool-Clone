@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DocsMarkdown } from "@/components/docs/docs-markdown";
+import { DocsPageActions } from "@/components/docs/docs-page-actions";
 import { DocsPager } from "@/components/docs/docs-pager";
 import {
   getAdjacentDocs,
@@ -47,6 +48,7 @@ export default async function DocPage({ params }: PageProps) {
 
   return (
     <>
+      <DocsPageActions markdown={doc.content} />
       <DocsMarkdown content={content} />
       <DocsPager prev={prev} next={next} />
     </>

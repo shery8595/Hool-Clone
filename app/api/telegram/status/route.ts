@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { AuthError, requireUserId } from "@/lib/auth/require-user";
+import { getTelegramBotUsername } from "@/lib/env";
 import { findChatByUserId } from "@/lib/telegram/link-account";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export async function GET() {
     return NextResponse.json({
       linked: Boolean(chat),
       notificationsEnabled: chat?.notificationsEnabled ?? false,
+      botConfigured: Boolean(getTelegramBotUsername()),
     });
   } catch (error) {
     if (error instanceof AuthError) {

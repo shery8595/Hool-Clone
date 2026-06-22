@@ -24,10 +24,10 @@ describe("effectiveMatchStatus", () => {
     assert.equal(effectiveMatchStatus(match), "live");
   });
 
-  it("keeps scheduled when football API is configured past kickoff window", () => {
+  it("infers final when football API is configured past kickoff window", () => {
     const kickoff = new Date(Date.now() - MATCH_DURATION_MS - 60_000).toISOString();
     const match = makeMatch({ status: "scheduled", kickoffAt: kickoff });
-    assert.equal(effectiveMatchStatus(match), "scheduled");
+    assert.equal(effectiveMatchStatus(match), "final");
   });
 
   it("promotes stale live status to final after duration", () => {

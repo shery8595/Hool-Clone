@@ -70,6 +70,11 @@ export default function PredictListPage() {
   const groupMatchesFor = (g: string) =>
     matches.filter((m) => m.group === g);
 
+  const predictedMatchIds = useMemo(
+    () => new Set(history.map((item) => item.prediction.matchId)),
+    [history],
+  );
+
   const showMockLayout =
     matchesHydrating && initialMatches === mockMatches;
   const syncing = matchesHydrating || historyHydrating;
@@ -129,7 +134,11 @@ export default function PredictListPage() {
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {live.map((match) => (
-                      <MatchListCard key={match.id} match={match} />
+                      <MatchListCard
+                        key={match.id}
+                        match={match}
+                        predicted={predictedMatchIds.has(match.id)}
+                      />
                     ))}
                   </div>
                 </div>
@@ -142,7 +151,11 @@ export default function PredictListPage() {
                     </p>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {upcoming.slice(0, 3).map((match) => (
-                        <MatchListCard key={match.id} match={match} />
+                        <MatchListCard
+                          key={match.id}
+                          match={match}
+                          predicted={predictedMatchIds.has(match.id)}
+                        />
                       ))}
                     </div>
                   </div>
@@ -153,7 +166,11 @@ export default function PredictListPage() {
                       </p>
                       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {upcoming.slice(3).map((match) => (
-                          <MatchListCard key={match.id} match={match} />
+                          <MatchListCard
+                            key={match.id}
+                            match={match}
+                            predicted={predictedMatchIds.has(match.id)}
+                          />
                         ))}
                       </div>
                     </div>
@@ -172,7 +189,11 @@ export default function PredictListPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {finished.map((match) => (
-                <MatchListCard key={match.id} match={match} />
+                <MatchListCard
+                  key={match.id}
+                  match={match}
+                  predicted={predictedMatchIds.has(match.id)}
+                />
               ))}
             </div>
           )}
@@ -195,24 +216,42 @@ export default function PredictListPage() {
 
             {GROUPS.map((g) => (
               <TabsContent key={g} value={`group-${g}`} className="mt-4">
-                <MatchBrowseGrid matches={groupMatchesFor(g)} />
+                <MatchBrowseGrid
+                  matches={groupMatchesFor(g)}
+                  predictedMatchIds={predictedMatchIds}
+                />
               </TabsContent>
             ))}
 
             <TabsContent value="r32" className="mt-4">
-              <MatchBrowseGrid matches={knockoutByStage.r32} />
+              <MatchBrowseGrid
+                matches={knockoutByStage.r32}
+                predictedMatchIds={predictedMatchIds}
+              />
             </TabsContent>
             <TabsContent value="r16" className="mt-4">
-              <MatchBrowseGrid matches={knockoutByStage.r16} />
+              <MatchBrowseGrid
+                matches={knockoutByStage.r16}
+                predictedMatchIds={predictedMatchIds}
+              />
             </TabsContent>
             <TabsContent value="qf" className="mt-4">
-              <MatchBrowseGrid matches={knockoutByStage.qf} />
+              <MatchBrowseGrid
+                matches={knockoutByStage.qf}
+                predictedMatchIds={predictedMatchIds}
+              />
             </TabsContent>
             <TabsContent value="sf" className="mt-4">
-              <MatchBrowseGrid matches={knockoutByStage.sf} />
+              <MatchBrowseGrid
+                matches={knockoutByStage.sf}
+                predictedMatchIds={predictedMatchIds}
+              />
             </TabsContent>
             <TabsContent value="final" className="mt-4">
-              <MatchBrowseGrid matches={knockoutByStage.finals} />
+              <MatchBrowseGrid
+                matches={knockoutByStage.finals}
+                predictedMatchIds={predictedMatchIds}
+              />
             </TabsContent>
           </Tabs>
         </TabsContent>
