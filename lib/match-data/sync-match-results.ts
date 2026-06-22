@@ -20,7 +20,44 @@ export type LiveGoalEvent = {
   scoreA: number;
   scoreB: number;
   scoringTeamCode: string | null;
+  occurredAt?: Date;
 };
+
+const LIVE_GOAL_LOOKBACK_HOURS = 6;
+
+export async function loadRecentLiveGoalEvents(): Promise<LiveGoalEvent[]> {
+  const rows = await query<{
+    event_id: string;
+    match_id: string;
+    external_id: string;
+    team_a_code: string;
+    team_b_code: string;
+    score_a: number;
+    score_b: number;
+    scoring_team_code: string | null;
+    occurred_at: Date;
+  }>(
+    `select tle.id as event_id, tle.match_id, m.external_id,
+            m.team_a_code, m.team_b_code,
+            tle.score_a, tle.score_b, tle.scoring_team_code, tle.occurred_at
+     from telegram_live_events tle
+     join matches m on m.id = tle.match_id
+     where tle.occurred_at > now() - make_interval(hours => $1::int)`,
+    [LIVE_GOAL_LOOKBACK_HOURS],
+  );
+
+  return rows.map((row) => ({
+    eventId: row.event_id,
+    matchId: row.match_id,
+    externalId: row.external_id,
+    teamACode: row.team_a_code,
+    teamBCode: row.team_b_code,
+    scoreA: row.score_a,
+    scoreB: row.score_b,
+    scoringTeamCode: row.scoring_team_code,
+    occurredAt: row.occurred_at,
+  }));
+}
 
 type DbMatchRow = {
   id: string;
