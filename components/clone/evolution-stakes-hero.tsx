@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Target, Trophy, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button-link";
-import type { MemoryTimeMachine } from "@/lib/clone/memory-time-machine-types";
 
 type EvolutionStakesHeroProps = {
   matchLabel?: string;
@@ -60,14 +59,4 @@ export function EvolutionStakesHero({
       </CardContent>
     </Card>
   );
-}
-
-export function evolutionMatchFromTimeMachine(
-  machine: MemoryTimeMachine | null,
-): { matchLabel?: string; matchId?: string } {
-  if (!machine?.matchLabel) return {};
-  return {
-    matchLabel: machine.matchLabel,
-    matchId: machine.matchId,
-  };
 }

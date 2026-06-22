@@ -497,6 +497,23 @@ export async function saveDebateHighlight(input: {
   return parseJson(response);
 }
 
+export async function sendEvolutionChatMessage(input: {
+  phaseId: "day1" | "day3" | "day4" | "day7";
+  message: string;
+  recentMessages?: DebateMessage[];
+}): Promise<{
+  reply: DebateMessage;
+  meta: { memoryCount: number; maturityLabel: string; phaseLabel: string };
+}> {
+  const response = await fetch("/api/evolution/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+  return parseJson(response);
+}
+
 export async function sendDebateMessage(input: {
   message: string;
   recentMessages?: DebateMessage[];

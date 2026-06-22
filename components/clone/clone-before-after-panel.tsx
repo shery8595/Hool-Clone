@@ -73,15 +73,35 @@ export function CloneBeforeAfterPanel({
       ? "Day 4 · Imitator clone"
       : comparePhase === "day3"
         ? "Day 3 · Learner clone"
-        : "Day 7 · Full HoolClone";
+        : "Day 7 · Contradiction hunter";
+
+  const confidenceDelta = after.confidence - day1.confidence;
+  const day1Receipts = day1.receipts.filter((r) => r.walrusBacked).length;
+  const afterReceipts = after.receipts.filter((r) => r.walrusBacked).length;
+  const receiptDelta = afterReceipts - day1Receipts;
 
   return (
     <Card className={cn("rounded-2xl border-0 shadow-sm", className)}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Sparkles className="h-5 w-5 text-hoolclone-yellow-600" />
-          Before / After — Judge View
-        </CardTitle>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Sparkles className="h-5 w-5 text-hoolclone-yellow-600" />
+            Before / After — Judge View
+          </CardTitle>
+          <div className="flex flex-wrap gap-2">
+            {confidenceDelta !== 0 && (
+              <span className="rounded-full bg-hoolclone-green-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-hoolclone-green-900">
+                {confidenceDelta > 0 ? "+" : ""}
+                {confidenceDelta}% confidence
+              </span>
+            )}
+            {receiptDelta > 0 && (
+              <span className="rounded-full bg-hoolclone-yellow-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-hoolclone-green-900">
+                {day1Receipts} → {afterReceipts} Walrus receipts
+              </span>
+            )}
+          </div>
+        </div>
         <p className="text-sm text-muted-foreground">
           Same matchup ({data.matchLabel}): how your clone reasons with almost
           no memory vs. days of Walrus-backed training.

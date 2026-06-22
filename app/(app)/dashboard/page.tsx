@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import Link from "next/link";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
 import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
-import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
-import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
+import { EvolutionTeaserCard } from "@/components/evolution/evolution-teaser-card";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
 import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { DashboardAtAGlance } from "@/components/dashboard/dashboard-at-a-glance";
@@ -123,21 +121,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {memoryTimeMachine && (
+      {(memoryTimeMachine || stats.memoriesCount > 0) && (
         <DashboardInsightsSection title="Clone evolution">
-          {me.publicSlug && (
-            <Link
-              href={`/u/${me.publicSlug}/evolution`}
-              className="block rounded-xl border border-hoolclone-green-200 bg-hoolclone-green-50/50 px-4 py-3 text-center text-sm font-semibold text-hoolclone-green-900 transition-colors hover:bg-hoolclone-green-50"
-            >
-              Open full evolution timeline →
-            </Link>
-          )}
-          <CloneBeforeAfterPanel
-            data={memoryTimeMachine}
-            comparePhase="day4"
+          <EvolutionTeaserCard
+            memoryTimeMachine={memoryTimeMachine}
+            memoriesCount={stats.memoriesCount}
           />
-          <MemoryTimeMachine data={memoryTimeMachine} />
         </DashboardInsightsSection>
       )}
 

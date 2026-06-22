@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
 import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
-import { CloneBeforeAfterPanel } from "@/components/clone/clone-before-after-panel";
-import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
+import { EvolutionTeaserCard } from "@/components/evolution/evolution-teaser-card";
 import { DebateHighlightsCard } from "@/components/profile/debate-highlights-card";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { StatCardRow } from "@/components/profile/stat-card-row";
@@ -111,10 +110,11 @@ export default async function PublicProfilePage({
       <CloneDriftChart data={profile.cloneAnalytics.driftSeries} />
 
       {profile.memoryTimeMachine && (
-        <>
-          <CloneBeforeAfterPanel data={profile.memoryTimeMachine} />
-          <MemoryTimeMachine data={profile.memoryTimeMachine} />
-        </>
+        <EvolutionTeaserCard
+          memoryTimeMachine={profile.memoryTimeMachine}
+          memoriesCount={profile.memoriesCount}
+          href={`/u/${slug}/evolution`}
+        />
       )}
 
       {profile.debateHighlights.length > 0 && (

@@ -10,6 +10,7 @@ import {
   User,
   Brain,
   History,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { prefetchRoute } from "@/lib/api/prefetch";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/predict", label: "Predict", icon: Target },
   { href: "/debate", label: "Debate", icon: MessageCircle },
   { href: "/memory", label: "Memory", icon: Database },
+  { href: "/evolution", label: "Evolution", icon: Clock },
   { href: "/telegram-history", label: "Telegram", icon: History },
 ];
 
@@ -50,15 +52,15 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside
       className={cn(
-        "sticky top-0 z-30 flex h-screen shrink-0 flex-col bg-hoolclone-green-900 text-white transition-[width] duration-300 ease-in-out",
+        "sticky top-0 z-30 flex h-dvh max-h-dvh shrink-0 flex-col overflow-hidden bg-hoolclone-green-900 text-white transition-[width] duration-300 ease-in-out",
         isCollapsed ? "w-[4.75rem]" : "w-64",
         isMobileSheet ? "h-full w-full" : "hidden lg:flex",
       )}
     >
       <div
         className={cn(
-          "border-b border-white/10",
-          isCollapsed ? "px-2 py-4" : "px-4 py-5",
+          "shrink-0 border-b border-white/10",
+          isCollapsed ? "px-2 py-3.5" : "px-3.5 py-4",
         )}
       >
         <div
@@ -80,8 +82,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               <HoolCloneLogo size="sm" />
             ) : (
               <>
-                <HoolCloneLogo size="md" showWordmark />
-                <p className="mt-2 font-mono text-[10px] font-medium uppercase tracking-[0.18em] text-white/50">
+                <HoolCloneLogo size="sm" showWordmark />
+                <p className="mt-1.5 font-mono text-[9px] font-medium uppercase tracking-[0.16em] text-white/50">
                   Fan clone OS
                 </p>
               </>
@@ -93,7 +95,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               collapsed={isCollapsed}
               onToggle={toggle}
               variant="dark"
-              className={isCollapsed ? "mt-3" : undefined}
+              className={isCollapsed ? "mt-2" : undefined}
             />
           )}
         </div>
@@ -101,12 +103,13 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <nav
         className={cn(
-          "flex-1 overflow-y-auto overflow-x-hidden py-4",
-          isCollapsed ? "space-y-1 px-2" : "space-y-1 px-3",
+          "flex min-h-0 flex-1 flex-col overflow-x-hidden",
+          isMobileSheet ? "justify-start overflow-y-auto py-3" : "justify-start overflow-hidden py-3",
+          isCollapsed ? "gap-1 px-2" : "gap-1 px-2.5",
         )}
       >
         {!isCollapsed && (
-          <p className="mb-2 px-2 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-white/45">
+          <p className="mb-2 px-2 font-mono text-[9px] font-medium uppercase tracking-[0.14em] text-white/45">
             Operating system
           </p>
         )}
@@ -126,8 +129,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               onFocus={() => prefetchRoute(href, me?.id)}
               title={label}
               className={cn(
-                "group relative flex items-center rounded-xl border border-transparent transition-all",
-                isCollapsed ? "justify-center p-1.5" : "gap-3 px-2 py-2",
+                "group relative flex items-center rounded-lg border border-transparent transition-all",
+                isCollapsed ? "justify-center p-1.5" : "gap-3 px-2.5 py-1.5",
                 active
                   ? "border-white/15 bg-gradient-to-r from-white/15 to-white/5"
                   : "hover:bg-white/10",
@@ -147,7 +150,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <>
                   <span
                     className={cn(
-                      "text-sm font-medium",
+                      "text-sm font-medium leading-snug",
                       active ? "font-semibold text-white" : "text-white/75",
                     )}
                   >
@@ -163,7 +166,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      <div className={cn("border-t border-white/10", isCollapsed ? "p-2" : "p-3")}>
+      <div className={cn("shrink-0 border-t border-white/10", isCollapsed ? "p-2.5" : "p-2.5")}>
         {isCollapsed ? (
           <div className="flex justify-center py-1" title="Walrus Memory">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/5 text-hoolclone-yellow-500">

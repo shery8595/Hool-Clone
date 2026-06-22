@@ -15,6 +15,7 @@ A **15-minute walkthrough** for Walrus Memory World Cup judges. HoolClone is a W
 |------|-----|
 | **Demo profile** (15 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
 | **Evolution page** (judge proof panels) | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
+| **Logged-in Evolution** (sidebar; redirects when public) | [/evolution](https://walrus-mu.vercel.app/evolution) |
 | **Clone Clash** (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
 | **Telegram roast cards** | [/telegram-history](https://walrus-mu.vercel.app/telegram-history) |
 | **MemWal health** | [/api/admin/memwal-health](https://walrus-mu.vercel.app/api/admin/memwal-health) |

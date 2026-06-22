@@ -4,6 +4,9 @@ export type TimeMachineReceipt = {
   summary: string;
   strength?: "low" | "medium" | "high";
   walrusBacked?: boolean;
+  memoryId?: string;
+  walrusBlobId?: string;
+  provenanceLabel?: string;
 };
 
 export type TimeMachineSnapshot = {

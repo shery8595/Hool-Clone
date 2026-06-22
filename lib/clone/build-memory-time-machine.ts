@@ -24,6 +24,8 @@ import type { PredictionHistoryItem } from "@/lib/db/predictions";
 import type { DbFanProfile } from "@/lib/db/users";
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
 import type { DriverChip, Match } from "@/lib/mock/types";
+import { formatProvenanceLabel } from "@/lib/clone/memory-provenance";
+import { isPlaceholderBlobId } from "@/lib/walrus/fetch-blob";
 
 const DAY3_MEMORY_CAP = 3;
 const DAY4_MEMORY_CAP = 10;
@@ -46,11 +48,31 @@ function memoriesToReceipts(
   memories: StoredMemory[],
   walrusBacked = false,
 ): TimeMachineReceipt[] {
-  return memories.map((m) => ({
-    summary: m.text,
-    strength: walrusBacked ? ("high" as const) : ("medium" as const),
-    walrusBacked,
-  }));
+  return memories.map((m) => {
+    const blobId =
+      typeof m.metadata?.walrusBlobId === "string"
+        ? m.metadata.walrusBlobId
+        : typeof m.metadata?.blobId === "string"
+          ? m.metadata.blobId
+          : undefined;
+    const source =
+      typeof m.metadata?.source === "string" ? m.metadata.source : m.type;
+    const hasRealBlob =
+      Boolean(blobId) && !isPlaceholderBlobId(blobId ?? "");
+    const backed =
+      walrusBacked &&
+      (m.storageStatus === "stored" || hasRealBlob);
+
+    return {
+      summary: m.text,
+      strength: backed ? ("high" as const) : ("medium" as const),
+      walrusBacked: backed,
+      memoryId: m.id,
+      walrusBlobId: hasRealBlob ? blobId : undefined,
+      provenanceLabel:
+        formatProvenanceLabel(source, m.createdAt) ?? undefined,
+    };
+  });
 }
 
 function cloneReceiptsToTimeMachine(
@@ -59,7 +81,17 @@ function cloneReceiptsToTimeMachine(
   return (receipts ?? []).map((r) => ({
     summary: r.text,
     strength: "high" as const,
-    walrusBacked: true,
+    walrusBacked: Boolean(
+      r.walrusBlobId &&
+        !isPlaceholderBlobId(r.walrusBlobId) &&
+        r.storageStatus === "stored",
+    ),
+    memoryId: r.id.startsWith("receipt-") ? undefined : r.id,
+    walrusBlobId:
+      r.walrusBlobId && !isPlaceholderBlobId(r.walrusBlobId)
+        ? r.walrusBlobId
+        : undefined,
+    provenanceLabel: r.provenanceLabel,
   }));
 }
 

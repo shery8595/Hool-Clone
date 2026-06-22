@@ -84,7 +84,7 @@ export function DashboardSetupChecklist({
       {
         id: "evolution",
         label: "Review clone evolution",
-        href: me.publicSlug ? `/u/${me.publicSlug}/evolution` : "/profile/public",
+        href: "/evolution",
         done: memoriesCount >= 9,
       },
     ],
@@ -93,7 +93,6 @@ export function DashboardSetupChecklist({
       predictionsCount,
       telegramLinked,
       me.profile.publicEnabled,
-      me.publicSlug,
     ],
   );
 

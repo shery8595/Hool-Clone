@@ -4,8 +4,8 @@ import { huntContradictions } from "@/lib/clone/contradiction-hunter";
 import { analyzeDebateTurn } from "@/lib/debate/analyze-debate-turn";
 import {
   buildDebateMemoryCatalog,
-  formatCatalogForPrompt,
 } from "@/lib/debate/build-debate-memory-catalog";
+import { formatCatalogForPrompt } from "@/lib/debate/format-catalog-for-prompt";
 import { filterDebateContradictions } from "@/lib/debate/filter-contradictions";
 import { findPredictionRebuttal } from "@/lib/debate/prediction-rebuttal";
 import { rankMemoriesForTurn } from "@/lib/debate/score-memory-relevance";

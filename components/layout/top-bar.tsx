@@ -52,11 +52,14 @@ function resolvePageContext(pathname: string): {
   if (pathname.startsWith("/memory")) {
     return { title: "Memory", subtitle: "Walrus receipts" };
   }
+  if (pathname === "/evolution" || pathname.includes("/evolution")) {
+    return {
+      title: "Evolution",
+      subtitle: "Day 1 vs Day 7 — Walrus memory proof",
+    };
+  }
   if (pathname.includes("/clash")) {
     return { title: "Clone Clash", subtitle: "Namespace vs namespace" };
-  }
-  if (pathname.includes("/evolution")) {
-    return { title: "Evolution", subtitle: "Day 1 vs Day 4" };
   }
   if (pathname.startsWith("/u/")) {
     return { title: "Public Profile", subtitle: "Shareable clone proof" };

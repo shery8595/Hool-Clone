@@ -34,6 +34,7 @@ export function prefetchPredictionHistory(userId: string): void {
 export function prefetchRoute(href: string, userId?: string): void {
   if (href === "/dashboard" && userId) prefetchDashboard(userId);
   if (href === "/memory" && userId) prefetchMemories(userId);
+  if (href === "/evolution" && userId) prefetchDashboard(userId);
   if (href === "/predict") {
     prefetchMatches();
     if (userId) prefetchPredictionHistory(userId);

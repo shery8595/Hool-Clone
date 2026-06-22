@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Clock,
+  Columns2,
   Database,
   Flame,
   Sparkles,
@@ -22,6 +23,8 @@ type MemoryTimeMachineProps = {
   data: MemoryTimeMachine;
   className?: string;
 };
+
+type ViewMode = "timeline" | "split";
 
 const PHASE_DOT: Record<TimeMachinePhaseId, string> = {
   day1: "bg-slate-400",
@@ -52,21 +55,45 @@ function ReceiptChip({
 }: {
   receipt: TimeMachineSnapshot["receipts"][number];
 }) {
+  const blobPreview =
+    receipt.walrusBlobId && receipt.walrusBlobId.length > 20
+      ? `${receipt.walrusBlobId.slice(0, 10)}…${receipt.walrusBlobId.slice(-8)}`
+      : receipt.walrusBlobId;
+
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-1.5 rounded-lg border px-2.5 py-1.5",
+        "flex min-w-0 flex-col gap-1 rounded-lg border px-2.5 py-1.5",
         receipt.walrusBacked
           ? "border-hoolclone-green-200 bg-hoolclone-green-50/50"
           : "border-border/60 bg-muted/20",
       )}
     >
-      {receipt.walrusBacked && (
-        <Database className="mt-0.5 h-3 w-3 shrink-0 text-hoolclone-green-700" />
+      <div className="flex min-w-0 items-start gap-1.5">
+        {receipt.walrusBacked && (
+          <Database className="mt-0.5 h-3 w-3 shrink-0 text-hoolclone-green-700" />
+        )}
+        <p className="line-clamp-2 text-[11px] leading-snug text-hoolclone-gray-900">
+          {receipt.summary}
+        </p>
+      </div>
+      {(receipt.provenanceLabel || blobPreview) && (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pl-4">
+          {receipt.provenanceLabel && (
+            <p className="text-[9px] font-semibold text-hoolclone-green-700">
+              {receipt.provenanceLabel}
+            </p>
+          )}
+          {blobPreview && (
+            <Link
+              href="/memory"
+              className="font-mono text-[9px] text-hoolclone-green-800/90 underline-offset-2 hover:underline"
+            >
+              {blobPreview}
+            </Link>
+          )}
+        </div>
       )}
-      <p className="line-clamp-2 text-[11px] leading-snug text-hoolclone-gray-900">
-        {receipt.summary}
-      </p>
     </div>
   );
 }
@@ -212,12 +239,53 @@ function TimelineStep({
   );
 }
 
+function ViewModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: ViewMode;
+  onChange: (mode: ViewMode) => void;
+}) {
+  return (
+    <div className="inline-flex rounded-lg border border-border/60 bg-muted/30 p-0.5">
+      <button
+        type="button"
+        onClick={() => onChange("timeline")}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors",
+          mode === "timeline"
+            ? "bg-white text-hoolclone-green-900 shadow-sm"
+            : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <Clock className="h-3 w-3" />
+        Timeline
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("split")}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition-colors",
+          mode === "split"
+            ? "bg-white text-hoolclone-green-900 shadow-sm"
+            : "text-muted-foreground hover:text-foreground",
+        )}
+      >
+        <Columns2 className="h-3 w-3" />
+        Split view
+      </button>
+    </div>
+  );
+}
+
 export function MemoryTimeMachine({ data, className }: MemoryTimeMachineProps) {
   const [activePhaseId, setActivePhaseId] = useState<TimeMachinePhaseId>(
     data.defaultPhase,
   );
+  const [viewMode, setViewMode] = useState<ViewMode>("timeline");
   const activePhase =
     data.phases.find((phase) => phase.id === activePhaseId) ?? data.phases[0]!;
+  const day1Phase = data.phases.find((phase) => phase.id === "day1") ?? data.phases[0]!;
 
   return (
     <section
@@ -238,10 +306,13 @@ export function MemoryTimeMachine({ data, className }: MemoryTimeMachineProps) {
               Memory Time Machine
             </h2>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-hoolclone-green-200 bg-hoolclone-green-50 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-hoolclone-green-900">
-            <Sparkles className="h-3 w-3 text-hoolclone-yellow-600" />
-            {data.actualMemoriesCount} live memories
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <ViewModeToggle mode={viewMode} onChange={setViewMode} />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-hoolclone-green-200 bg-hoolclone-green-50 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wide text-hoolclone-green-900">
+              <Sparkles className="h-3 w-3 text-hoolclone-yellow-600" />
+              {data.actualMemoriesCount} live memories
+            </span>
+          </div>
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           Same fan, same matchup — scrub through clone versions to see how
@@ -256,26 +327,28 @@ export function MemoryTimeMachine({ data, className }: MemoryTimeMachineProps) {
       </div>
 
       <div className="space-y-4 px-5 py-4 sm:px-6">
-        <div className="relative pt-1">
-          <div
-            className="pointer-events-none absolute left-[10%] right-[10%] top-3 z-0 hidden h-0.5 bg-border sm:block"
-            aria-hidden
-          />
-          <div
-            role="tablist"
-            aria-label="Memory time machine phases"
-            className="relative grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1"
-          >
-            {data.phases.map((phase) => (
-              <TimelineStep
-                key={phase.id}
-                phase={phase}
-                active={phase.id === activePhaseId}
-                onSelect={() => setActivePhaseId(phase.id)}
-              />
-            ))}
+        {viewMode === "timeline" && (
+          <div className="relative pt-1">
+            <div
+              className="pointer-events-none absolute left-[10%] right-[10%] top-3 z-0 hidden h-0.5 bg-border sm:block"
+              aria-hidden
+            />
+            <div
+              role="tablist"
+              aria-label="Memory time machine phases"
+              className="relative grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-1"
+            >
+              {data.phases.map((phase) => (
+                <TimelineStep
+                  key={phase.id}
+                  phase={phase}
+                  active={phase.id === activePhaseId}
+                  onSelect={() => setActivePhaseId(phase.id)}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex items-start gap-2 rounded-xl bg-muted/35 px-3 py-2.5 text-xs leading-relaxed text-hoolclone-gray-900">
           <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-hoolclone-yellow-600" />
@@ -286,9 +359,45 @@ export function MemoryTimeMachine({ data, className }: MemoryTimeMachineProps) {
           </p>
         </div>
 
-        <div role="tabpanel" aria-label={activePhase.dayLabel}>
-          <PhasePanel phase={activePhase} />
-        </div>
+        {viewMode === "split" ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Day 1 baseline
+              </p>
+              <PhasePanel phase={day1Phase} />
+            </div>
+            <div>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {activePhase.dayLabel} — selected phase
+              </p>
+              <div className="mb-3 flex flex-wrap gap-1">
+                {data.phases
+                  .filter((phase) => phase.id !== "day1")
+                  .map((phase) => (
+                    <button
+                      key={phase.id}
+                      type="button"
+                      onClick={() => setActivePhaseId(phase.id)}
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1 transition-colors",
+                        phase.id === activePhaseId
+                          ? "bg-hoolclone-green-100 text-hoolclone-green-900 ring-hoolclone-green-300"
+                          : "bg-white text-muted-foreground ring-border/60 hover:bg-muted/40",
+                      )}
+                    >
+                      {phase.dayLabel}
+                    </button>
+                  ))}
+              </div>
+              <PhasePanel phase={activePhase} />
+            </div>
+          </div>
+        ) : (
+          <div role="tabpanel" aria-label={activePhase.dayLabel}>
+            <PhasePanel phase={activePhase} />
+          </div>
+        )}
       </div>
     </section>
   );

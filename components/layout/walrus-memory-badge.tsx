@@ -79,33 +79,33 @@ export function WalrusMemoryBadge({
   return (
     <div
       className={cn(
-        "rounded-xl border p-3",
+        "rounded-lg border p-2.5",
         isSidebar
           ? "border-white/15 bg-white/10"
           : "border-hoolclone-green-100 bg-hoolclone-green-100",
         className,
       )}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={HOOLCLONE_LOGO_SRC}
           alt=""
-          className="h-8 w-8 rounded-full bg-white/10 p-0.5"
+          className="h-7 w-7 shrink-0 rounded-full bg-white/10 p-0.5"
         />
         <div className="min-w-0 flex-1">
           <p
             className={cn(
-              "text-xs font-semibold",
+              "text-[11px] font-semibold leading-tight",
               isSidebar ? "text-white" : "text-hoolclone-green-900",
             )}
           >
             {isLocal ? "Local Memory" : walrusVerified ? "Walrus: Verified" : "Walrus Memory"}
           </p>
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
             <span
               className={cn(
-                "h-2 w-2 rounded-full",
+                "h-1.5 w-1.5 shrink-0 rounded-full",
                 isLocal || walrusVerified
                   ? "bg-emerald-400"
                   : "bg-amber-400",
@@ -113,23 +113,23 @@ export function WalrusMemoryBadge({
             />
             <span
               className={cn(
-                "text-xs",
+                "text-[10px] leading-tight",
                 isSidebar ? "text-white/80" : "text-hoolclone-green-700",
               )}
             >
               {statusLabel}
             </span>
+            {count !== undefined && (
+              <span
+                className={cn(
+                  "text-[10px] leading-tight",
+                  isSidebar ? "text-white/60" : "text-muted-foreground",
+                )}
+              >
+                · {count} memories · {isLocal ? "Postgres mirror" : "Walrus Mainnet"}
+              </span>
+            )}
           </div>
-          {count !== undefined && (
-            <p
-              className={cn(
-                "mt-1 text-[10px]",
-                isSidebar ? "text-white/60" : "text-muted-foreground",
-              )}
-            >
-              {count} memories · {isLocal ? "Postgres mirror" : "Walrus Mainnet"}
-            </p>
-          )}
         </div>
       </div>
     </div>
