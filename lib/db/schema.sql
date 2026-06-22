@@ -128,6 +128,19 @@ create table if not exists telegram_chats (
 
 create index if not exists idx_telegram_chats_chat_id on telegram_chats(chat_id);
 
+create table if not exists telegram_link_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  token text not null unique,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_telegram_link_tokens_token
+  on telegram_link_tokens(token)
+  where used_at is null;
+
 create table if not exists telegram_live_events (
   id uuid primary key default gen_random_uuid(),
   match_id uuid not null references matches(id) on delete cascade,
