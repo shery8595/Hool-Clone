@@ -13,22 +13,24 @@ import {
 
 export function prefetchDashboard(userId: string): void {
   if (peekCached(cacheKeys.dashboard(userId))) return;
-  void fetchCached(cacheKeys.dashboard(userId), fetchDashboardRaw);
+  void fetchCached(cacheKeys.dashboard(userId), fetchDashboardRaw).catch(() => {});
 }
 
 export function prefetchMemories(userId: string): void {
   if (peekCached(cacheKeys.memories(userId))) return;
-  void fetchCached(cacheKeys.memories(userId), fetchMemoriesRaw);
+  void fetchCached(cacheKeys.memories(userId), fetchMemoriesRaw).catch(() => {});
 }
 
 export function prefetchMatches(): void {
   if (peekCached(cacheKeys.matches())) return;
-  void fetchCached(cacheKeys.matches(), fetchMatchesRaw, 120_000);
+  void fetchCached(cacheKeys.matches(), fetchMatchesRaw, 120_000).catch(() => {});
 }
 
 export function prefetchPredictionHistory(userId: string): void {
   if (peekCached(cacheKeys.predictionHistory(userId))) return;
-  void fetchCached(cacheKeys.predictionHistory(userId), fetchPredictionHistoryRaw);
+  void fetchCached(cacheKeys.predictionHistory(userId), fetchPredictionHistoryRaw).catch(
+    () => {},
+  );
 }
 
 export function prefetchRoute(href: string, userId?: string): void {
@@ -49,6 +51,6 @@ export function prefetchAppData(userId: string): void {
 }
 
 export function warmDashboard(userId: string): void {
-  void revalidateCached(cacheKeys.dashboard(userId), fetchDashboardRaw);
+  void revalidateCached(cacheKeys.dashboard(userId), fetchDashboardRaw).catch(() => {});
 }
 

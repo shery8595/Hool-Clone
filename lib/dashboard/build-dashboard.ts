@@ -100,6 +100,7 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
     memoryDrivers,
     memoryTexts: chronologicalMemories.map((m) => m.text),
     walrusNamespace: userRow?.memwal_namespace,
+    preferFastSnapshots: true,
   });
 
   return {

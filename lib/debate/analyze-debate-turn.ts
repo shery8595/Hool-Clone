@@ -62,7 +62,7 @@ const MATCHUP_RE =
 
 const TOPIC_PATTERNS: Record<Exclude<DebateTopic, "general">, RegExp> = {
   loyalty: /\b(loyal|favorite|favourite|ride or die|my team|bleed)\b/i,
-  rival: /\b(rival|hate|distrust|never trust|can't stand|skeptic)\b/i,
+  rival: /\b(rival|hat(?:e|ed|es|ing)|distrust|never trust|can't stand|skeptic)\b/i,
   underdog: /\b(underdog|upset|dark horse|chaos|long shot)\b/i,
   style: /\b(stats?|vibes?|analytics|xG|data|gut feel|emotional)\b/i,
   correction: /\b(correct|correction|teach|retrain|wrong memory|receipt)\b/i,

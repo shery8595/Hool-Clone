@@ -195,4 +195,64 @@ describe("buildEvolutionPhaseReply", () => {
     assert.match(result.citedReceipts[0]!.text.toLowerCase(), /japan/);
     assert.doesNotMatch(result.citedReceipts[0]!.text.toLowerCase(), /cristiano/);
   });
+
+  it("answers primary favorite from onboarding memory, not predictions", () => {
+    const receipts = [
+      memory("m1", "The user predicts mostly with stats.", {
+        memorySource: "onboarding",
+      }),
+      memory("m2", "England — great team, always back them.", {
+        memorySource: "onboarding",
+      }),
+      memory(
+        "m3",
+        "[prediction] Spain vs Saudi Arabia (Group H · Group Stage): picked ESP 2-0 at 90% confidence. Feeling: hyped. Reasoning: because spain are a much better team",
+        { memorySource: "prediction_submit" },
+      ),
+    ];
+
+    const result = buildEvolutionPhaseReply({
+      phaseId: "day4",
+      userMessage: "what is my favourite team",
+      recentMessages: [],
+      allMemoryReceipts: receipts,
+      memoryTimeMachine: null,
+    });
+
+    assert.match(result.reply.toLowerCase(), /england/);
+    assert.match(result.citedReceipts[0]!.text.toLowerCase(), /england/);
+    assert.doesNotMatch(result.citedReceipts[0]!.text.toLowerCase(), /\[prediction\]/);
+    assert.doesNotMatch(result.reply.toLowerCase(), /spain/);
+  });
+
+  it("answers most hated team from rival onboarding, not predictions", () => {
+    const receipts = [
+      memory("m1", "The user predicts mostly with stats.", {
+        memorySource: "onboarding",
+      }),
+      memory("m2", "England — great team, always back them.", {
+        memorySource: "onboarding",
+      }),
+      memory("m3", "France — they always disappoint in knockouts.", {
+        memorySource: "onboarding",
+      }),
+      memory(
+        "m4",
+        "[prediction] Spain vs Saudi Arabia (Group H · Group Stage): picked ESP 2-0 at 90% confidence. Feeling: hyped. Reasoning: because spain are a much better team",
+        { memorySource: "prediction_submit" },
+      ),
+    ];
+
+    const result = buildEvolutionPhaseReply({
+      phaseId: "day7",
+      userMessage: "what is my most hated team",
+      recentMessages: [],
+      allMemoryReceipts: receipts,
+      memoryTimeMachine: null,
+    });
+
+    assert.match(result.reply.toLowerCase(), /france/);
+    assert.match(result.citedReceipts[0]!.text.toLowerCase(), /france/);
+    assert.doesNotMatch(result.citedReceipts[0]!.text.toLowerCase(), /\[prediction\]/);
+  });
 });

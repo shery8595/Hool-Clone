@@ -1,5 +1,9 @@
 import type { MemoryReceipt } from "@/lib/mock/types";
-import { isSecondFavoriteQuestion } from "@/lib/evolution/rank-evolution-memories";
+import {
+  isPrimaryFavoriteQuestion,
+  isRivalTeamQuestion,
+  isSecondFavoriteQuestion,
+} from "@/lib/evolution/rank-evolution-memories";
 
 function cleanTeamName(value: string): string {
   return value
@@ -26,6 +30,45 @@ function extractPrimaryTeam(receipt: MemoryReceipt): string | null {
   );
   if (support?.[1]) return cleanTeamName(support[1]);
 
+  const onboarding = receipt.text.match(
+    /^([A-Za-z][A-Za-z\s]{1,30}?)\s*[—–-]\s+/,
+  );
+  if (onboarding?.[1] && receipt.memorySource === "onboarding") {
+    return cleanTeamName(onboarding[1]);
+  }
+
+  return null;
+}
+
+function extractRivalTeam(receipt: MemoryReceipt): string | null {
+  const neverTrust = receipt.text.match(
+    /\bnever trust[:\s,]+([a-z][a-z\s]{1,30})/i,
+  );
+  if (neverTrust?.[1]) return cleanTeamName(neverTrust[1]);
+
+  const skeptical = receipt.text.match(
+    /\bskeptical of\s+([a-z][a-z\s]{1,30})/i,
+  );
+  if (skeptical?.[1]) return cleanTeamName(skeptical[1]);
+
+  const onboarding = receipt.text.match(
+    /^([A-Za-z][A-Za-z\s]{1,30}?)\s*[—–-]\s+/,
+  );
+  if (onboarding?.[1] && receipt.memorySource === "onboarding") {
+    return cleanTeamName(onboarding[1]);
+  }
+
+  return null;
+}
+
+function findTeamInReceipts(
+  receipts: MemoryReceipt[],
+  extract: (receipt: MemoryReceipt) => string | null,
+): string | null {
+  for (const receipt of receipts) {
+    const team = extract(receipt);
+    if (team) return team;
+  }
   return null;
 }
 
@@ -68,8 +111,26 @@ export function synthesizeEvolutionReply(input: {
     input.userMessage,
     input.recentMessages,
   );
+  const primaryFavorite = isPrimaryFavoriteQuestion(
+    input.userMessage,
+    input.recentMessages,
+  );
+  const rivalTeam = isRivalTeamQuestion(input.userMessage, input.recentMessages);
   const secondaryTeam = extractSecondaryTeam(primary);
-  const primaryTeam = extractPrimaryTeam(primary);
+  const primaryTeam =
+    findTeamInReceipts(input.citedReceipts, extractPrimaryTeam) ??
+    extractPrimaryTeam(primary);
+  const hatedTeam =
+    findTeamInReceipts(input.citedReceipts, extractRivalTeam) ??
+    extractRivalTeam(primary);
+
+  if (rivalTeam && hatedTeam) {
+    return `Your most hated team is ${hatedTeam}. That's what your onboarding memory says.`;
+  }
+
+  if (rivalTeam) {
+    return `The clearest memory on who you distrust is: ${summarizeReceipt(primary)}`;
+  }
 
   if (secondFavorite && secondaryTeam) {
     const extra = /\bdark horses?\b/i.test(primary.text)
@@ -80,6 +141,14 @@ export function synthesizeEvolutionReply(input: {
 
   if (secondFavorite) {
     return `The clearest memory on your second favorite team is: ${summarizeReceipt(primary)}`;
+  }
+
+  if (primaryFavorite && primaryTeam) {
+    return `You support ${primaryTeam}. That's what your onboarding memory says.`;
+  }
+
+  if (primaryFavorite) {
+    return `The clearest memory on who you support is: ${summarizeReceipt(primary)}`;
   }
 
   if (primaryTeam) {
