@@ -13,6 +13,7 @@ export type LeaderboardEntry = {
   cloneMatchPercent: number;
   learningScore: number;
   favoriteTeam: string | null;
+  rivalTeam: string | null;
   joinedAt: string;
   arenaWins: number;
   arenaLosses: number;

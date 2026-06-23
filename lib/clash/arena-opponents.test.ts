@@ -21,6 +21,7 @@ function entry(
     cloneMatchPercent: 50,
     learningScore: 7,
     favoriteTeam: null,
+    rivalTeam: null,
     joinedAt: "2025-01-01T00:00:00.000Z",
     arenaWins: 0,
     arenaLosses: 0,

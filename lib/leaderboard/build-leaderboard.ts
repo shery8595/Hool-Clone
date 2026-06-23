@@ -13,6 +13,7 @@ type UserRow = {
   public_slug: string;
   created_at: Date;
   favorite_team: string | null;
+  rival_team: string | null;
   memories_count: number;
 };
 
@@ -63,13 +64,13 @@ export async function buildLeaderboard(
   const [userRows, agreementRows] = await Promise.all([
     query<UserRow>(
       `select u.id, u.display_name, u.public_slug, u.created_at,
-              fp.favorite_team,
+              fp.favorite_team, fp.rival_team,
               count(m.id)::int as memories_count
        from users u
        join fan_profiles fp on fp.user_id = u.id
        left join memories m on m.user_id = u.id
        where fp.public_enabled = true and u.public_slug is not null
-       group by u.id, u.display_name, u.public_slug, u.created_at, fp.favorite_team`,
+       group by u.id, u.display_name, u.public_slug, u.created_at, fp.favorite_team, fp.rival_team`,
     ),
     query<AgreementRow>(
       `select p.user_id,
@@ -121,6 +122,7 @@ export async function buildLeaderboard(
         cloneAgreementCount,
       ),
       favoriteTeam: row.favorite_team,
+      rivalTeam: row.rival_team,
       joinedAt: row.created_at.toISOString(),
       arenaWins: arena?.wins ?? 0,
       arenaLosses: arena?.losses ?? 0,
