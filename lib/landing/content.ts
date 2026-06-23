@@ -64,10 +64,10 @@ export type ShowcaseFan = {
 };
 
 export const showcaseStats = [
-  { label: "Active Clones", value: "4,328", icon: "brain" as const },
-  { label: "Avg Accuracy", value: "78%", icon: "target" as const },
-  { label: "Memories Stored", value: "126K+", icon: "database" as const },
-  { label: "Walrus Backed", value: "100%", icon: "shield" as const },
+  { label: "Walrus Mainnet", value: "Live", icon: "database" as const },
+  { label: "Unit Tests", value: "194", icon: "shield" as const },
+  { label: "Maturity Levels", value: "5", icon: "brain" as const },
+  { label: "Memory Types", value: "8+", icon: "target" as const },
 ] as const;
 
 export const showcaseFans: ShowcaseFan[] = [
@@ -136,14 +136,6 @@ export const showcaseFans: ShowcaseFan[] = [
   },
 ];
 
-export const socialProofAvatars = [
-  { initials: "SK", color: "#1a6b4a" },
-  { initials: "LM", color: "#d97706" },
-  { initials: "TR", color: "#7c3aed" },
-  { initials: "NP", color: "#dc2626" },
-  { initials: "DW", color: "#0284c7" },
-];
-
 export const walrusMemoryFeatures = [
   {
     label: "Durable fan takes survive across sessions",
@@ -180,3 +172,10 @@ export const LEADERBOARD_URL = "/leaderboard";
 export const JUDGES_DOC_URL = "/docs/judges";
 export const DEMO_PROFILE_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo`;
 export const DEMO_CLASH_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/clash?opponent=hoolclone-rival`;
+
+/** Quick links for hero — real demo/docs, not inflated user counts */
+export const heroQuickLinks = [
+  { label: "Live demo profile", href: DEMO_PROFILE_URL },
+  { label: "15-min judge tour", href: JUDGES_DOC_URL },
+  { label: "How memory works", href: "/docs/how-it-works" },
+] as const;

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Database,
   Heart,
@@ -7,7 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
-import { socialProofAvatars, trustBadges } from "@/lib/landing/content";
+import { heroQuickLinks, trustBadges } from "@/lib/landing/content";
 import { LandingClonePreview } from "./landing-clone-preview";
 import { LandingHeroVisual } from "./landing-hero-visual";
 
@@ -59,22 +60,16 @@ export function LandingHero() {
               </ButtonLink>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex -space-x-2">
-                {socialProofAvatars.map(({ initials, color }) => (
-                  <span
-                    key={initials}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-hoolclone-page-bg text-[10px] font-bold text-white"
-                    style={{ backgroundColor: color }}
-                  >
-                    {initials}
-                  </span>
-                ))}
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">
-                <span className="font-bold text-hoolclone-gray-900">12K+</span>{" "}
-                fans already training their clones
-              </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {heroQuickLinks.map(({ label, href }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="rounded-full border border-hoolclone-green-100 bg-white px-3 py-1.5 text-xs font-semibold text-hoolclone-green-800 transition-colors hover:border-hoolclone-green-200 hover:bg-hoolclone-green-50"
+                >
+                  {label}
+                </Link>
+              ))}
             </div>
 
             <div className="flex flex-wrap gap-x-6 gap-y-3">

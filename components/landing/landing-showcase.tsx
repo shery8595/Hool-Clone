@@ -90,9 +90,9 @@ export function LandingShowcase() {
         >
           <div className="max-w-xl">
             <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-hoolclone-gray-900 sm:text-3xl lg:text-[2rem]">
-              Fans Worldwide.{" "}
+              See What a Trained Clone{" "}
               <span className="relative inline-block text-hoolclone-green-800">
-                Clones That Hit Hard.
+                Looks Like.
                 <span
                   className="absolute -bottom-1 left-0 h-2 w-full -skew-x-3 rounded-sm bg-hoolclone-yellow-500/90"
                   aria-hidden
@@ -100,8 +100,9 @@ export function LandingShowcase() {
               </span>
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Real fan clones with bias radars, maturity levels, and match
-              accuracy — built from Walrus-backed memories.
+              Illustrative fan profiles with bias radars, maturity levels, and
+              Walrus-backed memory receipts — explore the live demo to see real
+              Mainnet blobs.
             </p>
           </div>
 
