@@ -16,14 +16,14 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { prefetchRoute } from "@/lib/api/prefetch";
+import { SIDEBAR_BG_SRC } from "@/lib/assets/sidebar-bg";
+import { usePreloadedImage } from "@/lib/hooks/use-preloaded-image";
 import { useSidebarCollapsed } from "@/lib/hooks/use-sidebar-collapsed";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
 import { SidebarCollapseToggle } from "@/components/layout/sidebar-collapse-toggle";
 import { useUser } from "@/components/providers/user-provider";
 
 const APP_SIDEBAR_KEY = "hoolclone-app-sidebar-collapsed";
-const SIDEBAR_BG_VERSION = "3";
-const SIDEBAR_BG_SRC = `/images/sidebar-bg.png?v=${SIDEBAR_BG_VERSION}`;
 
 type NavItem = {
   href: string;
@@ -132,6 +132,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const isMobileSheet = Boolean(onNavigate);
   const { collapsed, toggle } = useSidebarCollapsed(APP_SIDEBAR_KEY);
   const isCollapsed = isMobileSheet ? false : collapsed;
+  const sidebarBgReady = usePreloadedImage(SIDEBAR_BG_SRC);
 
   const publicHref =
     me?.publicSlug && me.profile.publicEnabled
@@ -150,15 +151,22 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <aside
       className={cn(
-        "relative sticky top-0 z-30 flex h-dvh max-h-dvh shrink-0 flex-col overflow-hidden text-white transition-[width] duration-300 ease-in-out",
+        "relative sticky top-0 z-30 flex h-dvh max-h-dvh shrink-0 flex-col overflow-hidden bg-hoolclone-green-900 text-white transition-[width] duration-300 ease-in-out",
         isCollapsed ? "w-[4.75rem]" : "w-64",
         isMobileSheet ? "h-full w-full" : "hidden lg:flex",
       )}
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url('${SIDEBAR_BG_SRC}')` }}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={SIDEBAR_BG_SRC}
+        alt=""
         aria-hidden
+        fetchPriority="high"
+        decoding="async"
+        className={cn(
+          "pointer-events-none absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300",
+          sidebarBgReady ? "opacity-100" : "opacity-0",
+        )}
       />
       <div
         className="pointer-events-none absolute inset-0 bg-hoolclone-green-950/20"

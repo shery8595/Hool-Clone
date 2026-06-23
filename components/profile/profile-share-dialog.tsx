@@ -18,6 +18,10 @@ import {
   renderShareCardBlob,
   type ShareCardData,
 } from "@/lib/profile/share-card";
+import {
+  buildShareOnXIntentUrl,
+  openShareOnX,
+} from "@/lib/profile/open-share-on-x";
 import { cn } from "@/lib/utils";
 
 export type ProfileShareCardInput = Omit<ShareCardData, "profileUrl">;
@@ -98,11 +102,8 @@ export function ProfileShareDialog({
   }, [shareCardData.profileUrl]);
 
   const handleShareOnX = useCallback(() => {
-    const text = buildShareCardTweet(shareCardData);
-    const intent = new URL("https://twitter.com/intent/tweet");
-    intent.searchParams.set("text", text);
-    intent.searchParams.set("url", shareCardData.profileUrl);
-    window.open(intent.toString(), "_blank", "noopener,noreferrer");
+    const message = buildShareCardTweet(shareCardData);
+    openShareOnX(buildShareOnXIntentUrl(message, shareCardData.profileUrl));
   }, [shareCardData]);
 
   return (
@@ -189,8 +190,8 @@ export function ProfileShareDialog({
             </Button>
           </div>
           <p className="mt-3 text-center text-[11px] text-muted-foreground">
-            Copy image first, then paste it into your X post after opening Share
-            on X.
+            Opens X with your profile link in a new tab. Copy or download the
+            card image first if you want it in the post.
           </p>
         </Dialog.Popup>
       </Dialog.Portal>

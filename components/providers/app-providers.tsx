@@ -9,6 +9,7 @@ import {
 import { getJsonRpcFullnodeUrl } from "@mysten/sui/jsonRpc";
 import { useState, type ReactNode } from "react";
 import { UserProvider } from "@/components/providers/user-provider";
+import { PreloadSidebarBg } from "@/components/layout/preload-sidebar-bg";
 import { PREFERRED_SUI_WALLETS, suiWalletFilter } from "@/lib/wallet/config";
 import "@mysten/dapp-kit/dist/index.css";
 
@@ -34,7 +35,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
           walletFilter={suiWalletFilter}
           slushWallet={{ name: "HoolClone" }}
         >
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            <PreloadSidebarBg />
+            {children}
+          </UserProvider>
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>

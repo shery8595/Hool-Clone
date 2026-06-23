@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
+import { SIDEBAR_BG_SRC } from "@/lib/assets/sidebar-bg";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,6 +35,14 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
+      <head>
+        <link
+          rel="preload"
+          as="image"
+          href={SIDEBAR_BG_SRC}
+          fetchPriority="high"
+        />
+      </head>
       <body className="min-h-full">
         <AppProviders>{children}</AppProviders>
       </body>
