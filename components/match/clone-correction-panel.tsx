@@ -10,12 +10,21 @@ import {
 import { PredictButton } from "@/components/predict/predict-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ClonePrediction, Match, MemoryReceipt, Prediction } from "@/lib/mock/types";
+import { isCloneCorrectionForMatch } from "@/lib/clone/clone-memory-receipts";
 import { isUuid } from "@/lib/utils";
 
-function pickDisputedMemoryId(receipts: MemoryReceipt[]): string | undefined {
-  const id = receipts[0]?.id;
-  if (!id || id.startsWith("receipt-") || !isUuid(id)) return undefined;
-  return id;
+function pickDisputedMemoryId(
+  receipts: MemoryReceipt[],
+  match: Match,
+): string | undefined {
+  const candidate = receipts.find((receipt) => {
+    if (!receipt.id || receipt.id.startsWith("receipt-") || !isUuid(receipt.id)) {
+      return false;
+    }
+    if (isCloneCorrectionForMatch(receipt, match)) return false;
+    return true;
+  });
+  return candidate?.id;
 }
 
 function extractCorrectionSnippet(text: string): string {
@@ -26,13 +35,9 @@ function extractCorrectionSnippet(text: string): string {
 
 function findSavedCorrectionReceipt(
   receipts: MemoryReceipt[],
+  match: Match,
 ): MemoryReceipt | undefined {
-  return receipts.find(
-    (receipt) =>
-      receipt.memorySource === "clone_correction" &&
-      (receipt.text.includes("Correction:") ||
-        receipt.provenanceLabel?.includes("correction")),
-  ) ?? receipts.find((receipt) => receipt.memorySource === "clone_correction");
+  return receipts.find((receipt) => isCloneCorrectionForMatch(receipt, match));
 }
 
 const quickCorrections = [
@@ -58,7 +63,7 @@ export function CloneCorrectionPanel({
   clone,
   onCorrected,
 }: CloneCorrectionPanelProps) {
-  const savedReceipt = findSavedCorrectionReceipt(clone.receipts);
+  const savedReceipt = findSavedCorrectionReceipt(clone.receipts, match);
   const [correction, setCorrection] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +76,7 @@ export function CloneCorrectionPanel({
   );
 
   useEffect(() => {
-    const receipt = findSavedCorrectionReceipt(clone.receipts);
+    const receipt = findSavedCorrectionReceipt(clone.receipts, match);
     setCorrection("");
     setSubmitting(false);
     setError(null);
@@ -80,7 +85,7 @@ export function CloneCorrectionPanel({
     setStillDisagrees(prediction.agreed === false);
   }, [match.id, clone.receipts, prediction.agreed]);
 
-  const wrongMemoryId = pickDisputedMemoryId(clone.receipts);
+  const wrongMemoryId = pickDisputedMemoryId(clone.receipts, match);
 
   const submit = async () => {
     setSubmitting(true);

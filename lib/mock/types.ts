@@ -76,6 +76,8 @@ export type MemoryReceipt = {
   type: MemoryType;
   text: string;
   date: string;
+  /** Fixture id when this memory was written for a specific match. */
+  metadataMatchId?: string;
   matchContext?: string;
   publicVisible: boolean;
   usedInPrediction?: boolean;

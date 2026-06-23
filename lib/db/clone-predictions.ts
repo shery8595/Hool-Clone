@@ -14,6 +14,7 @@ export type StoredCloneReceipt = CloneMemoryReceipt & {
   recallSource?: RecallSource;
   memorySource?: string;
   provenanceLabel?: string;
+  metadataMatchId?: string;
   walrusBlobId?: string;
   storageStatus?: "stored" | "pending" | "failed";
 };
@@ -43,6 +44,7 @@ function receiptsToUi(receipts: StoredCloneReceipt[]): MemoryReceipt[] {
     type: "used",
     text: r.summary,
     date: r.date ?? new Date().toISOString(),
+    metadataMatchId: r.metadataMatchId,
     publicVisible: true,
     usedInPrediction: true,
     recallSource: r.recallSource,

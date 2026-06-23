@@ -3,13 +3,40 @@ import { formatProvenanceLabel } from "@/lib/clone/memory-provenance";
 import type { RecalledMemory } from "@/lib/clone/recall-memories";
 import type { StoredCloneReceipt } from "@/lib/db/clone-predictions";
 import { isUuid } from "@/lib/utils";
-import type { Match } from "@/lib/mock/types";
+import type { Match, MemoryReceipt } from "@/lib/mock/types";
 
 function teamMentioned(text: string, teamName: string): boolean {
   const haystack = text.toLowerCase();
   const needle = teamName.toLowerCase();
   if (!needle) return false;
   return haystack.includes(needle) || haystack.includes(needle.slice(0, 4));
+}
+
+function correctionTextMatchesFixture(text: string, match: Match): boolean {
+  if (!match.homeTeam || !match.awayTeam) return false;
+  const labelMatch = text.match(/Match:\s*([^.]+)\./i);
+  if (!labelMatch?.[1]) return false;
+  const label = labelMatch[1].toLowerCase();
+  const home = match.homeTeam.name.toLowerCase();
+  const away = match.awayTeam.name.toLowerCase();
+  return label.includes(home) && label.includes(away);
+}
+
+/** Whether a correction receipt was stored for this exact fixture (not another match). */
+export function isCloneCorrectionForMatch(
+  receipt: Pick<MemoryReceipt, "memorySource" | "text" | "metadataMatchId">,
+  match: Match,
+): boolean {
+  const isCorrection =
+    receipt.memorySource === "clone_correction" ||
+    receipt.text.includes("Correction:");
+  if (!isCorrection) return false;
+
+  if (receipt.metadataMatchId && match.id) {
+    return receipt.metadataMatchId === match.id;
+  }
+
+  return correctionTextMatchesFixture(receipt.text, match);
 }
 
 /** Whether a recalled memory is relevant to predicting this specific fixture. */
@@ -161,6 +188,7 @@ export function buildStoredCloneReceipts(
         date: createdAt,
         recallSource: recalled.recallSource,
         memorySource,
+        metadataMatchId: recalled.metadataMatchId,
         provenanceLabel: formatProvenanceLabel(
           memorySource,
           createdAt,
@@ -235,6 +263,7 @@ export function backfillCloneReceipts(
       date: createdAt,
       recallSource: recalled.recallSource,
       memorySource: recalled.source,
+      metadataMatchId: recalled.metadataMatchId,
       provenanceLabel: formatProvenanceLabel(
         recalled.source,
         createdAt,
@@ -258,6 +287,7 @@ export function backfillCloneReceipts(
         date: createdAt,
         recallSource: top.recallSource,
         memorySource: top.source,
+        metadataMatchId: top.metadataMatchId,
         provenanceLabel: formatProvenanceLabel(
           top.source,
           createdAt,

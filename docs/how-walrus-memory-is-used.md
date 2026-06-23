@@ -46,7 +46,9 @@ After ~3 memories, maturity rises from **Level 0 Stranger** to **Level 1 Learner
 
 **Important:** Clone recall **excludes** the user's pick for the current fixture (`excludeCurrentMatchPick`) so the clone predicts from habits, not cheating.
 
-**Key files:** `lib/clone/recall-memories.ts`, `lib/clone/generate-clone-prediction.ts`, `lib/clone/remember-prediction.ts`, `lib/clone/store-clone-correction.ts`
+**Corrections vs fixtures:** A correction from an earlier match (e.g. Panama vs Croatia) can still be **recalled and cited** when either team appears again (Croatia vs Ghana). That is intentional — team-level lessons carry forward. The **Teach your clone** panel, however, only shows **Successfully taught** when a correction was stored for **this exact fixture** (`metadataMatchId` or parsed `Match:` label via `isCloneCorrectionForMatch()`). Cross-fixture receipts must not mark a new match as already trained.
+
+**Key files:** `lib/clone/recall-memories.ts`, `lib/clone/generate-clone-prediction.ts`, `lib/clone/remember-prediction.ts`, `lib/clone/store-clone-correction.ts`, `lib/clone/clone-memory-receipts.ts`, `components/match/clone-correction-panel.tsx`
 
 UI shows each receipt with recall source: **Walrus: Verified recall** or **Postgres fallback recall**.
 

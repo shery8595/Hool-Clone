@@ -221,9 +221,10 @@ On `/debate`, the clone argues using the same recall pipeline plus a **memory ca
 
 When you correct the clone:
 
-1. `storeCloneCorrection()` writes a `correction` memory with `source: clone_correction`.
+1. `storeCloneCorrection()` writes a `correction` memory with `source: clone_correction` and `metadata.matchId` set to the current fixture.
 2. Corrections get the highest type weight (1.5×) in reranking.
 3. Next clone prediction can pass `emphasizeCorrections: true` to add extra recall queries for corrections.
+4. The predict UI scopes **“Successfully taught”** to corrections for **this match only** — a Panama vs Croatia lesson may still appear in memory receipts when predicting Croatia vs Ghana, but it must not pre-fill the teach panel as if you already corrected that fixture.
 
 Contradiction detection (`lib/clone/contradiction-hunter.ts`) compares profile, prediction history, and memory texts — used heavily in **roasts**.
 

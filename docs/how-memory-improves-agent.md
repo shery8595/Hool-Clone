@@ -49,10 +49,12 @@ Static fallback copy exists for unseeded demos; production with `db:seed-demo-wa
 
 When a user disagrees with the clone:
 
-1. A `correction` memory is written to Walrus (`source: clone_correction` or `debate`).
-2. The disputed memory is marked `disputed: true` in Postgres metadata.
+1. A `correction` memory is written to Walrus (`source: clone_correction` or `debate`) with `metadata.matchId` for the fixture.
+2. The disputed memory is marked `disputed: true` in Postgres metadata (only when disputing a cited receipt — not cross-fixture corrections from other matches).
 3. Optional: clone prediction regenerates with `emphasizeCorrections: true`.
 4. Rerank gives corrections **1.5× type weight** — they beat older fan_profile takes on the same topic.
+
+**Fixture scoping:** Team-level corrections (e.g. “Croatia has great defence” from Panama vs Croatia) can influence later Croatia fixtures via recall. The teach panel uses `isCloneCorrectionForMatch()` so each match has its own correction state — citing an old Croatia receipt does not mean you already retrained on the new fixture.
 
 The evolution **Correction Override Proof** panel shows: stale take → user correction blob → updated prediction citing the new receipt.
 
@@ -155,7 +157,7 @@ Two clones debate using **only** their respective Walrus namespaces. No shared c
 
 ## Testing the improvement story
 
-208 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
+211 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
 
 - RRF rerank and diversity selection
 - Memory-backed winner prior and post-LLM alignment

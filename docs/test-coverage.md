@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **208 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **211 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -11,8 +11,8 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | Metric | Value |
 |--------|-------|
 | Test files | 52 (`lib/**/*.test.ts`) |
-| Test cases | 208 |
-| Test suites | 97 |
+| Test cases | 211 |
+| Test suites | 98 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -23,7 +23,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | User flow | What's tested | Test files |
 |-----------|---------------|------------|
 | **Train / onboarding** | Maturity levels, memory extraction fallback, profile hints | `lib/auth/maturity.test.ts`, `lib/onboarding/extract-memory.test.ts` |
-| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, **memory-backed prior + post-LLM alignment**, fixture memory pinning, post-match text, clone receipt filtering | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/memory-backed-winner.test.ts`, `lib/clone/normalize-clone-winner.test.ts`, `lib/clone/align-clone-winner.test.ts`, `lib/clone/recall-memories.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
+| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, **memory-backed prior + post-LLM alignment**, fixture memory pinning, post-match text, clone receipt filtering, **fixture-scoped correction UI** | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/memory-backed-winner.test.ts`, `lib/clone/normalize-clone-winner.test.ts`, `lib/clone/align-clone-winner.test.ts`, `lib/clone/recall-memories.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
 | **Recall / Walrus** | RRF, diversity, type weights, recency, entity overlap, blob parse, provenance, consolidation, encryption envelopes | `lib/clone/memory-rerank.test.ts`, `lib/clone/memory-provenance.test.ts`, `lib/walrus/parse-blob-payload.test.ts`, `lib/memory/recall-provenance.test.ts`, `lib/memory/consolidate-memories.test.ts`, `lib/crypto/memory-crypto.test.ts` |
 | **Debate** | Full pipeline: intent → analyze → rank → align → cite → contradict → fallback | 11 files under `lib/debate/*.test.ts` |
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
@@ -52,7 +52,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/debate/thread-variation.test.ts`](../lib/debate/thread-variation.test.ts) | `isRepeatingReply`, `pickContradictionForTurn` |
 | [`lib/debate/prediction-rebuttal.test.ts`](../lib/debate/prediction-rebuttal.test.ts) | `findPredictionRebuttal` |
 
-### Clone & memory recall (16 files · ~65 tests)
+### Clone & memory recall (16 files · ~68 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
@@ -71,7 +71,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/clone/clone-mood.test.ts`](../lib/clone/clone-mood.test.ts) | `computeCloneMood` |
 | [`lib/clone/judge-proof-demo.test.ts`](../lib/clone/judge-proof-demo.test.ts) | `buildSameQuestionProofFromTimeMachine`, `buildCorrectionOverrideFromProfile`, `buildRoastRecordFromProfile` |
 | [`lib/clone/memory-provenance.test.ts`](../lib/clone/memory-provenance.test.ts) | `formatMemorySourceLabel`, `formatProvenanceLabel` |
-| [`lib/clone/clone-memory-receipts.test.ts`](../lib/clone/clone-memory-receipts.test.ts) | `memoryRelevantToMatch`, `buildStoredCloneReceipts`, `pickInfluentialReceiptsForFallback` |
+| [`lib/clone/clone-memory-receipts.test.ts`](../lib/clone/clone-memory-receipts.test.ts) | `isCloneCorrectionForMatch`, `memoryRelevantToMatch`, `buildStoredCloneReceipts`, `pickInfluentialReceiptsForFallback` |
 
 ### API & Walrus (5 files · ~20 tests)
 

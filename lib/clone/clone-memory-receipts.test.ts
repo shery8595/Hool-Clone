@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   buildStoredCloneReceipts,
+  isCloneCorrectionForMatch,
   memoryRelevantToMatch,
   pickInfluentialReceiptsForFallback,
 } from "@/lib/clone/clone-memory-receipts";
@@ -11,6 +12,43 @@ const franceIraq = makeMatch({
   id: "m042",
   homeTeam: { code: "FRA", name: "France", flag: "fr" },
   awayTeam: { code: "IRQ", name: "Iraq", flag: "iq" },
+});
+
+const croatiaGhana = makeMatch({
+  id: "m068",
+  homeTeam: { code: "CRO", name: "Croatia", flag: "hr" },
+  awayTeam: { code: "GHA", name: "Ghana", flag: "gh" },
+});
+
+describe("isCloneCorrectionForMatch", () => {
+  it("matches correction receipts stored for this fixture id", () => {
+    const receipt = {
+      memorySource: "clone_correction",
+      metadataMatchId: "m068",
+      text: "Correction: croatia is a great team Match: Croatia vs Ghana.",
+    };
+
+    assert.equal(isCloneCorrectionForMatch(receipt, croatiaGhana), true);
+  });
+
+  it("rejects correction receipts from another fixture", () => {
+    const receipt = {
+      memorySource: "clone_correction",
+      metadataMatchId: "m055",
+      text: "Correction: croatia is a great team Match: Panama vs Croatia.",
+    };
+
+    assert.equal(isCloneCorrectionForMatch(receipt, croatiaGhana), false);
+  });
+
+  it("falls back to fixture label parsing when metadata is missing", () => {
+    const receipt = {
+      memorySource: "clone_correction",
+      text: "Correction: croatia is great Match: Croatia vs Ghana. My pick: CRO 3-0.",
+    };
+
+    assert.equal(isCloneCorrectionForMatch(receipt, croatiaGhana), true);
+  });
 });
 
 describe("memoryRelevantToMatch", () => {
