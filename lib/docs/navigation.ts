@@ -112,7 +112,7 @@ export const docSections: DocSection[] = [
         slug: "test-coverage",
         title: "Test Coverage",
         file: "test-coverage.md",
-        description: "211 tests mapped to user flows and judging criteria.",
+        description: "213 tests mapped to user flows and judging criteria.",
       },
     ],
   },

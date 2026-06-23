@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **211 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **213 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -11,7 +11,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | Metric | Value |
 |--------|-------|
 | Test files | 52 (`lib/**/*.test.ts`) |
-| Test cases | 211 |
+| Test cases | 213 |
 | Test suites | 98 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
@@ -83,12 +83,12 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/memory/consolidate-memories.test.ts`](../lib/memory/consolidate-memories.test.ts) | Sleep-cycle clustering, `archiveMemories`, consolidation synthesis |
 | [`lib/crypto/memory-crypto.test.ts`](../lib/crypto/memory-crypto.test.ts) | HKDF key derivation, encrypt/decrypt round-trip for emotional memories |
 
-### Clone Clash, evolution & leaderboard (4 files · ~12 tests)
+### Clone Clash, evolution & leaderboard (4 files · ~17 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/clash/arena-opponents.test.ts`](../lib/clash/arena-opponents.test.ts) | Arena opponent selection and namespace pairing |
-| [`lib/evolution/build-evolution-chat.test.ts`](../lib/evolution/build-evolution-chat.test.ts) | Evolution chat transcript builders |
+| [`lib/evolution/build-evolution-chat.test.ts`](../lib/evolution/build-evolution-chat.test.ts) | Evolution phase memory caps, chat prompts, citation alignment, loyalty/rival fallback replies |
 | [`lib/leaderboard/compute-learning-score.test.ts`](../lib/leaderboard/compute-learning-score.test.ts) | Learning score from prediction history |
 | [`lib/match/team-text-tokens.test.ts`](../lib/match/team-text-tokens.test.ts) | Team name tokenization for recall queries |
 
