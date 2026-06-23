@@ -6,8 +6,12 @@ function toBase64(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString("base64");
 }
 
-function fromBase64(value: string): Uint8Array {
-  return new Uint8Array(Buffer.from(value, "base64"));
+function fromBase64(value: string): Uint8Array<ArrayBuffer> {
+  const decoded = Buffer.from(value, "base64");
+  const buffer = new ArrayBuffer(decoded.length);
+  const bytes = new Uint8Array(buffer);
+  bytes.set(decoded);
+  return bytes;
 }
 
 async function deriveStorageKey(userId: string): Promise<CryptoKey> {
