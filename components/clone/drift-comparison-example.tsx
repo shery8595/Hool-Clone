@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { TextWithTeamFlags } from "@/components/match/team-label-with-flags";
 
 type DriftComparisonExampleProps = {
   userPick: string;
@@ -24,10 +25,12 @@ export function DriftComparisonExample({
       )}
     >
       <p>
-        <span className="font-semibold">You predicted:</span> {userPick}
+        <span className="font-semibold">You predicted:</span>{" "}
+        <TextWithTeamFlags text={userPick} size="sm" />
       </p>
       <p className="mt-1">
-        <span className="font-semibold">Clone predicted:</span> {clonePick}
+        <span className="font-semibold">Clone predicted:</span>{" "}
+        <TextWithTeamFlags text={clonePick} size="sm" />
       </p>
       <p className="mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
         Difference:{" "}

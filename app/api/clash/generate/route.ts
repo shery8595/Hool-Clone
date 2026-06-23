@@ -1,9 +1,10 @@
 import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { generateClashDebate } from "@/lib/clash/generate-clash-debate";
+import { judgeClashDebate } from "@/lib/clash/judge-clash-debate";
+import { saveClashBout } from "@/lib/db/clash-bouts";
 import { getPublicProfileIdsBySlug } from "@/lib/db/public-profile";
 import { getMatchDataAdapter } from "@/lib/match-data";
-
 type GenerateBody = {
   slugA?: string;
   slugB?: string;
@@ -29,15 +30,39 @@ async function runClashGenerate(slugA: string, slugB: string, matchId: string) {
     return { error: "Match not found or teams not set", status: 404 as const };
   }
 
-  const result = await generateClashDebate({
+  const debate = await generateClashDebate({
     match,
     participantA,
     participantB,
   });
 
-  return { data: result, status: 200 as const };
-}
+  const verdict = await judgeClashDebate({
+    match,
+    participantA,
+    participantB,
+    debate,
+  });
 
+  const saved = await saveClashBout({
+    slugA,
+    slugB,
+    matchId,
+    debate,
+    verdict,
+  }).catch((error) => {
+    console.error("saveClashBout", error);
+    return null;
+  });
+
+  return {
+    data: {
+      ...debate,
+      verdict,
+      boutId: saved?.id ?? null,
+    },
+    status: 200 as const,
+  };
+}
 const cachedClashGenerate = unstable_cache(
   async (slugA: string, slugB: string, matchId: string) =>
     runClashGenerate(slugA, slugB, matchId),

@@ -1,6 +1,5 @@
-import { Brain, Sparkles, Target, TrendingUp, Smile } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Brain, Smile, Sparkles, Target, TrendingUp } from "lucide-react";
+import { DashboardStatCard } from "@/components/dashboard/dashboard-surface";
 
 export type ProfileStats = {
   cloneMatchPercent: number;
@@ -21,61 +20,57 @@ export function StatCardRow({
   maturityLabel,
   levelProgress,
 }: ProfileStats) {
-  const stats = [
-    {
-      icon: Sparkles,
-      label: "Clone maturity",
-      value: maturityLabel ?? "Stranger",
-      showProgress: maturityLabel !== undefined,
-      progress: levelProgress,
-    },
-    {
-      icon: Target,
-      label: "Clone matched fan",
-      value: `${cloneMatchPercent}%`,
-      showProgress: true,
-      progress: cloneMatchPercent,
-    },
-    {
-      icon: Brain,
-      label: "Memories",
-      value: `${memoriesCount} stored`,
-      showProgress: false,
-    },
-    {
-      icon: TrendingUp,
-      label: "Predictions",
-      value: `${predictionsCount} matches predicted`,
-      showProgress: false,
-    },
-    {
-      icon: Smile,
-      label: "Contradictions",
-      value: contradictionCount
-        ? `${contradictionCount} caught`
-        : hasDisagreement
-          ? "Clone debates logged"
-          : "Aligned so far",
-      showProgress: false,
-    },
-  ];
+  const contradictionLabel = contradictionCount
+    ? `${contradictionCount} caught`
+    : hasDisagreement
+      ? "Debates logged"
+      : "Aligned";
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map(({ icon: Icon, label, value, showProgress, progress }) => (
-        <Card key={label} className="rounded-2xl border-0 shadow-sm">
-          <CardContent className="space-y-3 p-5">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Icon className="h-4 w-4" />
-              <span className="text-xs font-medium">{label}</span>
-            </div>
-            <p className="text-xl font-bold">{value}</p>
-            {showProgress && progress !== undefined && (
-              <Progress value={progress} className="h-1.5" />
-            )}
-          </CardContent>
-        </Card>
-      ))}
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <DashboardStatCard
+        label="Clone maturity"
+        value={maturityLabel ?? "Stranger"}
+        icon={Sparkles}
+        accent="green"
+        hint={
+          levelProgress != null
+            ? `${levelProgress}% toward next tier`
+            : "Train to grow"
+        }
+      />
+      <DashboardStatCard
+        label="Clone matched fan"
+        value={`${cloneMatchPercent}%`}
+        icon={Target}
+        accent="yellow"
+        hint="Agreement on locked picks"
+      />
+      <DashboardStatCard
+        label="Memories"
+        value={memoriesCount}
+        icon={Brain}
+        accent="emerald"
+        hint="Walrus receipts powering clone"
+      />
+      <DashboardStatCard
+        label="Predictions"
+        value={predictionsCount}
+        icon={TrendingUp}
+        accent="green"
+        hint="Matches with locked scores"
+      />
+      <DashboardStatCard
+        label="Contradictions"
+        value={contradictionLabel}
+        icon={Smile}
+        accent="yellow"
+        hint={
+          contradictionCount
+            ? "Behavioral splits surfaced"
+            : "Clone consistency check"
+        }
+      />
     </div>
   );
 }

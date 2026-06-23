@@ -11,6 +11,7 @@ import { TrainingProgress } from "@/components/train/training-progress";
 import { StoredMemoryBanner } from "@/components/train/stored-memory-banner";
 import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { TrainingQuestionCard } from "@/components/train/training-question-card";
+import { TrainingAnswersReview } from "@/components/train/training-answers-review";
 import {
   completeOnboarding,
   fetchOnboardingQuestions,
@@ -51,6 +52,20 @@ export default function TrainPage() {
   const question = questions[step];
   const [answer, setAnswer] = useState("");
   const [driver, setDriver] = useState<DriverChip>("vibes");
+  const answeredCount = questions.filter((q) => q.answered).length;
+
+  const goToQuestion = useCallback(
+    (index: number) => {
+      const target = questions[index];
+      if (!target) return;
+      setCompleted(false);
+      setStep(index);
+      setAnswer(target.previousAnswer ?? "");
+      setDriver(target.previousDriver ?? "vibes");
+      setStoredSummary(null);
+    },
+    [questions],
+  );
 
   const applyQuestionData = useCallback((data: Awaited<ReturnType<typeof fetchOnboardingQuestions>>) => {
     setQuestions(data.questions);
@@ -116,6 +131,19 @@ export default function TrainPage() {
       setMaturity(result.maturityLabel);
       await refresh();
 
+      setQuestions((prev) =>
+        prev.map((q) =>
+          q.id === question.id
+            ? {
+                ...q,
+                answered: true,
+                previousAnswer: answer.trim(),
+                previousDriver: driver,
+              }
+            : q,
+        ),
+      );
+
       if (step < questions.length - 1) {
         const nextStep = step + 1;
         const nextQ = questions[nextStep];
@@ -142,6 +170,16 @@ export default function TrainPage() {
       setDriver(nextQ.previousDriver ?? "vibes");
       setStoredSummary(null);
     }
+  };
+
+  const handlePrevious = () => {
+    if (step <= 0) return;
+    const prevStep = step - 1;
+    const prevQ = questions[prevStep];
+    setStep(prevStep);
+    setAnswer(prevQ.previousAnswer ?? "");
+    setDriver(prevQ.previousDriver ?? "vibes");
+    setStoredSummary(null);
   };
 
   if (userLoading && !canTrain) {
@@ -193,7 +231,7 @@ export default function TrainPage() {
           {storedSummary && <StoredMemoryBanner summary={storedSummary} />}
 
           {completed ? (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="rounded-xl bg-hoolclone-green-100/60 p-6 text-center">
                 <p className="font-semibold text-hoolclone-green-900">
                   All {questions.length} questions answered
@@ -203,10 +241,24 @@ export default function TrainPage() {
                   receipts or Predict to test your clone.
                 </p>
               </div>
+
+              <TrainingAnswersReview
+                questions={questions}
+                onEditQuestion={goToQuestion}
+              />
+
               <TelegramConnectCard />
             </div>
           ) : question ? (
             <>
+              {answeredCount > 0 && (
+                <TrainingAnswersReview
+                  questions={questions}
+                  excludeQuestionId={question.id}
+                  onEditQuestion={goToQuestion}
+                />
+              )}
+
               <TrainingQuestionCard
                 question={question}
                 questionNumber={step + 1}
@@ -214,21 +266,39 @@ export default function TrainPage() {
                 driver={driver}
                 onAnswerChange={setAnswer}
                 onDriverChange={setDriver}
+                saved={question.answered}
               />
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-                <Button variant="outline" onClick={handleSkip} disabled={submitting || hydrating}>
-                  Skip
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={submitting || hydrating || step === 0}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleSkip}
+                    disabled={submitting || hydrating || step >= questions.length - 1}
+                  >
+                    Skip
+                  </Button>
+                </div>
                 <Button
                   onClick={() => void handleNext()}
                   disabled={submitting || hydrating || !answer.trim() || !me?.id}
                 >
                   {submitting
                     ? "Storing memory..."
-                    : step === questions.length - 1
-                      ? "Finish training"
-                      : "Next Question"}
+                    : question.answered
+                      ? step === questions.length - 1
+                        ? "Update & finish"
+                        : "Update & next"
+                      : step === questions.length - 1
+                        ? "Finish training"
+                        : "Next Question"}
                 </Button>
               </div>
             </>

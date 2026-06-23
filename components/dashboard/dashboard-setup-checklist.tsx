@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Circle } from "lucide-react";
+import { Check, ChevronRight, Circle } from "lucide-react";
 import { fetchTelegramStatus } from "@/lib/api/client";
 import type { MeData } from "@/lib/api/client";
 import {
-  DashboardEyebrow,
   DashboardMiniCard,
   DashboardPanel,
+  DashboardSectionHeader,
 } from "./dashboard-surface";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,43 @@ type SetupStep = {
   href?: string;
   done: boolean;
 };
+
+function ProgressRing({ progress }: { progress: number }) {
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative h-16 w-16 shrink-0">
+      <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64" aria-hidden>
+        <circle
+          cx="32"
+          cy="32"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="5"
+          className="text-muted/40"
+        />
+        <circle
+          cx="32"
+          cy="32"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="text-hoolclone-green-700 transition-all duration-700"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-hoolclone-green-900">
+        {progress}%
+      </span>
+    </div>
+  );
+}
 
 export function DashboardSetupChecklist({
   me,
@@ -49,7 +86,7 @@ export function DashboardSetupChecklist({
       {
         id: "train",
         label: "Train your clone",
-        hint: memoriesCount < 3 ? "Next recommended step" : undefined,
+        hint: memoriesCount < 3 ? "Recommended next" : undefined,
         href: "/train",
         done: memoriesCount >= 3,
       },
@@ -58,7 +95,7 @@ export function DashboardSetupChecklist({
         label: "Make your first prediction",
         hint:
           memoriesCount >= 3 && predictionsCount < 1
-            ? "Next recommended step"
+            ? "Recommended next"
             : undefined,
         href: "/predict",
         done: predictionsCount >= 1,
@@ -102,51 +139,39 @@ export function DashboardSetupChecklist({
 
   return (
     <DashboardPanel className="h-full">
-      <div className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <DashboardEyebrow>Your clone setup</DashboardEyebrow>
-          <h2 className="mt-1 text-lg font-semibold tracking-tight text-hoolclone-gray-900">
-            {completed} of {steps.length} complete
-          </h2>
-        </div>
-        <div className="text-right">
-          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {progress}%
-          </p>
-          <p className="text-xs font-medium text-muted-foreground">
-            {completed}/{steps.length}
-          </p>
+      <div className="flex items-start gap-4">
+        <ProgressRing progress={progress} />
+        <div className="min-w-0 flex-1">
+          <DashboardSectionHeader
+            eyebrow="Onboarding"
+            title="Clone setup"
+            description={`${completed} of ${steps.length} steps complete`}
+            className="border-none pb-0"
+          />
         </div>
       </div>
 
-      <div className="mb-5 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div
-          className="h-full rounded-full bg-hoolclone-green-700 transition-all duration-500"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      <ul className="space-y-0">
-        {steps.map((step, index) => {
+      <ul className="mt-5 space-y-1">
+        {steps.map((step) => {
           const row = (
             <div
               className={cn(
-                "flex items-start gap-3 py-3",
-                index < steps.length - 1 && "border-b border-border/50",
+                "flex items-center gap-3 rounded-lg px-2 py-2.5",
+                !step.done && step.href && "group",
               )}
             >
               <span
                 className={cn(
-                  "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border",
                   step.done
                     ? "border-hoolclone-green-700 bg-hoolclone-green-700 text-white"
-                    : "border-border bg-white text-transparent",
+                    : "border-border bg-white",
                 )}
               >
                 {step.done ? (
-                  <Check className="h-3 w-3" strokeWidth={3} />
+                  <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 ) : (
-                  <Circle className="h-3 w-3 text-muted-foreground/30" />
+                  <Circle className="h-3 w-3 text-muted-foreground/25" />
                 )}
               </span>
               <div className="min-w-0 flex-1">
@@ -154,18 +179,21 @@ export function DashboardSetupChecklist({
                   className={cn(
                     "text-sm font-medium",
                     step.done
-                      ? "text-muted-foreground line-through decoration-border"
+                      ? "text-muted-foreground line-through decoration-border/80"
                       : "text-hoolclone-gray-900",
                   )}
                 >
                   {step.label}
                 </p>
                 {step.hint && !step.done && (
-                  <p className="mt-0.5 text-xs text-hoolclone-green-800">
+                  <p className="text-[11px] font-medium text-hoolclone-green-800">
                     {step.hint}
                   </p>
                 )}
               </div>
+              {!step.done && step.href && (
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 transition group-hover:text-hoolclone-green-800" />
+              )}
             </div>
           );
 
@@ -184,11 +212,22 @@ export function DashboardSetupChecklist({
       </ul>
 
       {nextStep && (
-        <DashboardMiniCard className="mt-4 border-dashed bg-muted/20">
-          <p className="text-xs text-muted-foreground">Up next</p>
+        <DashboardMiniCard className="mt-4 border-dashed border-hoolclone-green-200 bg-hoolclone-green-50/30">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Up next
+          </p>
           <p className="mt-1 text-sm font-semibold text-hoolclone-gray-900">
             {nextStep.label}
           </p>
+          {nextStep.href && (
+            <Link
+              href={nextStep.href}
+              className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-hoolclone-green-800 hover:underline"
+            >
+              Continue setup
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          )}
         </DashboardMiniCard>
       )}
     </DashboardPanel>

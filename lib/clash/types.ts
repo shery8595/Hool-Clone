@@ -32,6 +32,16 @@ export type ClashDebateResult = {
   participantA: ClashParticipant;
   participantB: ClashParticipant;
   turns: ClashTurn[];
+  verdict?: ClashVerdict | null;
+  boutId?: string | null;
+};
+
+export type ClashVerdict = {
+  winner: "A" | "B" | "draw";
+  winnerSlug: string | null;
+  scoreA: number;
+  scoreB: number;
+  summary: string;
 };
 
 export type WalrusBlobProof = {

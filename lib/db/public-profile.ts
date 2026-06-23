@@ -30,6 +30,7 @@ import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
 import type { DebateHighlight, MemoryReceipt } from "@/lib/mock/types";
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
+import { resolveFanDisplayName } from "@/lib/auth/display-name";
 import { findUserById, getFanProfile, type DbUser } from "@/lib/db/users";
 import type { PublicProfileData } from "@/lib/db/public-profile-types";
 import type { ClashParticipantMeta } from "@/lib/clash/types";
@@ -71,7 +72,7 @@ export async function getPublicProfileIdsBySlug(
   return {
     userId: row.id,
     slug: row.public_slug,
-    displayName: row.display_name ?? row.public_slug,
+    displayName: resolveFanDisplayName(row.display_name, row.public_slug),
     handle: row.public_slug,
     maturityLabel: label,
     namespace: row.memwal_namespace,
@@ -251,7 +252,7 @@ export async function buildPublicProfile(
   );
   const cloneMatchPercent = computeCloneAgreementPercent(comparisons);
   const maturity = computeMaturityProgress(memoriesCount);
-  const displayName = user.display_name ?? slug;
+  const displayName = resolveFanDisplayName(user.display_name, slug);
   const cloneReceipts = collectCloneReceipts(cloneByMatchId);
   const predictionHistory = attachClonesToHistory(history, cloneByMatchId);
   const cloneDisagreement = findLatestDisagreement(comparisons, cloneByMatchId);
@@ -296,7 +297,7 @@ export async function buildPublicProfile(
     maturityLabel: maturity.label,
     level: maturity.level,
     maxLevel: maturity.maxLevel,
-    levelProgress: maturity.progress,
+    levelProgress: maturity.overallProgress,
     memoriesCount,
     predictionsCount: history.length,
     cloneMatchPercent,

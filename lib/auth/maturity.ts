@@ -8,6 +8,11 @@ export const MATURITY_LABELS: CloneMaturity[] = [
   "Full HoolClone",
 ];
 
+/** Memory counts required to reach each maturity tier (index = level). */
+export const MATURITY_THRESHOLDS = [0, 3, 9, 20, 40] as const;
+
+export const MAX_MATURITY_LEVEL = MATURITY_THRESHOLDS.length - 1;
+
 export function memoryCountToMaturity(memoryCount: number): {
   level: number;
   label: CloneMaturity;
@@ -20,25 +25,58 @@ export function memoryCountToMaturity(memoryCount: number): {
 }
 
 export function maturityLevelToLabel(level: number): CloneMaturity {
-  return MATURITY_LABELS[Math.min(Math.max(level, 0), 4)] ?? "Stranger";
+  return MATURITY_LABELS[Math.min(Math.max(level, 0), MAX_MATURITY_LEVEL)] ?? "Stranger";
 }
 
-export function computeMaturityProgress(memoriesCount: number): {
+export type MaturityProgress = {
+  /** Zero-based tier index (0 = Stranger … 4 = Full HoolClone). */
   level: number;
   maxLevel: number;
-  progress: number;
+  /** Progress through the current tier toward the next one (0–99). */
+  tierProgress: number;
+  /** Progress across the full maturity journey (0–100), aligned with display level. */
+  overallProgress: number;
   label: CloneMaturity;
-} {
+  /** One-based level for UI copy (1–5). */
+  displayLevel: number;
+  displayMaxLevel: number;
+  nextLabel: CloneMaturity | null;
+  memoriesToNext: number;
+  nextThreshold: number | null;
+};
+
+export function computeMaturityProgress(memoriesCount: number): MaturityProgress {
   const { level, label } = memoryCountToMaturity(memoriesCount);
-  const thresholds = [0, 3, 9, 20, 40];
-  const maxLevel = 4;
-  const currentMin = thresholds[level] ?? 0;
-  const nextMin = thresholds[level + 1] ?? thresholds[thresholds.length - 1] + 20;
-  const span = nextMin - currentMin;
-  const progress =
+  const maxLevel = MAX_MATURITY_LEVEL;
+  const currentMin = MATURITY_THRESHOLDS[level] ?? 0;
+  const nextMin = MATURITY_THRESHOLDS[level + 1] ?? null;
+  const span =
+    nextMin != null ? nextMin - currentMin : MATURITY_THRESHOLDS[maxLevel] - currentMin;
+
+  const tierProgress =
     level >= maxLevel
       ? 100
       : Math.min(99, Math.round(((memoriesCount - currentMin) / span) * 100));
 
-  return { level, maxLevel, progress, label };
+  const overallProgress =
+    level >= maxLevel
+      ? 100
+      : Math.min(
+          99,
+          Math.round(((level + tierProgress / 100) / maxLevel) * 100),
+        );
+
+  return {
+    level,
+    maxLevel,
+    tierProgress,
+    overallProgress,
+    label,
+    displayLevel: level + 1,
+    displayMaxLevel: MATURITY_THRESHOLDS.length,
+    nextLabel: level >= maxLevel ? null : maturityLevelToLabel(level + 1),
+    memoriesToNext:
+      nextMin != null ? Math.max(0, nextMin - memoriesCount) : 0,
+    nextThreshold: nextMin,
+  };
 }

@@ -1,11 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, Database, Target } from "lucide-react";
+import { ArrowRight, Database, Swords, Target } from "lucide-react";
+import { ButtonLink } from "@/components/ui/button-link";
 import { MemoryGlanceRow } from "@/components/dashboard/memory-glance-row";
+import { MatchTeamsRowFromMatch } from "@/components/match/match-teams-row";
+import { TeamFlag } from "@/components/match/team-flag";
 import type { Match, MemoryReceipt, Prediction } from "@/lib/mock/types";
 import {
-  DashboardEyebrow,
   DashboardMiniCard,
   DashboardPanel,
+  DashboardSectionHeader,
   DashboardStatusPill,
 } from "./dashboard-surface";
 
@@ -27,8 +30,99 @@ function formatPick(
   const home = match.homeTeam;
   const away = match.awayTeam;
   if (!home || !away) return `${winner} ${homeScore}-${awayScore}`;
-  const winnerName = winner === home.code ? home.name : away.name;
-  return `${winnerName} ${homeScore}-${awayScore}`;
+  const winnerTeam = winner === home.code ? home : away;
+  return { team: winnerTeam, score: `${homeScore}-${awayScore}` };
+}
+
+function PickLine({
+  match,
+  winner,
+  homeScore,
+  awayScore,
+}: {
+  match: Match;
+  winner: string;
+  homeScore: number;
+  awayScore: number;
+}) {
+  const pick = formatPick(match, winner, homeScore, awayScore);
+  if (typeof pick === "string") {
+    return <span>{pick}</span>;
+  }
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <TeamFlag team={pick.team} size="sm" />
+      <span>
+        {pick.team.name} {pick.score}
+      </span>
+    </span>
+  );
+}
+
+function ComparisonCard({
+  latestComparison,
+}: {
+  latestComparison: { match: Match; prediction: Prediction };
+}) {
+  const { match, prediction } = latestComparison;
+  const clonePick = prediction.clone;
+
+  return (
+    <div className="space-y-4">
+      <MatchTeamsRowFromMatch
+        match={match}
+        size="sm"
+        className="text-xs text-muted-foreground"
+        nameClassName="font-medium"
+      />
+
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+        <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            You
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-hoolclone-gray-900">
+            <PickLine
+              match={match}
+              winner={prediction.winner}
+              homeScore={prediction.homeScore}
+              awayScore={prediction.awayScore}
+            />
+          </p>
+        </div>
+
+        <div className="flex justify-center">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-hoolclone-green-900 text-[10px] font-bold text-white">
+            VS
+          </span>
+        </div>
+
+        <div className="rounded-xl border border-hoolclone-green-200 bg-hoolclone-green-50/60 p-3.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-hoolclone-green-800">
+            Clone
+          </p>
+          <p className="mt-1.5 text-sm font-semibold text-hoolclone-gray-900">
+            {clonePick ? (
+              <PickLine
+                match={match}
+                winner={clonePick.winner}
+                homeScore={clonePick.homeScore}
+                awayScore={clonePick.awayScore}
+              />
+            ) : (
+              "Not generated yet"
+            )}
+          </p>
+        </div>
+      </div>
+
+      <ButtonLink href="/predict" variant="outline" size="sm">
+        View all picks
+        <ArrowRight className="h-3.5 w-3.5" />
+      </ButtonLink>
+    </div>
+  );
 }
 
 export function DashboardAtAGlance({
@@ -45,35 +139,34 @@ export function DashboardAtAGlance({
 
   return (
     <DashboardPanel className="h-full">
-      <div className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <DashboardEyebrow>At a glance</DashboardEyebrow>
-          <h2 className="mt-1 text-lg font-semibold tracking-tight text-hoolclone-gray-900">
-            Predict & memory
-          </h2>
-        </div>
-        <Link
-          href="/memory"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-hoolclone-green-800 hover:text-hoolclone-green-900"
-        >
-          Full activity
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+      <DashboardSectionHeader
+        eyebrow="Activity"
+        title="Predict & memory"
+        description="Your latest picks and Walrus receipts"
+        action={
+          <Link
+            href="/memory"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-hoolclone-green-800 hover:text-hoolclone-green-900"
+          >
+            Full activity
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        }
+      />
 
-      <div className="grid gap-4 md:grid-cols-2 md:items-start">
+      <div className="mt-5 grid gap-4 lg:grid-cols-2 lg:items-start">
         <DashboardMiniCard className="flex flex-col">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/20 text-hoolclone-green-800">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/20 text-hoolclone-green-800">
                 <Target className="h-4 w-4" />
               </span>
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Predict
-                </p>
                 <p className="text-sm font-semibold text-hoolclone-gray-900">
                   Latest picks
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  You vs your clone
                 </p>
               </div>
             </div>
@@ -83,57 +176,21 @@ export function DashboardAtAGlance({
           </div>
 
           {latestComparison ? (
-            <div className="space-y-3">
-              <div className="rounded-lg border border-border/50 bg-muted/20 px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  You
-                </p>
-                <p className="mt-1 text-sm font-semibold text-hoolclone-gray-900">
-                  {formatPick(
-                    latestComparison.match,
-                    latestComparison.prediction.winner,
-                    latestComparison.prediction.homeScore,
-                    latestComparison.prediction.awayScore,
-                  )}
-                </p>
-              </div>
-              <div className="rounded-lg border border-hoolclone-green-200/70 bg-hoolclone-green-50/50 px-3 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-hoolclone-green-800">
-                  Clone
-                </p>
-                <p className="mt-1 text-sm font-semibold text-hoolclone-gray-900">
-                  {latestComparison.prediction.clone
-                    ? formatPick(
-                        latestComparison.match,
-                        latestComparison.prediction.clone.winner,
-                        latestComparison.prediction.clone.homeScore,
-                        latestComparison.prediction.clone.awayScore,
-                      )
-                    : "Not generated yet"}
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {latestComparison.match.homeTeam?.name} vs{" "}
-                {latestComparison.match.awayTeam?.name}
-              </p>
-            </div>
+            <ComparisonCard latestComparison={latestComparison} />
           ) : featuredMatch ? (
-            <div className="flex flex-1 flex-col justify-between gap-4">
-              <div>
+            <div className="flex flex-1 flex-col justify-between gap-5">
+              <div className="rounded-xl border border-dashed border-hoolclone-green-200 bg-hoolclone-green-50/30 p-4">
                 <p className="text-sm text-muted-foreground">
                   No picks yet. Your next match is ready.
                 </p>
-                <p className="mt-2 font-semibold text-hoolclone-gray-900">
-                  {featuredMatch.homeTeam?.name} vs {featuredMatch.awayTeam?.name}
-                </p>
+                <div className="mt-2">
+                  <MatchTeamsRowFromMatch match={featuredMatch} size="sm" />
+                </div>
               </div>
-              <Link
-                href={`/predict/${featuredMatch.id}`}
-                className="inline-flex w-fit items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-hoolclone-green-900 hover:bg-muted/40"
-              >
+              <ButtonLink href={`/predict/${featuredMatch.id}`} size="sm">
                 Open predict
                 <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+              </ButtonLink>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -144,16 +201,16 @@ export function DashboardAtAGlance({
 
         <DashboardMiniCard className="flex flex-col">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/20 text-hoolclone-green-800">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/20 text-hoolclone-green-800">
                 <Database className="h-4 w-4" />
               </span>
               <div>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  Memory
-                </p>
                 <p className="text-sm font-semibold text-hoolclone-gray-900">
                   Recent receipts
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Walrus-backed memories
                 </p>
               </div>
             </div>
@@ -170,30 +227,39 @@ export function DashboardAtAGlance({
               {recentMemories.length > 2 && (
                 <Link
                   href="/memory"
-                  className="block pt-0.5 text-xs font-medium text-hoolclone-green-800 hover:underline"
+                  className="block pt-1 text-xs font-semibold text-hoolclone-green-800 hover:underline"
                 >
-                  +{recentMemories.length - 2} more →
+                  +{recentMemories.length - 2} more receipts →
                 </Link>
               )}
             </div>
           ) : (
-            <div className="flex flex-1 flex-col justify-between gap-4">
+            <div className="flex flex-1 flex-col justify-between gap-5">
               <p className="text-sm text-muted-foreground">
                 {hydrating
                   ? "Loading memories..."
                   : "Train your clone to write the first Walrus receipt."}
               </p>
-              <Link
-                href="/train"
-                className="inline-flex w-fit items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-hoolclone-green-900 hover:bg-muted/40"
-              >
+              <ButtonLink href="/train" variant="outline" size="sm">
                 Start training
                 <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
+              </ButtonLink>
             </div>
           )}
         </DashboardMiniCard>
       </div>
+
+      {memoriesCount >= 8 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-hoolclone-green-100 bg-hoolclone-green-50/40 px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-hoolclone-green-900">
+            <Swords className="h-4 w-4 shrink-0" />
+            <span>Ready to debate your clone with receipts?</span>
+          </div>
+          <ButtonLink href="/debate" variant="outline" size="sm">
+            Open debate
+          </ButtonLink>
+        </div>
+      )}
     </DashboardPanel>
   );
 }

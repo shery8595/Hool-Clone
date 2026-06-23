@@ -2,7 +2,9 @@
 
 import { Textarea } from "@/components/ui/textarea";
 import { DriverChipGroup } from "./driver-chip-group";
+import { DRIVER_LABELS } from "./driver-labels";
 import type { DriverChip, TrainingQuestion } from "@/lib/mock/types";
+import { cn } from "@/lib/utils";
 
 type TrainingQuestionCardProps = {
   question: TrainingQuestion;
@@ -12,6 +14,7 @@ type TrainingQuestionCardProps = {
   onAnswerChange: (value: string) => void;
   onDriverChange: (driver: DriverChip) => void;
   disabled?: boolean;
+  saved?: boolean;
 };
 
 export function TrainingQuestionCard({
@@ -22,6 +25,7 @@ export function TrainingQuestionCard({
   onAnswerChange,
   onDriverChange,
   disabled,
+  saved,
 }: TrainingQuestionCardProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-border bg-white p-6 shadow-sm">
@@ -46,6 +50,18 @@ export function TrainingQuestionCard({
         </div>
 
         <div>
+          {saved && answer.trim() && (
+            <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-hoolclone-green-200 bg-hoolclone-green-50/80 px-3 py-2">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-hoolclone-green-800">
+                Your saved answer
+              </span>
+              {driver && (
+                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-semibold text-muted-foreground ring-1 ring-border/50">
+                  {DRIVER_LABELS[driver]}
+                </span>
+              )}
+            </div>
+          )}
           <Textarea
             value={answer}
             onChange={(e) => onAnswerChange(e.target.value)}
@@ -54,7 +70,7 @@ export function TrainingQuestionCard({
             rows={3}
             disabled={disabled}
             aria-label={question.question}
-            className="resize-none"
+            className={cn("resize-none", saved && answer.trim() && "border-hoolclone-green-200")}
           />
           <p className="mt-1 text-right text-xs text-muted-foreground">
             {answer.length}/{question.maxLength}

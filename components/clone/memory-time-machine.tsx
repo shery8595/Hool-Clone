@@ -16,6 +16,10 @@ import type {
   TimeMachinePhaseId,
   TimeMachineSnapshot,
 } from "@/lib/clone/memory-time-machine-types";
+import {
+  MatchLabelWithFlags,
+  TextWithTeamFlags,
+} from "@/components/match/team-label-with-flags";
 import type { CloneMaturity } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +78,7 @@ function ReceiptChip({
           <Database className="mt-0.5 h-3 w-3 shrink-0 text-hoolclone-green-700" />
         )}
         <p className="line-clamp-2 text-[11px] leading-snug text-hoolclone-gray-900">
-          {receipt.summary}
+          <TextWithTeamFlags text={receipt.summary} size="sm" />
         </p>
       </div>
       {(receipt.provenanceLabel || blobPreview) && (
@@ -130,7 +134,7 @@ function PhasePanel({ phase }: { phase: TimeMachineSnapshot }) {
               Clone pick
             </p>
             <p className="mt-1 text-2xl font-bold tracking-tight text-hoolclone-green-900">
-              {phase.prediction}
+              <TextWithTeamFlags text={phase.prediction} size="sm" />
             </p>
           </div>
           {phase.traits.length > 0 && (
@@ -156,7 +160,7 @@ function PhasePanel({ phase }: { phase: TimeMachineSnapshot }) {
                 : "border-border/50 italic text-muted-foreground",
             )}
           >
-            &ldquo;{phase.reasoning}&rdquo;
+            &ldquo;<TextWithTeamFlags text={phase.reasoning} size="sm" />&rdquo;
           </blockquote>
 
           {phase.knowledgeBullets.length > 0 && (
@@ -166,7 +170,7 @@ function PhasePanel({ phase }: { phase: TimeMachineSnapshot }) {
                   key={bullet}
                   className="rounded-md bg-white/80 px-2.5 py-1.5 text-xs text-foreground/85 ring-1 ring-border/40"
                 >
-                  {bullet}
+                  <TextWithTeamFlags text={bullet} size="sm" />
                 </li>
               ))}
             </ul>
@@ -321,7 +325,7 @@ export function MemoryTimeMachine({ data, className }: MemoryTimeMachineProps) {
             href={`/predict/${data.matchId}`}
             className="font-semibold text-hoolclone-green-800 underline decoration-hoolclone-green-300/80 underline-offset-2 hover:text-hoolclone-green-900"
           >
-            {data.matchLabel}
+            <MatchLabelWithFlags label={data.matchLabel} size="sm" />
           </Link>
         </p>
       </div>

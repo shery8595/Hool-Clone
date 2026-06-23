@@ -29,6 +29,7 @@ type TelegramRoastShareCardProps = {
   citedMemories: TelegramCitedMemory[];
   recallSource?: RecallSource;
   className?: string;
+  title?: string;
 };
 
 function MiniFlag({ code }: { code: string }) {
@@ -61,6 +62,7 @@ export function TelegramRoastShareCard({
   citedMemories,
   recallSource,
   className,
+  title = "Your clone roasted you",
 }: TelegramRoastShareCardProps) {
   const parsed = parseMatchLabel(matchLabel);
   const quote = primaryQuoteFromBody(body);
@@ -95,7 +97,7 @@ export function TelegramRoastShareCard({
           </div>
 
           <h3 className="text-xl font-bold leading-tight sm:text-2xl">
-            Your clone roasted you
+            {title}
           </h3>
 
           {parsed && (

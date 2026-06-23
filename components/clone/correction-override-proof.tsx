@@ -2,6 +2,10 @@
 
 import { ArrowRight, Database, GitBranch } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  MatchLabelWithFlags,
+  TextWithTeamFlags,
+} from "@/components/match/team-label-with-flags";
 import type { CorrectionOverrideProofData } from "@/lib/clone/judge-proof-demo";
 import { cn } from "@/lib/utils";
 
@@ -47,8 +51,9 @@ export function CorrectionOverrideProof({
           <ProofSourceBadge source={dataSource} />
         </div>
         <p className="text-sm text-muted-foreground">
-          {data.matchLabel}: a stale memory drove the wrong take — your
-          correction reranked higher and changed the clone pick.
+          <MatchLabelWithFlags label={data.matchLabel} size="sm" />: a stale
+          memory drove the wrong take — your correction reranked higher and
+          changed the clone pick.
         </p>
         {dataSource === "fallback" && (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
@@ -65,14 +70,14 @@ export function CorrectionOverrideProof({
               Before correction
             </p>
             <p className="mt-2 text-xl font-bold text-rose-950">
-              {data.staleTake.prediction}
+              <TextWithTeamFlags text={data.staleTake.prediction} size="sm" />
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {data.staleTake.reasoning}
+              <TextWithTeamFlags text={data.staleTake.reasoning} size="sm" />
             </p>
             <div className="mt-3 rounded-lg border border-rose-200/60 bg-white/70 px-3 py-2 text-xs text-rose-900/90">
               <span className="font-semibold">Disputed memory:</span>{" "}
-              {data.staleTake.disputedMemory}
+              <TextWithTeamFlags text={data.staleTake.disputedMemory} size="sm" />
               <p className="mt-1 text-[10px] font-medium text-rose-700">
                 {data.staleTake.disputedLabel}
               </p>
@@ -104,17 +109,22 @@ export function CorrectionOverrideProof({
               After correction
             </p>
             <p className="mt-2 text-xl font-bold text-hoolclone-green-950">
-              {data.updatedTake.prediction}
+              <TextWithTeamFlags text={data.updatedTake.prediction} size="sm" />
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {data.updatedTake.reasoning}
+              <TextWithTeamFlags text={data.updatedTake.reasoning} size="sm" />
             </p>
             <div className="mt-3 rounded-lg border border-hoolclone-green-200 bg-white/80 px-3 py-2">
               <div className="flex items-start gap-2">
                 <Database className="mt-0.5 h-3.5 w-3.5 shrink-0 text-hoolclone-green-700" />
                 <div>
                   <p className="text-xs text-hoolclone-green-950">
-                    &ldquo;{data.updatedTake.citedReceipt.text}&rdquo;
+                    &ldquo;
+                    <TextWithTeamFlags
+                      text={data.updatedTake.citedReceipt.text}
+                      size="sm"
+                    />
+                    &rdquo;
                   </p>
                   <p className="mt-1 text-[10px] font-semibold text-hoolclone-green-700">
                     {data.updatedTake.citedReceipt.provenanceLabel}

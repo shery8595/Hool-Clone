@@ -17,6 +17,7 @@ import {
   findLatestDisagreement,
 } from "@/lib/stats/user-analytics";
 import { buildCloneAnalyticsBundle } from "@/lib/stats/clone-analytics";
+import { resolveFanDisplayName } from "@/lib/auth/display-name";
 import { query } from "@/lib/db/client";
 import type { EvolutionPageData } from "@/lib/evolution/types";
 
@@ -79,7 +80,7 @@ export async function buildEvolutionPageData(
   });
 
   const slug = user.public_slug ?? user.id.slice(0, 8);
-  const displayName = user.display_name ?? slug;
+  const displayName = resolveFanDisplayName(user.display_name, slug);
 
   return {
     slug,

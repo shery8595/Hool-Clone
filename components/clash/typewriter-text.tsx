@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type TypewriterTextProps = {
@@ -13,14 +13,22 @@ type TypewriterTextProps = {
 export function TypewriterText({
   text,
   className,
-  speedMs = 18,
+  speedMs = 14,
   onComplete,
 }: TypewriterTextProps) {
   const [visible, setVisible] = useState(0);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     setVisible(0);
-    if (!text) return;
+    if (!text) {
+      onCompleteRef.current?.();
+      return;
+    }
 
     let index = 0;
     const interval = setInterval(() => {
@@ -28,12 +36,12 @@ export function TypewriterText({
       setVisible(index);
       if (index >= text.length) {
         clearInterval(interval);
-        onComplete?.();
+        onCompleteRef.current?.();
       }
     }, speedMs);
 
     return () => clearInterval(interval);
-  }, [text, speedMs, onComplete]);
+  }, [text, speedMs]);
 
   return (
     <span className={cn(className)}>

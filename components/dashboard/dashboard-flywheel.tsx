@@ -1,13 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Brain, Database, MessageCircle, Target } from "lucide-react";
-import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
-import type { CloneMood } from "@/lib/clone/clone-mood";
 import type { CloneMaturity } from "@/lib/mock/types";
 import {
-  DashboardEyebrow,
-  DashboardMiniCard,
   DashboardPanel,
-  DashboardStatusPill,
+  DashboardSectionHeader,
 } from "./dashboard-surface";
 import { cn } from "@/lib/utils";
 
@@ -54,102 +50,80 @@ type DashboardFlywheelProps = {
   memoriesCount: number;
   predictionsCount: number;
   maturityLabel: CloneMaturity;
-  level: number;
-  maxLevel: number;
-  quote: string | null;
-  mood: CloneMood;
 };
 
 export function DashboardFlywheel({
   memoriesCount,
   predictionsCount,
   maturityLabel,
-  level,
-  maxLevel,
-  quote,
-  mood,
 }: DashboardFlywheelProps) {
   const ctx = { memories: memoriesCount, predictions: predictionsCount };
   const activeLayers = layers.filter((layer) => layer.isActive(ctx)).length;
 
   return (
     <DashboardPanel>
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-2xl space-y-3">
-          <DashboardEyebrow>The HoolClone flywheel</DashboardEyebrow>
-          <h1 className="text-2xl font-semibold tracking-tight text-hoolclone-gray-900 sm:text-[1.75rem] sm:leading-tight">
-            Train fuels memory. Memory shapes predictions. Predictions feed the
-            roast loop.
-          </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            Level {level} of {maxLevel} ·{" "}
-            <span className="font-medium text-foreground">{maturityLabel}</span>
-            {quote ? ` — ${quote}` : ""}
-          </p>
-          <CloneMoodBadge mood={mood} compact className="mt-1" />
-        </div>
+      <DashboardSectionHeader
+        eyebrow="Workflow"
+        title="The HoolClone flywheel"
+        description={`${activeLayers} of ${layers.length} layers active · ${maturityLabel}`}
+      />
 
-        <div className="text-right">
-          <DashboardStatusPill active={activeLayers > 0}>
-            {activeLayers}/{layers.length} layers active
-          </DashboardStatusPill>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {layers.map((layer, index) => {
           const Icon = layer.icon;
           const active = layer.isActive(ctx);
 
           return (
-            <div key={layer.step} className="flex items-stretch gap-2">
+            <div key={layer.step} className="relative flex items-stretch">
               <Link href={layer.href} className="group min-w-0 flex-1">
-                <DashboardMiniCard
+                <div
                   className={cn(
-                    "relative h-full hover:border-hoolclone-green-200 hover:bg-hoolclone-green-50/30",
-                    active && "border-hoolclone-green-200 bg-hoolclone-green-50/40",
+                    "relative h-full rounded-xl border p-4 transition-all",
+                    active
+                      ? "border-hoolclone-green-200 bg-gradient-to-br from-hoolclone-green-50/80 to-white shadow-sm"
+                      : "border-border/50 bg-muted/10 hover:border-hoolclone-green-200/70 hover:bg-white",
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                      Layer {layer.step}
-                    </span>
-                    {active && (
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full bg-emerald-500"
-                        aria-label="Active"
-                      />
-                    )}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
                     <span
                       className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg border",
+                        "flex h-9 w-9 items-center justify-center rounded-lg border",
                         active
                           ? "border-hoolclone-green-800 bg-hoolclone-green-800 text-white"
-                          : "border-border bg-muted/20 text-muted-foreground",
+                          : "border-border bg-white text-muted-foreground",
                       )}
                     >
                       <Icon className="h-4 w-4" />
                     </span>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-hoolclone-gray-900">
-                        {layer.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {layer.subtitle}
-                      </p>
-                    </div>
+                    <span className="font-mono text-[10px] font-semibold text-muted-foreground">
+                      {String(layer.step).padStart(2, "0")}
+                    </span>
                   </div>
+
+                  <p className="mt-3 font-semibold text-hoolclone-gray-900">
+                    {layer.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {layer.subtitle}
+                  </p>
+
                   <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-hoolclone-green-800 opacity-0 transition-opacity group-hover:opacity-100">
                     Open
                     <ArrowRight className="h-3 w-3" />
                   </span>
-                </DashboardMiniCard>
+
+                  {active && (
+                    <span
+                      className="absolute right-3 top-3 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white"
+                      aria-label="Active"
+                    />
+                  )}
+                </div>
               </Link>
+
               {index < layers.length - 1 && (
                 <span
-                  className="hidden self-center text-muted-foreground/40 xl:inline"
+                  className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 text-muted-foreground/30 xl:block"
                   aria-hidden
                 >
                   →

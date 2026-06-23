@@ -35,12 +35,27 @@ describe("computeMaturityProgress", () => {
   it("returns 100 progress at max level", () => {
     const result = computeMaturityProgress(100);
     assert.equal(result.level, 4);
-    assert.equal(result.progress, 100);
+    assert.equal(result.tierProgress, 100);
+    assert.equal(result.overallProgress, 100);
+    assert.equal(result.displayLevel, 5);
+    assert.equal(result.nextLabel, null);
   });
 
-  it("computes partial progress within level", () => {
+  it("computes partial tier progress within level", () => {
     const result = computeMaturityProgress(5);
     assert.equal(result.level, 1);
-    assert.ok(result.progress > 0 && result.progress < 100);
+    assert.ok(result.tierProgress > 0 && result.tierProgress < 100);
+  });
+
+  it("uses 1-based display levels", () => {
+    const result = computeMaturityProgress(21);
+    assert.equal(result.level, 3);
+    assert.equal(result.displayLevel, 4);
+    assert.equal(result.displayMaxLevel, 5);
+    assert.equal(result.label, "Contradiction Hunter");
+    assert.equal(result.nextLabel, "Full HoolClone");
+    assert.equal(result.tierProgress, 5);
+    assert.equal(result.overallProgress, 76);
+    assert.equal(result.memoriesToNext, 19);
   });
 });

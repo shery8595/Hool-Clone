@@ -2,6 +2,7 @@
 
 import { ArrowRight, Database, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TextWithTeamFlags } from "@/components/match/team-label-with-flags";
 import type { SameQuestionProofData } from "@/lib/clone/judge-proof-demo";
 import { cn } from "@/lib/utils";
 
@@ -48,13 +49,13 @@ function AnswerColumn({
         {phase.label}
       </p>
       <p className="mt-3 text-2xl font-bold text-hoolclone-green-900">
-        {phase.answer}
+        <TextWithTeamFlags text={phase.answer} size="sm" />
       </p>
       <p className="mt-1 text-sm font-semibold text-hoolclone-green-800">
         Confidence: {phase.confidence}%
       </p>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        {phase.reasoning}
+        <TextWithTeamFlags text={phase.reasoning} size="sm" />
       </p>
       {citedReceipt ? (
         <div className="mt-4 space-y-2 border-t border-hoolclone-green-200/60 pt-4">
@@ -68,7 +69,9 @@ function AnswerColumn({
               )}
               <div className="min-w-0">
                 <p className="text-xs leading-snug text-hoolclone-green-950">
-                  &ldquo;{citedReceipt.text}&rdquo;
+                  &ldquo;
+                  <TextWithTeamFlags text={citedReceipt.text} size="sm" />
+                  &rdquo;
                 </p>
                 <p className="mt-1 text-[10px] font-semibold text-hoolclone-green-700">
                   {citedReceipt.provenanceLabel}
@@ -127,7 +130,7 @@ export function CloneSameQuestionProof({
             Question
           </p>
           <p className="mt-1 text-sm font-semibold text-hoolclone-green-950">
-            {data.question}
+            <TextWithTeamFlags text={data.question} size="sm" />
           </p>
         </div>
         <div className="flex flex-col items-stretch gap-4 lg:flex-row lg:items-center">

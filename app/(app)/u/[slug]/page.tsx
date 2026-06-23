@@ -5,7 +5,9 @@ import { ContradictionScoreCard } from "@/components/clone/contradiction-score-c
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
 import { EvolutionTeaserCard } from "@/components/evolution/evolution-teaser-card";
 import { DebateHighlightsCard } from "@/components/profile/debate-highlights-card";
+import { ProfileAnalyticsAccordion } from "@/components/profile/profile-analytics-accordion";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { ProfileSection } from "@/components/profile/profile-section";
 import { StatCardRow } from "@/components/profile/stat-card-row";
 import { PublicPredictionHistory } from "@/components/profile/public-prediction-history";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
@@ -48,13 +50,6 @@ export default async function PublicProfilePage({
     notFound();
   }
 
-  const clashOpponent =
-    slug === "hoolclone-demo"
-      ? "hoolclone-rival"
-      : slug === "hoolclone-rival"
-        ? "hoolclone-demo"
-        : "hoolclone-demo";
-
   const hasBehavioralContradiction = profile.contradictionCount > 0;
   const hasCloneDisagreement = profile.comparisons.some(
     (c) => c.clonePrediction !== "—" && !c.agreed,
@@ -69,17 +64,26 @@ export default async function PublicProfilePage({
     })
     .slice(0, 12);
 
+  const walrusBackedCount = profile.allMemoryReceipts.filter(
+    (r) => r.storageStatus === "stored" && r.walrusBlobId,
+  ).length;
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-5 pb-8">
       <ProfileHeader
         displayName={profile.displayName}
         handle={profile.handle}
         bio={profile.bio}
         joinedAt={profile.joinedAt}
         maturityLabel={profile.maturityLabel as CloneMaturity}
-        level={profile.level}
+        displayLevel={profile.level}
+        displayMaxLevel={profile.maxLevel}
+        memoriesCount={profile.memoriesCount}
+        predictionsCount={profile.predictionsCount}
+        cloneMatchPercent={profile.cloneMatchPercent}
+        walrusBackedCount={walrusBackedCount}
         slug={profile.slug}
-        clashOpponent={clashOpponent}
+        cloneMood={profile.cloneAnalytics.cloneMood}
       />
 
       <StatCardRow
@@ -92,30 +96,33 @@ export default async function PublicProfilePage({
         levelProgress={profile.levelProgress}
       />
 
-      <ContradictionHunterCard
-        contradiction={profile.topContradiction}
-        predictionsCount={profile.predictionsCount}
-      />
-
-      <ContradictionScoreCard
-        contradictions={profile.cloneAnalytics.temporalContradictions}
-        consistencyScore={profile.cloneAnalytics.consistencyScore}
-        totalCount={
-          profile.cloneAnalytics.temporalContradictions.length +
-          profile.contradictionCount
-        }
-        roastLine={profile.topContradiction?.text}
-      />
-
-      <CloneDriftChart data={profile.cloneAnalytics.driftSeries} />
-
-      {profile.memoryTimeMachine && (
-        <EvolutionTeaserCard
-          memoryTimeMachine={profile.memoryTimeMachine}
-          memoriesCount={profile.memoriesCount}
-          href={`/u/${slug}/evolution`}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <ContradictionHunterCard
+          contradiction={profile.topContradiction}
+          predictionsCount={profile.predictionsCount}
+          className="h-full"
         />
-      )}
+
+        {profile.memoryTimeMachine ? (
+          <EvolutionTeaserCard
+            memoryTimeMachine={profile.memoryTimeMachine}
+            memoriesCount={profile.memoriesCount}
+            href={`/u/${slug}/evolution`}
+          />
+        ) : (
+          <ProfileSection
+            eyebrow="Evolution"
+            title="Day 1 vs Day 7"
+            description="Evolution proof unlocks after three Walrus memories are stored."
+            variant="subtle"
+          >
+            <p className="text-sm text-muted-foreground">
+              This clone hasn&apos;t reached the evolution threshold yet. Check
+              back once training memories are on Walrus.
+            </p>
+          </ProfileSection>
+        )}
+      </div>
 
       {profile.debateHighlights.length > 0 && (
         <DebateHighlightsCard highlights={profile.debateHighlights} />
@@ -126,54 +133,75 @@ export default async function PublicProfilePage({
         fanName={profile.displayName}
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <BiasRadarChart
-          data={profile.biasRadar}
-          title="Bias Radar"
-          description="Computed from real predictions, Walrus memories, and clone picks."
-          showStats={false}
-        />
-        <EvolutionTimeline events={profile.evolutionTimeline} />
-      </div>
-
-      <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold">Memory receipts</h2>
-          <p className="text-sm text-muted-foreground">
-            Public memories and clone evidence used in predictions.
-          </p>
-        </div>
+      <ProfileSection
+        eyebrow="Receipts"
+        title="Memory receipts"
+        description="Public memories and clone evidence used in predictions."
+      >
         {allReceipts.length === 0 ? (
-          <p className="rounded-2xl border border-dashed bg-white p-8 text-center text-sm text-muted-foreground">
-            No public memory receipts yet. Memories marked public in the Memory
-            page will appear here.
-          </p>
+          <div className="rounded-xl border border-dashed border-hoolclone-green-200 bg-hoolclone-green-50/30 px-6 py-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              No public memory receipts yet. Memories marked public on the
+              Memory page will appear here.
+            </p>
+          </div>
         ) : (
           <PublicReceiptGrid receipts={allReceipts} />
         )}
-      </section>
+      </ProfileSection>
 
       {profile.comparisons.length > 0 ? (
-        <PredictionComparisonTable comparisons={profile.comparisons} />
-      ) : (
-        <p className="rounded-2xl border border-dashed bg-white p-8 text-center text-sm text-muted-foreground">
-          No prediction comparisons yet.
-        </p>
-      )}
+        <ProfileSection
+          eyebrow="Head to head"
+          title="Fan vs clone picks"
+          description="Recent matchups where fan and clone locked different scores."
+        >
+          <PredictionComparisonTable comparisons={profile.comparisons} bare />
+        </ProfileSection>
+      ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <AccuracyLeaderboardCard
-          data={profile.cloneAnalytics.accuracyLeaderboard}
+      <ProfileAnalyticsAccordion>
+        <ContradictionScoreCard
+          contradictions={profile.cloneAnalytics.temporalContradictions}
+          consistencyScore={profile.cloneAnalytics.consistencyScore}
+          totalCount={
+            profile.cloneAnalytics.temporalContradictions.length +
+            profile.contradictionCount
+          }
+          roastLine={profile.topContradiction?.text}
         />
-        <div className="flex items-center justify-center">
-          <SeasonReportCard report={profile.cloneAnalytics.seasonReport} />
-        </div>
-      </div>
 
-      <footer className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
+        <CloneDriftChart data={profile.cloneAnalytics.driftSeries} />
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <BiasRadarChart
+            data={profile.biasRadar}
+            title="Bias radar"
+            description="Computed from predictions, Walrus memories, and clone picks."
+            showStats={false}
+          />
+          <EvolutionTimeline events={profile.evolutionTimeline} />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <AccuracyLeaderboardCard
+            data={profile.cloneAnalytics.accuracyLeaderboard}
+          />
+          <div className="flex items-center justify-center">
+            <SeasonReportCard report={profile.cloneAnalytics.seasonReport} />
+          </div>
+        </div>
+      </ProfileAnalyticsAccordion>
+
+      <footer className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-border/40 bg-muted/20 py-6 text-center text-sm text-muted-foreground">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={HOOLCLONE_LOGO_SRC} alt="" className="h-5 w-5 rounded object-cover" />
-        Powered by Walrus Memory · Private memory. Public insights.
+        <img
+          src={HOOLCLONE_LOGO_SRC}
+          alt=""
+          className="h-6 w-6 rounded object-cover"
+        />
+        <p>Powered by Walrus Memory</p>
+        <p className="text-xs">Private memory · Public insights</p>
       </footer>
     </div>
   );

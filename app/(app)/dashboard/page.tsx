@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+import { RefreshCw } from "lucide-react";
 import { ContradictionHunterCard } from "@/components/clone/contradiction-hunter-card";
 import { ContradictionScoreCard } from "@/components/clone/contradiction-score-card";
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
@@ -9,12 +10,15 @@ import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
 import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { DashboardAtAGlance } from "@/components/dashboard/dashboard-at-a-glance";
 import { DashboardFlywheel } from "@/components/dashboard/dashboard-flywheel";
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
 import {
-  DashboardInsightCard,
+  DashboardEmptyInsight,
+  DashboardInsightsGrid,
   DashboardInsightsSection,
 } from "@/components/dashboard/dashboard-insights";
 import { DashboardSetupChecklist } from "@/components/dashboard/dashboard-setup-checklist";
 import { HoolCloneLogo } from "@/components/brand/hoolclone-logo";
+import { Button } from "@/components/ui/button";
 import { TelegramConnectCard } from "@/components/telegram/telegram-connect-card";
 import { cacheKeys } from "@/lib/api/data-cache";
 import { fetchDashboardRaw } from "@/lib/api/client";
@@ -41,12 +45,12 @@ export default function DashboardPage() {
 
   if (!me) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-border/50 bg-white p-12 text-center shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]">
+      <div className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center rounded-2xl border border-hoolclone-green-200/60 bg-gradient-to-br from-hoolclone-green-50 via-white to-hoolclone-yellow-50/40 p-12 text-center shadow-[0_12px_40px_-12px_rgba(10,61,46,0.1)]">
         <HoolCloneLogo size="lg" className="mx-auto justify-center" />
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">
+        <h1 className="mt-5 text-2xl font-bold tracking-tight text-hoolclone-green-950">
           Welcome to HoolClone
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
           Connect your wallet to see your clone dashboard, memories, and
           predictions.
         </p>
@@ -57,15 +61,11 @@ export default function DashboardPage() {
   const dashboard = data ?? fallback;
   if (!dashboard) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border border-border/50 bg-white p-12 text-center shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]">
-        <p className="text-destructive">{error ?? "Could not load dashboard."}</p>
-        <button
-          type="button"
-          className="mt-4 text-sm font-semibold text-hoolclone-green-900 underline"
-          onClick={load}
-        >
+      <div className="mx-auto max-w-lg rounded-2xl border border-rose-200 bg-rose-50 p-10 text-center">
+        <p className="text-sm text-rose-800">{error ?? "Could not load dashboard."}</p>
+        <Button variant="outline" size="sm" className="mt-4" onClick={load}>
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -83,24 +83,42 @@ export default function DashboardPage() {
   } = dashboard;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 pb-4">
+    <div className="mx-auto max-w-7xl space-y-6 pb-8">
       {hydrating && (
-        <p className="text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="flex items-center justify-center gap-2 rounded-full border border-border/50 bg-white/80 px-4 py-2 text-center font-mono text-[10px] uppercase tracking-wider text-muted-foreground shadow-sm backdrop-blur-sm">
+          <RefreshCw className="h-3 w-3 animate-spin" />
           Syncing dashboard
-        </p>
+        </div>
       )}
+
+      <DashboardHero
+        displayName={me.displayName}
+        namespace={me.memwalNamespace}
+        maturityLabel={stats.maturityLabel}
+        displayLevel={stats.displayLevel}
+        displayMaxLevel={stats.displayMaxLevel}
+        levelProgress={stats.levelProgress}
+        tierProgress={stats.tierProgress}
+        nextMaturityLabel={stats.nextMaturityLabel}
+        memoriesCount={stats.memoriesCount}
+        memoriesToNext={stats.memoriesToNext}
+        predictionsCount={stats.predictionsCount}
+        cloneMatchPercent={stats.cloneMatchPercent}
+        quote={stats.quote}
+        mood={cloneAnalytics.cloneMood}
+      />
 
       <DashboardFlywheel
         memoriesCount={stats.memoriesCount}
         predictionsCount={stats.predictionsCount}
         maturityLabel={stats.maturityLabel}
-        level={stats.level}
-        maxLevel={stats.maxLevel}
-        quote={stats.quote}
-        mood={cloneAnalytics.cloneMood}
       />
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      {stats.memoriesCount >= 3 && (
+        <TelegramConnectCard variant="compact" />
+      )}
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <DashboardAtAGlance
           featuredMatch={featuredMatch}
           latestComparison={latestComparison}
@@ -109,20 +127,20 @@ export default function DashboardPage() {
           memoriesCount={stats.memoriesCount}
           hydrating={hydrating}
         />
-        <div className="space-y-5">
+        <aside>
           <DashboardSetupChecklist
             me={me}
             memoriesCount={stats.memoriesCount}
             predictionsCount={stats.predictionsCount}
           />
-          {stats.memoriesCount >= 3 && (
-            <TelegramConnectCard variant="compact" />
-          )}
-        </div>
+        </aside>
       </div>
 
       {(memoryTimeMachine || stats.memoriesCount > 0) && (
-        <DashboardInsightsSection title="Clone evolution">
+        <DashboardInsightsSection
+          title="Clone evolution"
+          description="Track how your clone improves with more Walrus memories"
+        >
           <EvolutionTeaserCard
             memoryTimeMachine={memoryTimeMachine}
             memoriesCount={stats.memoriesCount}
@@ -130,14 +148,17 @@ export default function DashboardPage() {
         </DashboardInsightsSection>
       )}
 
-      <DashboardInsightsSection title="Performance & bias">
-        <div className="grid gap-5 lg:grid-cols-2">
+      <DashboardInsightsSection
+        title="Performance & bias"
+        description="Contradictions, drift, accuracy, and fan bias over time"
+      >
+        <DashboardInsightsGrid>
           <ContradictionHunterCard
             contradiction={contradiction}
             predictionsCount={stats.predictionsCount}
             className="rounded-2xl border border-border/50 shadow-[0_12px_40px_-12px_rgba(10,61,46,0.08)]"
           />
-        </div>
+        </DashboardInsightsGrid>
 
         <ContradictionScoreCard
           contradictions={cloneAnalytics.temporalContradictions}
@@ -149,10 +170,10 @@ export default function DashboardPage() {
           roastLine={contradiction?.text}
         />
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <DashboardInsightsGrid>
           <CloneDriftChart data={cloneAnalytics.driftSeries} />
           <AccuracyLeaderboardCard data={cloneAnalytics.accuracyLeaderboard} />
-        </div>
+        </DashboardInsightsGrid>
 
         {biasRadarReady ? (
           <BiasRadarChart
@@ -160,20 +181,16 @@ export default function DashboardPage() {
             description="Computed from your predictions, training memories, and clone picks."
           />
         ) : (
-          <DashboardInsightCard>
-            <p className="text-center text-sm text-muted-foreground">
-              {hydrating
-                ? "Building your bias radar..."
-                : "Make a few predictions to unlock your bias radar."}
-            </p>
-          </DashboardInsightCard>
+          <DashboardEmptyInsight hydrating={hydrating} hydratingMessage="Building your bias radar...">
+            Make a few predictions to unlock your bias radar.
+          </DashboardEmptyInsight>
         )}
       </DashboardInsightsSection>
 
       {error && (
         <p className="text-center text-sm text-destructive">
           {error}{" "}
-          <button type="button" className="underline" onClick={load}>
+          <button type="button" className="font-semibold underline" onClick={load}>
             Retry
           </button>
         </p>

@@ -4,6 +4,7 @@ import type { TelegramMessageType } from "@/lib/telegram/send-and-store";
 import type { RecallSource } from "@/lib/mock/types";
 import type { TelegramCitedMemory } from "@/components/telegram/telegram-memory-receipts";
 import { TelegramCongratsShareCard } from "@/components/telegram/telegram-congrats-share-card";
+import { TelegramLiveGoalShareCard } from "@/components/telegram/telegram-live-goal-share-card";
 import { TelegramRoastShareCard } from "@/components/telegram/telegram-roast-share-card";
 
 type TelegramShareCardProps = {
@@ -14,6 +15,7 @@ type TelegramShareCardProps = {
   citedMemories: TelegramCitedMemory[];
   recallSource?: RecallSource;
   className?: string;
+  roastTitle?: string;
 };
 
 export function TelegramShareCard({
@@ -24,12 +26,20 @@ export function TelegramShareCard({
   citedMemories,
   recallSource,
   className,
+  roastTitle,
 }: TelegramShareCardProps) {
-  const isShareable =
-    messageType === "post_match_roast" ||
-    messageType === "post_match_congrats";
-
-  if (!isShareable) return null;
+  if (messageType === "live_goal") {
+    return (
+      <TelegramLiveGoalShareCard
+        body={body}
+        matchLabel={matchLabel}
+        sentAt={sentAt}
+        citedMemories={citedMemories}
+        recallSource={recallSource}
+        className={className}
+      />
+    );
+  }
 
   if (messageType === "post_match_congrats") {
     return (
@@ -52,6 +62,7 @@ export function TelegramShareCard({
       citedMemories={citedMemories}
       recallSource={recallSource}
       className={className}
+      title={roastTitle}
     />
   );
 }

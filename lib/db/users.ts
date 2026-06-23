@@ -1,3 +1,4 @@
+import { resolveFanDisplayName } from "@/lib/auth/display-name";
 import { query, queryOne } from "@/lib/db/client";
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
 import type { CloneMaturity } from "@/lib/mock/types";
@@ -179,9 +180,10 @@ export async function updateFanProfile(
   },
 ): Promise<void> {
   if (updates.displayName !== undefined) {
+    const trimmed = updates.displayName?.trim() ?? null;
     await query(
       `update users set display_name = $2, updated_at = now() where id = $1`,
-      [userId, updates.displayName],
+      [userId, trimmed],
     );
   }
 

@@ -1,5 +1,7 @@
 import { Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TeamNameWithFlag } from "@/components/match/team-label-with-flags";
+import { resolveTeamCode } from "@/lib/match/team-text-tokens";
 import type { SeasonReportCard as SeasonReportData } from "@/lib/stats/clone-analytics";
 
 type SeasonReportCardProps = {
@@ -31,13 +33,13 @@ export function SeasonReportCard({ report }: SeasonReportCardProps) {
         {report.mostDefendedTeam && (
           <div className="flex justify-between border-b border-white/20 pb-2">
             <span>Most Defended Team</span>
-            <span className="font-bold">{report.mostDefendedTeam}</span>
+            <TeamReportValue name={report.mostDefendedTeam} />
           </div>
         )}
         {report.mostHatedTeam && (
           <div className="flex justify-between border-b border-white/20 pb-2">
             <span>Most Hated Team</span>
-            <span className="font-bold">{report.mostHatedTeam}</span>
+            <TeamReportValue name={report.mostHatedTeam} />
           </div>
         )}
         <div className="pt-2 text-center">
@@ -49,4 +51,12 @@ export function SeasonReportCard({ report }: SeasonReportCardProps) {
       </CardContent>
     </Card>
   );
+}
+
+function TeamReportValue({ name }: { name: string }) {
+  const code = resolveTeamCode(name);
+  if (!code) {
+    return <span className="font-bold">{name}</span>;
+  }
+  return <TeamNameWithFlag name={name} code={code} size="sm" className="font-bold" />;
 }

@@ -2,7 +2,12 @@
 
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  TeamNameWithFlag,
+  TextWithTeamFlags,
+} from "@/components/match/team-label-with-flags";
 import type { TemporalContradiction } from "@/lib/clone/temporal-contradictions";
+import { resolveTeamCode } from "@/lib/match/team-text-tokens";
 import { formatDate } from "@/lib/mock/demo-user";
 
 type ContradictionScoreCardProps = {
@@ -45,20 +50,37 @@ export function ContradictionScoreCard({
                 className="rounded-xl border border-hoolclone-yellow-200/80 bg-hoolclone-yellow-50/40 p-4"
               >
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  {c.team}
+                  {(() => {
+                    const code = resolveTeamCode(c.team);
+                    return code ? (
+                      <TeamNameWithFlag name={c.team} code={code} size="sm" />
+                    ) : (
+                      c.team
+                    );
+                  })()}
                 </p>
                 <div className="mt-2 space-y-2 text-sm">
                   <p>
                     <span className="font-medium text-foreground">
                       {formatDate(c.dateA)}:
                     </span>{" "}
-                    &ldquo;{c.textA.length > 80 ? `${c.textA.slice(0, 80)}…` : c.textA}&rdquo;
+                    &ldquo;
+                    <TextWithTeamFlags
+                      text={c.textA.length > 80 ? `${c.textA.slice(0, 80)}…` : c.textA}
+                      size="sm"
+                    />
+                    &rdquo;
                   </p>
                   <p>
                     <span className="font-medium text-foreground">
                       {formatDate(c.dateB)}:
                     </span>{" "}
-                    &ldquo;{c.textB.length > 80 ? `${c.textB.slice(0, 80)}…` : c.textB}&rdquo;
+                    &ldquo;
+                    <TextWithTeamFlags
+                      text={c.textB.length > 80 ? `${c.textB.slice(0, 80)}…` : c.textB}
+                      size="sm"
+                    />
+                    &rdquo;
                   </p>
                 </div>
               </li>
@@ -71,7 +93,9 @@ export function ContradictionScoreCard({
             Your football opinions are {consistencyScore}% consistent.
           </p>
           {roastLine && (
-            <p className="mt-1 text-sm text-hoolclone-green-100">{roastLine}</p>
+            <p className="mt-1 text-sm text-hoolclone-green-100">
+              <TextWithTeamFlags text={roastLine} size="sm" />
+            </p>
           )}
         </div>
       </CardContent>

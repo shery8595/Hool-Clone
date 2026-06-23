@@ -15,17 +15,20 @@ import {
   fetchTelegramLinkUrl,
   fetchTelegramStatus,
 } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 
 type TelegramConnectCardProps = {
   variant?: "default" | "compact";
   onLinked?: () => void;
   id?: string;
+  className?: string;
 };
 
 export function TelegramConnectCard({
   variant = "default",
   onLinked,
   id = "telegram-connect",
+  className,
 }: TelegramConnectCardProps) {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -85,10 +88,42 @@ export function TelegramConnectCard({
   };
 
   if (linked && notificationsEnabled) {
+    if (variant === "compact") {
+      return (
+        <div
+          id={id}
+          className={cn(
+            "flex flex-col gap-4 rounded-2xl border border-hoolclone-green-200 bg-gradient-to-r from-hoolclone-green-50/80 via-white to-hoolclone-green-50/40 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4",
+            className,
+          )}
+        >
+          <div className="flex items-start gap-3 sm:items-center">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-hoolclone-green-200 bg-white text-hoolclone-green-700 shadow-sm">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="font-semibold text-hoolclone-green-900">
+                Telegram connected
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Match alerts are on — congrats or roasts after every result.
+              </p>
+            </div>
+          </div>
+          <ButtonLink href="/telegram-history" variant="outline" size="sm">
+            View Telegram history
+          </ButtonLink>
+        </div>
+      );
+    }
+
     return (
       <Card
         id={id}
-        className="rounded-2xl border-hoolclone-green-200 bg-hoolclone-green-50/50 shadow-sm"
+        className={cn(
+          "rounded-2xl border-hoolclone-green-200 bg-hoolclone-green-50/50 shadow-sm",
+          className,
+        )}
       >
         <CardContent className="flex items-center gap-3 p-4">
           <CheckCircle2 className="h-5 w-5 shrink-0 text-hoolclone-green-700" />
@@ -150,16 +185,26 @@ export function TelegramConnectCard({
     return (
       <div
         id={id}
-        className="rounded-xl border border-hoolclone-yellow-300 bg-hoolclone-yellow-50 px-4 py-3"
+        className={cn(
+          "flex flex-col gap-4 rounded-2xl border border-hoolclone-yellow-300/80 bg-gradient-to-r from-hoolclone-yellow-50 via-white to-amber-50/50 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4",
+          className,
+        )}
       >
-        <p className="text-sm font-semibold text-hoolclone-green-900">
-          Get match alerts on Telegram
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Opens Telegram with a one-time link. Tap Start in the bot to finish
-          connecting.
-        </p>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div className="flex items-start gap-3 sm:items-center">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-white text-hoolclone-green-800 shadow-sm">
+            <MessageCircle className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-semibold text-hoolclone-green-900">
+              Get match alerts on Telegram
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Opens Telegram with a one-time link. Tap Start in the bot to
+              finish connecting.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <Button
             type="button"
             size="sm"
@@ -193,7 +238,7 @@ export function TelegramConnectCard({
           )}
         </div>
         {error && (
-          <p className="mt-2 rounded-md bg-destructive/10 px-2 py-1.5 text-xs font-medium text-destructive">
+          <p className="w-full rounded-md bg-destructive/10 px-2 py-1.5 text-xs font-medium text-destructive sm:col-span-2">
             {error}
           </p>
         )}

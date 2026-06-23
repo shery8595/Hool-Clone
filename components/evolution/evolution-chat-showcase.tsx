@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { MessageCircle, RotateCcw, Sparkles } from "lucide-react";
 import { ChatMessage } from "@/components/debate/chat-message";
 import { ChatInput } from "@/components/debate/chat-input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DebateTypingIndicator } from "@/components/debate/debate-typing-indicator";
 import { Button } from "@/components/ui/button";
 import { sendEvolutionChatMessage } from "@/lib/api/client";
 import { buildEvolutionPhaseReply } from "@/lib/evolution/build-evolution-chat";
@@ -157,43 +157,52 @@ export function EvolutionChatShowcase({
   }
 
   return (
-    <Card className={cn("rounded-2xl border-0 shadow-sm", className)}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <MessageCircle className="h-5 w-5 text-hoolclone-yellow-600" />
-          Evolution chat — compare clone days side by side
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Two independent chats. Pick the day for each side; Day 7 recalls your
-          full memory library. Type in either column — replies use only memories
-          available on that day.
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
+    <section
+      className={cn(
+        "overflow-hidden rounded-2xl border border-hoolclone-green-100 bg-white shadow-sm",
+        className,
+      )}
+    >
+      <div className="h-1 bg-gradient-to-r from-slate-300 via-hoolclone-green-500 to-hoolclone-yellow-500" />
+
+      <div className="border-b border-border px-5 py-4 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-hoolclone-green-950">
+              <MessageCircle className="h-5 w-5 text-hoolclone-yellow-600" />
+              Evolution chat — side by side
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Two independent chats. Each side only sees memories available on
+              that day.
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
           {EVOLUTION_COMPARE_PRESETS.map((preset) => (
-            <Button
+            <button
               key={preset.id}
               type="button"
-              size="sm"
-              variant="outline"
-              className="text-xs"
               onClick={() => applyPreset(preset.left, preset.right)}
+              className="rounded-full border border-border/70 bg-white px-3 py-1.5 text-xs font-semibold text-hoolclone-green-900 transition hover:border-hoolclone-green-200 hover:bg-hoolclone-green-50"
             >
               {preset.label}
-            </Button>
+            </button>
           ))}
           <Button
             type="button"
             size="sm"
             variant="secondary"
-            className="text-xs"
+            className="rounded-full text-xs"
             onClick={seedBothWithStarter}
             disabled={leftPane.sending || rightPane.sending}
           >
-            Ask starter question on both
+            Ask starter on both
           </Button>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+
+      <div className="space-y-4 p-4 sm:p-5">
         <div className="grid gap-4 xl:grid-cols-2">
           <EvolutionChatPane
             pane={leftPane}
@@ -221,17 +230,16 @@ export function EvolutionChatShowcase({
           />
         </div>
 
-        <p className="flex items-start gap-2 rounded-xl bg-muted/35 px-3 py-2.5 text-xs leading-relaxed text-hoolclone-gray-900">
+        <p className="flex items-start gap-2 rounded-xl border border-hoolclone-yellow-200/60 bg-hoolclone-yellow-50/40 px-3 py-2.5 text-xs leading-relaxed text-hoolclone-gray-900">
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-hoolclone-yellow-600" />
           <span>
             <strong className="font-semibold">Judge note:</strong> Day 1 uses
-            zero memories; Day 7 uses every stored receipt. Middle days replay
-            the chronological slice from the time machine.
-            {me ? " Logged in — Gemini debate when configured." : ""}
+            zero memories; Day 7 uses every stored receipt.
+            {me ? " Logged in — live Gemini when configured." : ""}
           </span>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }
 
@@ -259,13 +267,13 @@ function EvolutionChatPane({
   return (
     <div
       className={cn(
-        "flex min-h-[28rem] flex-col rounded-xl border",
+        "flex min-h-[28rem] flex-col overflow-hidden rounded-xl border shadow-sm",
         accent === "highlight"
-          ? "border-hoolclone-yellow-300 bg-gradient-to-b from-hoolclone-yellow-50/40 to-white"
+          ? "border-hoolclone-yellow-300/80 bg-gradient-to-b from-hoolclone-yellow-50/50 to-white"
           : "border-dashed border-muted-foreground/30 bg-muted/10",
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 px-3 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 bg-white/60 px-3 py-3 backdrop-blur-sm">
         <label className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
           Clone day
           <select
@@ -301,10 +309,10 @@ function EvolutionChatPane({
 
       <div
         ref={scrollRef}
-        className="flex-1 space-y-4 overflow-y-auto px-3 py-4"
+        className="flex-1 space-y-4 overflow-y-auto bg-gradient-to-b from-transparent to-hoolclone-green-50/10 px-3 py-4"
       >
         {pane.messages.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border/60 bg-white/70 px-3 py-6 text-center text-xs text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border/60 bg-white/80 px-3 py-8 text-center text-xs text-muted-foreground">
             No messages yet — type below to debate this day&apos;s clone.
           </p>
         ) : (
@@ -312,12 +320,7 @@ function EvolutionChatPane({
             <ChatMessage key={message.id} message={message} />
           ))
         )}
-        {pane.sending && (
-          <p className="text-center text-xs text-muted-foreground">
-            Clone is thinking with Day {pane.phaseId.replace("day", "")}{" "}
-            memories…
-          </p>
-        )}
+        {pane.sending && <DebateTypingIndicator />}
       </div>
 
       <div className="border-t border-border/40 p-3">

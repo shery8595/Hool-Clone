@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Target, Trophy, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button-link";
+import { MatchLabelWithFlags } from "@/components/match/team-label-with-flags";
 
 type EvolutionStakesHeroProps = {
   matchLabel?: string;
@@ -30,9 +31,10 @@ export function EvolutionStakesHero({
             World Cup stakes
           </p>
           {matchLabel && (
-            <p className="flex items-center gap-2 text-sm font-semibold text-hoolclone-green-950">
+            <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-hoolclone-green-950">
               <Target className="h-4 w-4 shrink-0" />
-              Featured match: {matchLabel}
+              <span>Featured match:</span>
+              <MatchLabelWithFlags label={matchLabel} size="sm" />
             </p>
           )}
           <p className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -167,3 +167,17 @@ create table if not exists telegram_messages (
 
 create index if not exists idx_telegram_messages_user_id on telegram_messages(user_id);
 create index if not exists idx_telegram_messages_sent_at on telegram_messages(sent_at desc);
+
+create table if not exists clash_bouts (
+  id uuid primary key default gen_random_uuid(),
+  slug_a text not null,
+  slug_b text not null,
+  match_id text not null,
+  winner_slug text,
+  debate_json jsonb not null,
+  verdict_json jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_clash_bouts_slugs on clash_bouts(slug_a, slug_b, created_at desc);
+create index if not exists idx_clash_bouts_created_at on clash_bouts(created_at desc);

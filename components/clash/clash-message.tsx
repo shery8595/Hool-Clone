@@ -59,7 +59,7 @@ export function ClashMessage({
           )}
         </div>
 
-        {turn.citedReceipts.length > 0 && (
+        {turn.citedReceipts.length > 0 && !animate && (
           <div className={cn("space-y-2", !isA && "items-end")}>
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Walrus receipts cited

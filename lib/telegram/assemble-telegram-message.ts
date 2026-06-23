@@ -51,13 +51,15 @@ export function finalizeTelegramMessage(input: {
         ? `/u/${input.publicSlug}`
         : undefined;
 
+  const mainMessage = enforcement.message.trim();
   const footerMemories = enforcement.citedMemories.map((m) => ({
     text: m.text,
     id: m.id,
   }));
+  const footer = formatReceiptFooter(footerMemories, { mainMessage });
 
   return {
-    message: `${enforcement.message.trim()}${formatReceiptFooter(footerMemories)}`,
+    message: `${mainMessage}${footer}`,
     citedMemories: enforcement.citedMemories,
     citedMemoryIds: enforcement.citedMemories
       .map((m) => m.id)

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 type ClashMatchPickerProps = {
   selectedMatchId: string | null;
-  onSelect: (matchId: string) => void;
+  onSelect: (matchId: string, match: Match) => void;
   className?: string;
 };
 
@@ -58,7 +58,10 @@ export function ClashMatchPicker({
       <select
         id="clash-match-picker"
         value={selectedMatchId ?? ""}
-        onChange={(e) => onSelect(e.target.value)}
+        onChange={(e) => {
+          const match = matches.find((item) => item.id === e.target.value);
+          if (match) onSelect(match.id, match);
+        }}
         className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm font-medium shadow-sm focus:border-hoolclone-green-500 focus:outline-none focus:ring-2 focus:ring-hoolclone-green-200"
       >
         <option value="" disabled>

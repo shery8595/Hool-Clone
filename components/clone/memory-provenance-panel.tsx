@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Database, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WalrusBlobExplorerSheet } from "@/components/memory/walrus-blob-explorer-sheet";
+import { TextWithTeamFlags } from "@/components/match/team-label-with-flags";
 import { formatMemorySourceLabel } from "@/lib/clone/memory-provenance";
 import type { MemoryReceipt } from "@/lib/mock/types";
 import { isPlaceholderBlobId } from "@/lib/walrus/fetch-blob";
@@ -109,9 +110,14 @@ export function MemoryProvenancePanel({
                       {formatMemorySourceLabel(memory.memorySource) ?? "—"}
                     </td>
                     <td className="max-w-[14rem] py-2.5 pr-3 align-top text-xs leading-snug">
-                      {memory.text.length > 80
-                        ? `${memory.text.slice(0, 80)}…`
-                        : memory.text}
+                      <TextWithTeamFlags
+                        text={
+                          memory.text.length > 80
+                            ? `${memory.text.slice(0, 80)}…`
+                            : memory.text
+                        }
+                        size="sm"
+                      />
                     </td>
                     <td className="py-2.5 pr-3 align-top">
                       {memory.walrusBlobId ? (

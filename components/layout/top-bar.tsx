@@ -58,6 +58,12 @@ function resolvePageContext(pathname: string): {
       subtitle: "Day 1 vs Day 7 — Walrus memory proof",
     };
   }
+  if (pathname.startsWith("/leaderboard")) {
+    return {
+      title: "Leaderboard",
+      subtitle: "Memories stored and clone alignment",
+    };
+  }
   if (pathname.includes("/clash")) {
     return { title: "Clone Clash", subtitle: "Namespace vs namespace" };
   }

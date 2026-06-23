@@ -20,7 +20,12 @@ export type DashboardData = {
     maturityLabel: CloneMaturity;
     level: number;
     maxLevel: number;
+    displayLevel: number;
+    displayMaxLevel: number;
     levelProgress: number;
+    tierProgress: number;
+    nextMaturityLabel: CloneMaturity | null;
+    memoriesToNext: number;
     quote: string | null;
   };
   biasRadar: BiasAxis[];

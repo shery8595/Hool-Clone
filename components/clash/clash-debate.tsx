@@ -1,23 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Swords, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ClashMatchPicker } from "@/components/clash/clash-match-picker";
 import { ClashMessage } from "@/components/clash/clash-message";
 import { ClashParticipantCard } from "@/components/clash/clash-participant-card";
+import { ClashTypingIndicator } from "@/components/clash/clash-typing-indicator";
 import { WalrusBlobExplorerSheet } from "@/components/memory/walrus-blob-explorer-sheet";
-import { generateClashDebate } from "@/lib/api/client";
+import { fetchMatches, generateClashDebate } from "@/lib/api/client";
 import type { ClashDebateResult } from "@/lib/clash/types";
 import type { ClashParticipantMeta } from "@/lib/clash/types";
-import type { MemoryReceipt } from "@/lib/mock/types";
+import type { Match, MemoryReceipt } from "@/lib/mock/types";
+
+const BETWEEN_TURN_PAUSE_MS = 650;
 
 type ClashDebateProps = {
   slugA: string;
   slugB: string;
   participantA: ClashParticipantMeta;
   participantB: ClashParticipantMeta;
+  fromArena?: boolean;
 };
 
 export function ClashDebate({
@@ -25,29 +29,67 @@ export function ClashDebate({
   slugB,
   participantA,
   participantB,
+  fromArena = false,
 }: ClashDebateProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMatch = searchParams.get("match");
+  const transcriptEndRef = useRef<HTMLDivElement>(null);
 
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(
     initialMatch,
   );
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [result, setResult] = useState<ClashDebateResult | null>(null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visibleTurns, setVisibleTurns] = useState(0);
-  const [typingDone, setTypingDone] = useState(false);
+  const [isTypingTurn, setIsTypingTurn] = useState(false);
+  const [pendingSpeaker, setPendingSpeaker] = useState<"A" | "B" | null>(null);
   const [exploreReceipt, setExploreReceipt] = useState<MemoryReceipt | null>(
     null,
   );
 
+  const debateActive = generating || result !== null;
+  const displayMatch = result?.match ?? selectedMatch;
+  const debateComplete =
+    Boolean(result) &&
+    visibleTurns >= (result?.turns.length ?? 0) &&
+    !isTypingTurn &&
+    !pendingSpeaker &&
+    !generating;
+
+  useEffect(() => {
+    if (!selectedMatchId || selectedMatch) return;
+    void fetchMatches()
+      .then((matches) => {
+        const match = matches.find((item) => item.id === selectedMatchId);
+        if (match?.homeTeam && match?.awayTeam) {
+          setSelectedMatch(match);
+        }
+      })
+      .catch(() => undefined);
+  }, [selectedMatchId, selectedMatch]);
+
+  useEffect(() => {
+    transcriptEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [visibleTurns, pendingSpeaker, generating, debateComplete]);
+
+  const resetTranscript = useCallback(() => {
+    setResult(null);
+    setVisibleTurns(0);
+    setIsTypingTurn(false);
+    setPendingSpeaker(null);
+  }, []);
+
   const handleMatchSelect = useCallback(
-    (matchId: string) => {
+    (matchId: string, match: Match) => {
       setSelectedMatchId(matchId);
-      setResult(null);
-      setVisibleTurns(0);
-      setTypingDone(false);
+      setSelectedMatch(match);
+      resetTranscript();
       const params = new URLSearchParams(searchParams.toString());
       params.set("opponent", slugB);
       params.set("match", matchId);
@@ -55,16 +97,14 @@ export function ClashDebate({
         scroll: false,
       });
     },
-    [router, searchParams, slugA, slugB],
+    [router, searchParams, slugA, slugB, resetTranscript],
   );
 
   const handleGenerate = async () => {
     if (!selectedMatchId) return;
     setGenerating(true);
     setError(null);
-    setResult(null);
-    setVisibleTurns(0);
-    setTypingDone(false);
+    resetTranscript();
 
     try {
       const data = await generateClashDebate({
@@ -73,7 +113,9 @@ export function ClashDebate({
         matchId: selectedMatchId,
       });
       setResult(data);
+      setSelectedMatch(data.match);
       setVisibleTurns(1);
+      setIsTypingTurn(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate clash");
     } finally {
@@ -81,22 +123,25 @@ export function ClashDebate({
     }
   };
 
-  const handleTypingComplete = () => {
-    setTypingDone(true);
-  };
-
-  const advanceTurn = useCallback(() => {
+  const handleTypingComplete = useCallback(() => {
     if (!result) return;
-    setTypingDone(false);
-    setVisibleTurns((n) => Math.min(n + 1, result.turns.length));
-  }, [result]);
 
-  useEffect(() => {
-    if (!typingDone || !result) return;
-    if (visibleTurns >= result.turns.length) return;
-    const timer = setTimeout(advanceTurn, 400);
-    return () => clearTimeout(timer);
-  }, [typingDone, result, visibleTurns, advanceTurn]);
+    setIsTypingTurn(false);
+
+    if (visibleTurns >= result.turns.length) {
+      return;
+    }
+
+    const nextSpeaker = result.turns[visibleTurns]?.speaker ?? null;
+    if (!nextSpeaker) return;
+
+    setPendingSpeaker(nextSpeaker);
+    window.setTimeout(() => {
+      setVisibleTurns((count) => Math.min(count + 1, result.turns.length));
+      setPendingSpeaker(null);
+      setIsTypingTurn(true);
+    }, BETWEEN_TURN_PAUSE_MS);
+  }, [result, visibleTurns]);
 
   return (
     <div className="space-y-6">
@@ -104,10 +149,13 @@ export function ClashDebate({
         <div className="flex flex-wrap items-center gap-3">
           <Swords className="h-6 w-6 text-hoolclone-green-800" />
           <div>
-            <h2 className="text-lg font-bold">Clone Clash</h2>
+            <h2 className="text-lg font-bold">
+              {fromArena ? "Arena bout" : "Clone Clash"}
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Two Walrus namespaces, one fixture — clones debate with their own
-              memory receipts.
+              {fromArena
+                ? "Leaderboard rivals — two Walrus namespaces, one fixture."
+                : "Two Walrus namespaces, one fixture — clones debate with their own memory receipts."}
             </p>
           </div>
         </div>
@@ -154,10 +202,10 @@ export function ClashDebate({
           {generating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Recalling from both namespaces…
+              Summoning clones…
             </>
           ) : (
-            "Generate clash debate"
+            "Start clash debate"
           )}
         </Button>
 
@@ -166,19 +214,50 @@ export function ClashDebate({
         )}
       </section>
 
-      {result && (
+      {debateActive && (
         <section className="space-y-4 rounded-2xl border bg-white p-6 shadow-sm">
           <div className="border-b pb-3">
             <h3 className="font-bold">
-              {result.match.homeTeam?.name} vs {result.match.awayTeam?.name}
+              {displayMatch?.homeTeam?.name && displayMatch?.awayTeam?.name
+                ? `${displayMatch.homeTeam.name} vs ${displayMatch.awayTeam.name}`
+                : "Arena debate"}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              {result.match.stage} · {result.match.venue}
-            </p>
+            {displayMatch && (
+              <p className="text-xs text-muted-foreground">
+                {displayMatch.stage} · {displayMatch.venue}
+              </p>
+            )}
+            {generating && (
+              <p className="mt-2 text-xs font-medium text-hoolclone-green-800">
+                Recalling Walrus memories from both namespaces…
+              </p>
+            )}
+            {debateComplete && result?.verdict && (
+              <div className="mt-3 rounded-xl border border-hoolclone-green-200 bg-hoolclone-green-50/60 px-4 py-3 animate-in fade-in duration-500">
+                <p className="text-sm font-semibold text-hoolclone-green-950">
+                  Arena verdict · {result.verdict.scoreA}–
+                  {result.verdict.scoreB}
+                  {result.verdict.winnerSlug
+                    ? ` · @${result.verdict.winnerSlug} wins`
+                    : " · Draw"}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {result.verdict.summary}
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
-            {result.turns.slice(0, visibleTurns).map((turn, index) => {
+            {generating && !result && (
+              <ClashTypingIndicator
+                displayName={participantA.displayName}
+                side="A"
+                label="recalling memories"
+              />
+            )}
+
+            {result?.turns.slice(0, visibleTurns).map((turn, index) => {
               const isLast = index === visibleTurns - 1;
               const name =
                 turn.speaker === "A"
@@ -190,15 +269,28 @@ export function ClashDebate({
                   key={`${turn.speaker}-${index}`}
                   turn={turn}
                   displayName={name}
-                  animate={isLast && !typingDone}
+                  animate={isLast && isTypingTurn}
                   onTypingComplete={
-                    isLast ? handleTypingComplete : undefined
+                    isLast && isTypingTurn ? handleTypingComplete : undefined
                   }
                   onExploreReceipt={setExploreReceipt}
                 />
               );
             })}
+
+            {pendingSpeaker && (
+              <ClashTypingIndicator
+                displayName={
+                  pendingSpeaker === "A"
+                    ? participantA.displayName
+                    : participantB.displayName
+                }
+                side={pendingSpeaker}
+              />
+            )}
           </div>
+
+          <div ref={transcriptEndRef} aria-hidden />
         </section>
       )}
 

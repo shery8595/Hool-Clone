@@ -143,7 +143,7 @@ export default function PredictListPage() {
         <MatchSummaryStats matches={matches} />
       </div>
 
-      <PredictionHistory items={history} />
+      <PredictionHistory items={history} limit={3} />
 
       <Tabs defaultValue="upcoming">
         <TabsList className="mb-4 grid h-auto w-full max-w-md grid-cols-3">

@@ -4,7 +4,6 @@ import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard
 import { CloneClashCta } from "@/components/clone/clone-clash-cta";
 import { CloneSameQuestionProof } from "@/components/clone/clone-same-question-proof";
 import { CorrectionOverrideProof } from "@/components/clone/correction-override-proof";
-import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
 import { EvolutionStakesHero } from "@/components/clone/evolution-stakes-hero";
 import { evolutionMatchFromTimeMachine } from "@/lib/clone/evolution-match";
 import { EvolutionAnalyticsAccordion } from "@/components/clone/evolution-analytics-accordion";
@@ -23,23 +22,21 @@ import { MemoryTimeMachine } from "@/components/clone/memory-time-machine";
 import { CloneDriftChart } from "@/components/charts/clone-drift-chart";
 import { EvolutionPageHeader } from "@/components/evolution/evolution-page-header";
 import { EvolutionChatShowcase } from "@/components/evolution/evolution-chat-showcase";
+import { EvolutionSection } from "@/components/evolution/evolution-section";
 import { SeasonReportCard } from "@/components/profile/season-report-card";
 import { DEMO_NAMESPACE } from "@/lib/landing/content";
+import { computeMaturityProgress } from "@/lib/auth/maturity";
 import type { TimeMachinePhaseId } from "@/lib/clone/memory-time-machine-types";
 import type { EvolutionPageData } from "@/lib/evolution/types";
 import { ButtonLink } from "@/components/ui/button-link";
+import { TextWithTeamFlags } from "@/components/match/team-label-with-flags";
+import { cn } from "@/lib/utils";
 
 type EvolutionProofPageProps = {
   data: EvolutionPageData;
   comparePhase?: TimeMachinePhaseId;
   showBackLink?: boolean;
 };
-
-function resolveClashOpponent(slug: string): string {
-  if (slug === "hoolclone-demo") return "hoolclone-rival";
-  if (slug === "hoolclone-rival") return "hoolclone-demo";
-  return "hoolclone-demo";
-}
 
 function parseComparePhase(
   value: string | undefined,
@@ -60,7 +57,6 @@ export function EvolutionProofPage({
     handle,
     joinedAt,
     maturityLabel,
-    level,
     cloneAnalytics,
     memoryTimeMachine,
     allMemoryReceipts,
@@ -72,7 +68,6 @@ export function EvolutionProofPage({
 
   const totalContradictions =
     cloneAnalytics.temporalContradictions.length + contradictionCount;
-  const clashOpponent = resolveClashOpponent(slug);
 
   const sameQuestionResult = buildSameQuestionProofFromTimeMachine(
     memoryTimeMachine,
@@ -106,14 +101,24 @@ export function EvolutionProofPage({
     allMemoryReceipts[0]?.walrusNamespace ??
     (slug === "hoolclone-demo" ? DEMO_NAMESPACE : undefined);
 
+  const maturity = computeMaturityProgress(allMemoryReceipts.length);
+  const day1Phase = memoryTimeMachine?.phases.find((p) => p.id === "day1");
+  const confidenceDelta =
+    day1Phase && day7Phase
+      ? day7Phase.confidence - day1Phase.confidence
+      : null;
+  const walrusBackedCount = allMemoryReceipts.filter(
+    (r) => r.storageStatus === "stored" && r.walrusBlobId,
+  ).length;
+
   const backHref = isPublicView ? `/u/${slug}` : "/dashboard";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-5 pb-8">
       {showBackLink && (
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1 text-sm font-medium text-hoolclone-green-800 hover:underline"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-white px-3 py-1.5 text-sm font-semibold text-hoolclone-green-800 shadow-sm transition hover:bg-hoolclone-green-50"
         >
           <ArrowLeft className="h-4 w-4" />
           {isPublicView ? "Back to profile" : "Back to dashboard"}
@@ -125,10 +130,15 @@ export function EvolutionProofPage({
         handle={handle}
         joinedAt={joinedAt}
         maturityLabel={maturityLabel}
-        level={level}
+        displayLevel={maturity.displayLevel}
+        displayMaxLevel={maturity.displayMaxLevel}
+        memoriesCount={allMemoryReceipts.length}
+        walrusBackedCount={walrusBackedCount}
+        confidenceDelta={confidenceDelta}
+        matchLabel={matchInfo.matchLabel ?? null}
         slug={slug}
         isPublicView={isPublicView}
-        clashOpponent={clashOpponent}
+        cloneMood={cloneAnalytics.cloneMood}
       />
 
       <EvolutionStakesHero
@@ -160,13 +170,13 @@ export function EvolutionProofPage({
         </>
       )}
 
-      <section className="rounded-2xl border bg-gradient-to-br from-hoolclone-green-50 to-white p-6">
-        <h2 className="text-lg font-bold">Memory Evolution Timeline</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Day 1 vs Day 7 clone — how Walrus-backed memories across onboarding,
-          debate, correction, and prediction reshape the same matchup pick.
-        </p>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <EvolutionSection
+        eyebrow="Timeline"
+        title="Memory evolution snapshot"
+        description="Day 1 vs Day 7 — how Walrus-backed memories reshape the same matchup pick."
+        variant="highlight"
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
           <EvolutionDayCard
             label="Day 1 Clone"
             snapshot={cloneAnalytics.day1Snapshot}
@@ -177,7 +187,7 @@ export function EvolutionProofPage({
             highlight
           />
         </div>
-      </section>
+      </EvolutionSection>
 
       <MemoryProvenancePanel
         memories={allMemoryReceipts}
@@ -198,11 +208,7 @@ export function EvolutionProofPage({
       {roastRecord && <RoastRecordSection data={roastRecord} />}
 
       {isPublicView && (
-        <CloneClashCta slug={slug} opponentSlug={clashOpponent} />
-      )}
-
-      {cloneAnalytics.cloneMood && (
-        <CloneMoodBadge mood={cloneAnalytics.cloneMood} />
+        <CloneClashCta slug={slug} />
       )}
 
       <EvolutionAnalyticsAccordion>
@@ -230,7 +236,7 @@ export { parseComparePhase };
 
 function EvolutionEmptyState() {
   return (
-    <section className="rounded-2xl border border-dashed border-border/70 bg-muted/20 p-8 text-center">
+    <section className="relative overflow-hidden rounded-2xl border border-dashed border-hoolclone-green-200 bg-gradient-to-br from-hoolclone-green-50/50 via-white to-hoolclone-yellow-50/30 p-8 text-center">
       <Brain className="mx-auto h-10 w-10 text-hoolclone-green-700" />
       <h2 className="mt-4 text-lg font-semibold text-hoolclone-green-950">
         Evolution unlocks after training
@@ -262,29 +268,34 @@ function EvolutionDayCard({
 }) {
   return (
     <div
-      className={
+      className={cn(
+        "rounded-xl border p-5 transition-shadow",
         highlight
-          ? "rounded-xl border border-hoolclone-yellow-300 bg-hoolclone-yellow-50/50 p-5"
-          : "rounded-xl border border-dashed border-muted-foreground/30 bg-muted/20 p-5"
-      }
+          ? "border-hoolclone-yellow-300/80 bg-gradient-to-br from-hoolclone-yellow-50/60 to-white shadow-sm"
+          : "border-dashed border-muted-foreground/25 bg-muted/15",
+      )}
     >
-      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <p className="mt-2 text-3xl font-bold text-hoolclone-green-900">
-        Confidence: {snapshot.confidence}%
+      <p className="mt-2 text-3xl font-bold tabular-nums text-hoolclone-green-900">
+        {snapshot.confidence}%
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">{snapshot.maturityLabel}</p>
+      <p className="mt-0.5 text-xs font-medium text-muted-foreground">
+        Confidence · {snapshot.maturityLabel}
+      </p>
       {snapshot.reflection && (
-        <p className="mt-3 text-sm italic leading-relaxed text-foreground/80">
-          &ldquo;{snapshot.reflection}&rdquo;
+        <p className="mt-3 border-l-2 border-hoolclone-green-600/40 pl-3 text-sm italic leading-relaxed text-foreground/80">
+          &ldquo;
+          <TextWithTeamFlags text={snapshot.reflection} size="sm" />
+          &rdquo;
         </p>
       )}
       <ul className="mt-4 space-y-2 text-sm">
         {snapshot.bullets.map((bullet) => (
           <li key={bullet} className="flex gap-2 text-muted-foreground">
-            <span className="text-hoolclone-green-700">−</span>
-            {bullet}
+            <span className="font-bold text-hoolclone-green-700">·</span>
+            <TextWithTeamFlags text={bullet} size="sm" />
           </li>
         ))}
       </ul>

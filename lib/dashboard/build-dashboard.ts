@@ -113,7 +113,12 @@ export async function buildDashboard(userId: string): Promise<DashboardData | nu
       maturityLabel: profile.cloneMaturityLabel,
       level: maturity.level,
       maxLevel: maturity.maxLevel,
-      levelProgress: maturity.progress,
+      displayLevel: maturity.displayLevel,
+      displayMaxLevel: maturity.displayMaxLevel,
+      levelProgress: maturity.overallProgress,
+      tierProgress: maturity.tierProgress,
+      nextMaturityLabel: maturity.nextLabel,
+      memoriesToNext: maturity.memoriesToNext,
       quote,
     },
     biasRadar: buildBiasRadar({

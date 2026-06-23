@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MessageCircle, Plus, ShoppingBag } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { MaturityBadge } from "@/components/clone/clone-avatar";
 import { ChatMessage } from "@/components/debate/chat-message";
 import { ChatInput } from "@/components/debate/chat-input";
+import { DebatePageHeader } from "@/components/debate/debate-page-header";
+import { DebateTypingIndicator } from "@/components/debate/debate-typing-indicator";
 import { ReceiptDrawer } from "@/components/debate/receipt-drawer";
 import {
   fetchDebateOpening,
@@ -100,6 +101,11 @@ export default function DebatePage() {
     void loadMemories();
   }, [me, loadOpening, loadMemories]);
 
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, sending]);
+
   const handleNewChat = () => {
     if (sending || startingChat) return;
 
@@ -157,28 +163,34 @@ export default function DebatePage() {
 
   if (!me) {
     return (
-      <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-12 text-center">
-        <p className="text-muted-foreground">
-          Connect your wallet to debate your clone with live memories.
+      <div className="mx-auto max-w-lg rounded-2xl border border-hoolclone-green-200/60 bg-gradient-to-br from-hoolclone-green-50 via-white to-hoolclone-yellow-50/40 p-12 text-center shadow-sm">
+        <p className="text-lg font-semibold text-hoolclone-green-950">
+          Debate your clone
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Connect your wallet to argue with receipts from your Walrus memories.
         </p>
       </div>
     );
   }
 
-  const tagline =
-    me.profile.memoriesCount > 0
-      ? `${me.profile.memoriesCount} memories fuel this debate`
-      : "Train your clone first for sharper arguments";
-
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-7xl flex-col gap-4 lg:flex-row">
-      <div className="flex min-w-0 flex-1 flex-col rounded-2xl border border-border bg-white shadow-sm">
-        <div className="border-b border-border p-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-hoolclone-green-700" />
-              <h1 className="font-bold">Debate your clone</h1>
-            </div>
+    <div className="mx-auto flex max-w-7xl flex-col gap-4">
+      <DebatePageHeader
+        displayName={me.displayName}
+        namespace={me.memwalNamespace}
+        maturityLabel={me.profile.cloneMaturityLabel}
+        memoriesCount={me.profile.memoriesCount}
+        citedReceiptCount={highlightedReceiptIds.length}
+        turnCount={messages.length}
+      />
+
+      <div className="flex min-h-[calc(100vh-14rem)] flex-col gap-4 lg:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hoolclone-green-100 bg-white shadow-sm">
+          <div className="flex items-center justify-between gap-2 border-b border-border bg-white/90 px-4 py-3 backdrop-blur-sm">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Live debate
+            </p>
             <div className="flex items-center gap-2">
               <Button
                 type="button"
@@ -186,96 +198,81 @@ export default function DebatePage() {
                 size="sm"
                 disabled={sending || startingChat}
                 onClick={handleNewChat}
-                className="hidden sm:inline-flex"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                New chat
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                disabled={sending || startingChat}
-                onClick={handleNewChat}
-                className="sm:hidden"
-                aria-label="New chat"
+                className="rounded-xl"
               >
                 <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New chat</span>
               </Button>
-              <div className="hidden items-center gap-2 md:flex">
-                <span className="text-xs text-muted-foreground">Clone maturity:</span>
-                <MaturityBadge maturity={me.profile.cloneMaturityLabel} />
-              </div>
+              <Sheet>
+                <SheetTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl lg:hidden"
+                    />
+                  }
+                >
+                  <Receipt className="h-4 w-4" />
+                  <span className="ml-1.5 hidden sm:inline">Receipts</span>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full p-0 sm:max-w-md">
+                  <ReceiptDrawer
+                    memories={memories}
+                    highlightedIds={highlightedReceiptIds}
+                    scrollToId={focusReceiptId}
+                    onRefresh={() => void loadMemories()}
+                    className="h-full rounded-none border-0 shadow-none"
+                  />
+                </SheetContent>
+              </Sheet>
             </div>
-            <Sheet>
-              <SheetTrigger
-                render={
-                  <Button variant="outline" size="sm" className="lg:hidden" />
-                }
-              >
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Receipts
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full p-0 sm:max-w-md">
-                <ReceiptDrawer
-                  memories={memories}
-                  highlightedIds={highlightedReceiptIds}
-                  scrollToId={focusReceiptId}
-                  showClose
-                  onRefresh={() => void loadMemories()}
-                />
-              </SheetContent>
-            </Sheet>
           </div>
-        </div>
 
-        <div className="border-b border-border px-4 py-3">
-          <p className="font-semibold">Your HoolClone</p>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <MaturityBadge maturity={me.profile.cloneMaturityLabel} />
-            <span className="text-sm text-muted-foreground">{tagline}</span>
+          <div
+            ref={scrollRef}
+            key={chatSession}
+            className="flex-1 space-y-5 overflow-y-auto bg-gradient-to-b from-hoolclone-green-50/25 via-white to-white p-4 sm:p-5"
+          >
+            {startingChat && messages.length === 0 && (
+              <div className="py-12">
+                <DebateTypingIndicator />
+              </div>
+            )}
+            {messages.map((msg) => (
+              <ChatMessage
+                key={msg.id}
+                message={msg}
+                onReceiptClick={(receiptId) => setFocusReceiptId(receiptId)}
+              />
+            ))}
+            {sending && <DebateTypingIndicator />}
           </div>
-        </div>
 
-        <div
-          ref={scrollRef}
-          key={chatSession}
-          className="flex-1 space-y-4 overflow-y-auto p-4"
-        >
-          {startingChat && messages.length === 0 && (
-            <p className="text-sm text-muted-foreground">Starting a new debate...</p>
-          )}
-          {messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              message={msg}
-              onReceiptClick={(receiptId) => setFocusReceiptId(receiptId)}
+          <div className="border-t border-border bg-white p-4 sm:p-5">
+            <ChatInput
+              onSend={(text) => void handleSend(text)}
+              disabled={sending || startingChat}
             />
-          ))}
-          {sending && (
-            <p className="text-sm text-muted-foreground">Clone is thinking...</p>
-          )}
+            {error && (
+              <p className="mt-2 text-center text-xs text-destructive">{error}</p>
+            )}
+            <p className="mt-3 text-center text-[11px] text-muted-foreground">
+              Healthy debate makes a sharper clone. Corrections store to Walrus
+              memory.
+            </p>
+          </div>
         </div>
 
-        <div className="border-t border-border p-4">
-          <ChatInput
-            onSend={(text) => void handleSend(text)}
-            disabled={sending || startingChat}
+        <div className="hidden w-80 shrink-0 lg:block xl:w-96">
+          <ReceiptDrawer
+            memories={memories}
+            highlightedIds={highlightedReceiptIds}
+            scrollToId={focusReceiptId}
+            onRefresh={() => void loadMemories()}
+            className="sticky top-4 h-[calc(100vh-14rem)]"
           />
-          {error && <p className="mt-2 text-center text-xs text-destructive">{error}</p>}
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            Healthy debate makes a sharper clone. Corrections store to Walrus memory.
-          </p>
         </div>
-      </div>
-
-      <div className="hidden w-80 shrink-0 lg:block xl:w-96">
-        <ReceiptDrawer
-          memories={memories}
-          highlightedIds={highlightedReceiptIds}
-          scrollToId={focusReceiptId}
-          onRefresh={() => void loadMemories()}
-        />
       </div>
     </div>
   );

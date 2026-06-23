@@ -3,6 +3,10 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CloneAvatar, MaturityBadge } from "@/components/clone/clone-avatar";
+import {
+  MatchLabelWithFlags,
+  TextWithTeamFlags,
+} from "@/components/match/team-label-with-flags";
 import type { MemoryTimeMachine, TimeMachinePhaseId } from "@/lib/clone/memory-time-machine-types";
 import type { CloneMaturity } from "@/lib/mock/types";
 import { cn } from "@/lib/utils";
@@ -45,15 +49,15 @@ function JudgeColumn({
         {phase.knowledgeBullets.map((bullet) => (
           <li key={bullet} className="flex gap-2">
             <span className="text-hoolclone-green-700">·</span>
-            {bullet}
+            <TextWithTeamFlags text={bullet} size="sm" />
           </li>
         ))}
       </ul>
       <p className="mt-3 text-2xl font-bold text-hoolclone-green-900">
-        {phase.prediction}
+        <TextWithTeamFlags text={phase.prediction} size="sm" />
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        {phase.reasoning}
+        <TextWithTeamFlags text={phase.reasoning} size="sm" />
       </p>
     </div>
   );
@@ -103,8 +107,10 @@ export function CloneBeforeAfterPanel({
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Same matchup ({data.matchLabel}): how your clone reasons with almost
-          no memory vs. days of Walrus-backed training.
+          Same matchup (
+          <MatchLabelWithFlags label={data.matchLabel} size="sm" />
+          ): how your clone reasons with almost no memory vs. days of Walrus-backed
+          training.
         </p>
       </CardHeader>
       <CardContent>

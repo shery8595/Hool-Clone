@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import { Target } from "lucide-react";
-import { HoolCloneLoader } from "@/components/brand/hoolclone-loader";
+import { LoadingStatus } from "@/components/brand/hoolclone-loader";
 import { HumanVsClonePanel } from "@/components/clone/human-vs-clone-panel";
 import { MatchBanner } from "@/components/match/match-banner";
 import { PredictionForm } from "@/components/match/prediction-form";
@@ -172,7 +172,7 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
             <h1 className="text-2xl font-bold">Predict Match</h1>
           </div>
           <div className="rounded-2xl border border-dashed bg-white p-12 text-center text-muted-foreground">
-            <HoolCloneLoader size="lg" label="Loading match details..." />
+            <LoadingStatus label="Loading match details..." />
           </div>
         </div>
       );
@@ -277,11 +277,7 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
 
         {cloneLoading ? (
           <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-border bg-white p-8 text-center text-muted-foreground">
-            <HoolCloneLoader
-              size="lg"
-              label="Your clone is thinking..."
-              className="py-4"
-            />
+            <LoadingStatus label="Your clone is thinking..." className="py-4" />
           </div>
         ) : showClonePanel && prediction.clone ? (
           <ClonePredictionPanel

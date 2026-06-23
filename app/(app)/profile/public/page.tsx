@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Globe, Share2 } from "lucide-react";
+import { Globe, Share2, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUser } from "@/components/providers/user-provider";
+import { LEADERBOARD_URL } from "@/lib/landing/content";
 
 export default function PublicProfileSetupPage() {
   const router = useRouter();
@@ -31,13 +33,23 @@ export default function PublicProfileSetupPage() {
               Judges and other fans can view your clone maturity, predictions,
               memory receipts, and evolution timeline.
             </p>
-            <Button
-              render={
-                <Link href={`/u/${me.publicSlug}`}>
-                  View /u/{me.publicSlug}
-                </Link>
-              }
-            />
+            <div className="flex flex-col gap-2">
+              <Button
+                render={
+                  <Link href={`/u/${me.publicSlug}`}>
+                    View /u/{me.publicSlug}
+                  </Link>
+                }
+              />
+              <ButtonLink
+                href={LEADERBOARD_URL}
+                variant="outline"
+                className="gap-2"
+              >
+                <Trophy className="h-4 w-4 text-hoolclone-yellow-600" />
+                View global leaderboard
+              </ButtonLink>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -67,17 +79,37 @@ export default function PublicProfileSetupPage() {
           </ul>
 
           {!me ? (
-            <p className="rounded-xl bg-muted p-4 text-sm">
-              Connect your wallet first to publish a profile.
-            </p>
+            <div className="space-y-3">
+              <p className="rounded-xl bg-muted p-4 text-sm">
+                Connect your wallet first to publish a profile.
+              </p>
+              <ButtonLink
+                href={LEADERBOARD_URL}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                <Trophy className="h-4 w-4 text-hoolclone-yellow-600" />
+                View global leaderboard
+              </ButtonLink>
+            </div>
           ) : (
-            <Button
-              variant="accent"
-              className="w-full"
-              onClick={() => void handleEnable()}
-            >
-              Publish my HoolClone profile
-            </Button>
+            <>
+              <Button
+                variant="accent"
+                className="w-full"
+                onClick={() => void handleEnable()}
+              >
+                Publish my HoolClone profile
+              </Button>
+              <ButtonLink
+                href={LEADERBOARD_URL}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                <Trophy className="h-4 w-4 text-hoolclone-yellow-600" />
+                View global leaderboard
+              </ButtonLink>
+            </>
           )}
         </CardContent>
       </Card>

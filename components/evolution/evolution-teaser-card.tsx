@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
+import { MatchLabelWithFlags } from "@/components/match/team-label-with-flags";
 import type { MemoryTimeMachine } from "@/lib/clone/memory-time-machine-types";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +57,10 @@ export function EvolutionTeaserCard({
 
         {memoryTimeMachine && day1 && day7 ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <TeaserStat label="Matchup" value={memoryTimeMachine.matchLabel} />
+            <TeaserStat
+              label="Matchup"
+              value={<MatchLabelWithFlags label={memoryTimeMachine.matchLabel} size="sm" />}
+            />
             <TeaserStat
               label="Confidence shift"
               value={
@@ -94,7 +98,13 @@ export function EvolutionTeaserCard({
   );
 }
 
-function TeaserStat({ label, value }: { label: string; value: string }) {
+function TeaserStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="rounded-xl border border-border/50 bg-muted/15 px-3 py-2.5">
       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">

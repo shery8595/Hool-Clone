@@ -30,6 +30,35 @@ type HoolCloneLoaderProps = {
   fullScreen?: boolean;
 };
 
+export function LoadingStatus({
+  label,
+  className,
+}: {
+  label?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3",
+        className,
+      )}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="flex items-center gap-1.5" aria-hidden>
+        <span className="h-2 w-2 animate-bounce rounded-full bg-hoolclone-green-700 [animation-delay:0ms]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-hoolclone-green-700 [animation-delay:150ms]" />
+        <span className="h-2 w-2 animate-bounce rounded-full bg-hoolclone-green-700 [animation-delay:300ms]" />
+      </div>
+      {label ? (
+        <p className="text-sm text-muted-foreground">{label}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export function HoolCloneLoader({
   size = "md",
   aspect = "video",

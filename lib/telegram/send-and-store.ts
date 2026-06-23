@@ -4,6 +4,7 @@ import type { CitationSource } from "@/lib/telegram/citation-enforcement";
 import type { CitedMemoryPayload } from "@/lib/telegram/citation-enforcement";
 import type { MessageRecallBackend } from "@/lib/telegram/message-recall-backend";
 import type { RecalledMemorySnapshot } from "@/lib/telegram/recalled-memory-snapshot";
+import { splitTelegramMessage } from "@/lib/telegram/telegram-message-limit";
 
 export type TelegramMessageType =
   | "live_goal"
@@ -31,9 +32,15 @@ export async function sendAndStoreTelegramMessage(input: {
     throw new Error("Telegram bot is not configured");
   }
 
-  const sent = await bot.api.sendMessage(Number(input.chatId), input.body, {
-    link_preview_options: { is_disabled: true },
-  });
+  const parts = splitTelegramMessage(input.body);
+  let telegramMessageId: number | undefined;
+
+  for (const part of parts) {
+    const sent = await bot.api.sendMessage(Number(input.chatId), part, {
+      link_preview_options: { is_disabled: true },
+    });
+    telegramMessageId = sent.message_id;
+  }
 
   const metadata = {
     ...(input.metadata ?? {}),
@@ -58,12 +65,12 @@ export async function sendAndStoreTelegramMessage(input: {
       input.messageType,
       input.body,
       JSON.stringify(metadata),
-      sent.message_id,
+      telegramMessageId ?? null,
     ],
   );
 
   return {
-    telegramMessageId: sent.message_id,
+    telegramMessageId,
     storedId: rows[0]?.id,
   };
 }
