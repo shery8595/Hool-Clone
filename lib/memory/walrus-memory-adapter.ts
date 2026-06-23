@@ -1,4 +1,8 @@
 import { query, queryOne } from "@/lib/db/client";
+import {
+  buildEncryptedWalrusPayload,
+  recallTextForMemory,
+} from "@/lib/crypto/walrus-envelope";
 import type {
   MemoryAdapter,
   MemoryRecord,
@@ -13,9 +17,29 @@ import {
   recallMemoriesLocal,
   updateMemoryStorage,
 } from "@/lib/memory/postgres-memory";
+import { ACTIVE_MEMORY_SQL } from "@/lib/memory/memory-filters";
 
 function formatWalrusPayload(memory: MemoryRecord): string {
   const meta = memory.metadata ?? {};
+  if (meta.encrypted === true) {
+    const searchText =
+      typeof meta.searchText === "string" ? meta.searchText : memory.text;
+    const ciphertext =
+      typeof meta.ciphertext === "string" ? meta.ciphertext : "";
+    const nonce =
+      typeof meta.encryptionNonce === "string" ? meta.encryptionNonce : "";
+    const version =
+      typeof meta.encryptionVersion === "string"
+        ? meta.encryptionVersion
+        : "v1";
+    return buildEncryptedWalrusPayload(memory, {
+      searchText,
+      ciphertextB64: ciphertext,
+      nonceB64: nonce,
+      version,
+    });
+  }
+
   const tags: string[] = [`[${memory.type}]`, memory.text];
   if (typeof meta.team === "string") tags.push(`team:${meta.team}`);
   if (typeof meta.driver === "string") tags.push(`driver:${meta.driver}`);
@@ -132,7 +156,7 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
            from memories
            where user_id = $1
              and metadata->>'walrusBlobId' = any($2::text[])
-             and coalesce((metadata->>'disputed')::boolean, false) = false`,
+             and ${ACTIVE_MEMORY_SQL}`,
           [userId, blobIds],
         );
         for (const row of rows) {
@@ -154,7 +178,7 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
         const rowMetadata = rowMeta?.metadata ?? {};
 
         return {
-          text: item.text,
+          text: recallTextForMemory(item.text, rowMetadata),
           score: distanceToScore(item.distance),
           metadata: {
             ...rowMetadata,

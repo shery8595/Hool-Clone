@@ -70,6 +70,16 @@ function sourceStep(
     };
   }
 
+  if (source === "sleep_cycle") {
+    const theme =
+      typeof metadata.theme === "string" ? metadata.theme : undefined;
+    return {
+      label: "Consolidated during sleep cycle",
+      detail: theme,
+      timestamp: memory.createdAt,
+    };
+  }
+
   if (source === "prediction" || metadataTypeUsed(metadata)) {
     return {
       label: matchId
@@ -120,6 +130,30 @@ function walrusStorageStep(
 function supersededStep(
   metadata: Record<string, unknown>,
 ): MemoryLineageStep | null {
+  if (metadata.archived === true) {
+    const reason =
+      typeof metadata.archivedReason === "string"
+        ? metadata.archivedReason
+        : undefined;
+    const consolidatedInto =
+      typeof metadata.consolidatedInto === "string"
+        ? metadata.consolidatedInto.slice(0, 8)
+        : undefined;
+    return {
+      label:
+        reason === "sleep_cycle"
+          ? "Archived after sleep cycle consolidation"
+          : "Archived / superseded",
+      detail: consolidatedInto
+        ? `Replaced by memory ${consolidatedInto}…`
+        : undefined,
+      timestamp:
+        typeof metadata.archivedAt === "string"
+          ? metadata.archivedAt
+          : undefined,
+    };
+  }
+
   if (metadata.disputed !== true) return null;
 
   const reason =

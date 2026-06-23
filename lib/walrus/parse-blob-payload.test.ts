@@ -30,6 +30,16 @@ describe("parseBlobPayload", () => {
 });
 
 describe("tokenizeBlobPayload", () => {
+  it("parses encrypted envelope", () => {
+    const parsed = parseBlobPayload(
+      '[emotional_memory] search:"World Cup heartbreak bias" enc:v1:abc123:nonce456 source:onboarding team:Brazil',
+    );
+    assert.equal(parsed.type, "emotional_memory");
+    assert.equal(parsed.text, "World Cup heartbreak bias");
+    assert.equal(parsed.encrypted?.ciphertextB64, "abc123");
+    assert.equal(parsed.tags.source, "onboarding");
+  });
+
   it("tokenizes parsed payload for display", () => {
     const tokens = tokenizeBlobPayload("[bias] Skeptical of England");
     assert.ok(tokens.some((t) => t.kind === "type" && t.value === "bias"));

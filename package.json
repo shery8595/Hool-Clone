@@ -18,6 +18,7 @@
     "telegram:webhook": "node scripts/setup-telegram-webhook.mjs",
     "memwal:setup": "tsx scripts/memwal-setup.ts",
     "cron:setup": "node scripts/setup-cron-job.mjs",
+    "consolidate:demo": "tsx scripts/consolidate-demo-user.ts",
     "test": "node --import tsx --test lib/**/*.test.ts",
     "test:watch": "node --import tsx --test --watch lib/**/*.test.ts"
   },

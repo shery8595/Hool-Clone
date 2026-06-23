@@ -51,6 +51,15 @@ export function fallbackExtraction(input: {
     });
   }
 
+  if (lowerQ.includes("heartbreak")) {
+    facts.push({
+      type: "emotional_memory",
+      text: summaryLine,
+      searchText: "Strong World Cup heartbreak and emotional football bias",
+      driver: input.driver,
+    });
+  }
+
   return { facts, profileHints, summaryLine };
 }
 

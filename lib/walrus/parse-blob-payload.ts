@@ -1,9 +1,18 @@
 /** Inverse of formatWalrusPayload in walrus-memory-adapter.ts */
+import { parseEncryptedEnvelope } from "@/lib/crypto/walrus-envelope";
+
 export function parseBlobPayload(raw: string): {
   type: string;
   text: string;
   tags: Record<string, string>;
+  encrypted?: {
+    searchText?: string;
+    ciphertextB64?: string;
+    nonceB64?: string;
+    version?: string;
+  };
 } {
+  const encrypted = parseEncryptedEnvelope(raw);
   const trimmed = raw.trim();
   if (!trimmed) {
     return { type: "unknown", text: "", tags: {} };
@@ -12,6 +21,11 @@ export function parseBlobPayload(raw: string): {
   const typeMatch = trimmed.match(/^\[([^\]]+)\]/);
   const type = typeMatch?.[1]?.trim() ?? "unknown";
   let remainder = typeMatch ? trimmed.slice(typeMatch[0].length).trim() : trimmed;
+
+  // Strip quoted search and enc tags before generic tag parsing
+  remainder = remainder
+    .replace(/search:"[^"]*"/gi, " ")
+    .replace(/enc:v\d+:\S+:\S+/gi, " ");
 
   const tags: Record<string, string> = {};
   const tagPattern = /\b([a-z_]+):(\S+)/gi;
@@ -29,7 +43,15 @@ export function parseBlobPayload(raw: string): {
   }
   text = text.replace(/\s+/g, " ").trim();
 
-  return { type, text, tags };
+  if (encrypted.searchText) {
+    text = encrypted.searchText;
+  }
+
+  const result = { type, text, tags };
+  if (encrypted.ciphertextB64) {
+    return { ...result, encrypted };
+  }
+  return result;
 }
 
 export type PayloadToken = {

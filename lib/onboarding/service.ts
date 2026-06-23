@@ -1,6 +1,8 @@
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
+import { encryptMemoryForUser } from "@/lib/crypto/memory-crypto";
 import { query, queryOne } from "@/lib/db/client";
 import {
+  countMemories,
   syncCloneMaturity,
   updateFanProfile,
   type MeResponse,
@@ -78,15 +80,33 @@ export async function saveOnboardingAnswer(
   const memoryIds: string[] = [];
 
   for (const fact of extraction.facts) {
+    let text = fact.text;
+    const metadata: Record<string, unknown> = {
+      questionId: input.questionId,
+      driver: fact.driver ?? input.driver,
+      team: fact.team,
+      source: "onboarding",
+    };
+
+    if (fact.type === "emotional_memory") {
+      const searchText =
+        fact.searchText ??
+        `Emotional football memory bias${fact.team ? ` (${fact.team})` : ""}`;
+      const encrypted = await encryptMemoryForUser(userId, fact.text);
+      text = searchText;
+      Object.assign(metadata, {
+        encrypted: true,
+        searchText,
+        ciphertext: encrypted.ciphertextB64,
+        encryptionNonce: encrypted.nonceB64,
+        encryptionVersion: encrypted.version,
+      });
+    }
+
     const result = await memoryAdapter.remember(userId, {
       type: fact.type,
-      text: fact.text,
-      metadata: {
-        questionId: input.questionId,
-        driver: fact.driver ?? input.driver,
-        team: fact.team,
-        source: "onboarding",
-      },
+      text,
+      metadata,
     });
     if (result.id) memoryIds.push(result.id);
   }
@@ -109,11 +129,8 @@ export async function saveOnboardingAnswer(
 
   await syncCloneMaturity(userId);
 
-  const memories = await queryOne<{ count: string }>(
-    "select count(*)::text as count from memories where user_id = $1",
-    [userId],
-  );
-  const maturity = memoryCountToMaturity(Number(memories?.count ?? 0));
+  const memoriesCount = await countMemories(userId);
+  const maturity = memoryCountToMaturity(memoriesCount);
 
   return {
     storedSummary: extraction.summaryLine,

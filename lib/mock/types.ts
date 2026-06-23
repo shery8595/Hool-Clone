@@ -89,6 +89,7 @@ export type MemoryReceipt = {
   memorySource?: string;
   provenanceLabel?: string;
   lineage?: MemoryLineageStep[];
+  encrypted?: boolean;
 };
 
 export type DebateHighlight = {

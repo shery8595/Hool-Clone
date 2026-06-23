@@ -12,6 +12,7 @@ export const memoryExtractionSchema = z.object({
           "preference",
         ]),
         text: z.string().min(1).max(300),
+        searchText: z.string().min(1).max(200).optional(),
         team: z.string().optional(),
         driver: z.enum(["stats", "vibes", "loyalty", "chaos"]).optional(),
       }),

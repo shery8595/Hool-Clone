@@ -56,6 +56,7 @@ export const memoryExtractionResponseSchema = {
             ],
           },
           text: { type: SchemaType.STRING },
+          searchText: { type: SchemaType.STRING },
           team: { type: SchemaType.STRING },
           driver: {
             type: SchemaType.STRING,

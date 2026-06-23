@@ -4,6 +4,7 @@ import type {
   MemorySearchResult,
   StoredMemory,
 } from "@/lib/memory/memory-adapter";
+import { ACTIVE_MEMORY_SQL } from "@/lib/memory/memory-filters";
 
 type MemoryRow = {
   id: string;
@@ -85,7 +86,7 @@ export async function listMemoriesChronologicalForUser(
   const rows = await query<MemoryRow>(
     `select * from memories
      where user_id = $1
-       and coalesce((metadata->>'disputed')::boolean, false) = false
+       and ${ACTIVE_MEMORY_SQL}
      order by created_at asc
      limit $2`,
     [userId, limit],
@@ -101,12 +102,12 @@ export async function listMemoriesForUser(
     limit
       ? `select * from memories
          where user_id = $1
-           and coalesce((metadata->>'disputed')::boolean, false) = false
+           and ${ACTIVE_MEMORY_SQL}
          order by created_at desc
          limit $2`
       : `select * from memories
          where user_id = $1
-           and coalesce((metadata->>'disputed')::boolean, false) = false
+           and ${ACTIVE_MEMORY_SQL}
          order by created_at desc`,
     limit ? [userId, limit] : [userId],
   );
@@ -139,7 +140,7 @@ export async function recallMemoriesLocal(
   const rows = await query<MemoryRow>(
     `select * from memories
      where user_id = $1
-       and coalesce((metadata->>'disputed')::boolean, false) = false
+       and ${ACTIVE_MEMORY_SQL}
      order by created_at desc
      limit 50`,
     [userId],
@@ -206,7 +207,7 @@ export async function getPublicMemoriesByIds(
      where user_id = $1
        and id = any($2::uuid[])
        and public_visible = true
-       and coalesce((metadata->>'disputed')::boolean, false) = false
+       and ${ACTIVE_MEMORY_SQL}
      order by created_at desc`,
     [userId, memoryIds],
   );
@@ -227,7 +228,7 @@ export async function getMemoryByWalrusBlobId(
 }
 
 const STORED_MEMORY_FILTER = `
-  coalesce((metadata->>'disputed')::boolean, false) = false
+  ${ACTIVE_MEMORY_SQL}
   and storage_status = 'stored'
 `;
 

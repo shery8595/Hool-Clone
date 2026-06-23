@@ -302,6 +302,41 @@ export async function retryMemoryWrite(memoryId: string): Promise<{
   return parseJson(response);
 }
 
+export async function fetchMemoryUnlockChallenge(walletAddress?: string): Promise<{
+  message: string;
+  challengeToken: string;
+  expiresIn: number;
+}> {
+  const response = await fetchWithTimeout("/api/auth/memory-challenge", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(walletAddress ? { walletAddress } : {}),
+  });
+  return parseJson(response);
+}
+
+export async function decryptMemories(
+  memoryIds: string[],
+  signMessage: (message: string) => Promise<string>,
+  walletAddress?: string,
+): Promise<Record<string, string>> {
+  const challenge = await fetchMemoryUnlockChallenge(walletAddress);
+  const signature = await signMessage(challenge.message);
+  const response = await fetchWithTimeout("/api/memories/decrypt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      challengeToken: challenge.challengeToken,
+      signature,
+      memoryIds,
+    }),
+  });
+  const data = await parseJson<{ decrypted: Record<string, string> }>(response);
+  return data.decrypted;
+}
+
 export type MatchesResponse = {
   matches: Match[];
   predictedMatchIds: string[];

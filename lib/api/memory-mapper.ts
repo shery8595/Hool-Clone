@@ -72,6 +72,7 @@ export function storedMemoryToReceipt(
       matchId,
     ),
     lineage: buildMemoryLineage(memory, context),
+    encrypted: metadata.encrypted === true,
   };
 }
 

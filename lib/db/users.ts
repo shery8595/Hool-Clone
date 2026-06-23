@@ -1,5 +1,6 @@
 import { resolveFanDisplayName } from "@/lib/auth/display-name";
 import { query, queryOne } from "@/lib/db/client";
+import { ACTIVE_MEMORY_SQL } from "@/lib/memory/memory-filters";
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
 import type { CloneMaturity } from "@/lib/mock/types";
 
@@ -97,7 +98,9 @@ export async function getFanProfile(
 
 export async function countMemories(userId: string): Promise<number> {
   const row = await queryOne<{ count: string }>(
-    "select count(*)::text as count from memories where user_id = $1",
+    `select count(*)::text as count from memories
+     where user_id = $1
+       and ${ACTIVE_MEMORY_SQL}`,
     [userId],
   );
   return Number(row?.count ?? 0);

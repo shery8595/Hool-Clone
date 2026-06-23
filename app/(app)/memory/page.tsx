@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { Lock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HoolCloneLoader } from "@/components/brand/hoolclone-loader";
 import { MemoryFilters, type MemoryFilter } from "@/components/memory/memory-filters";
@@ -14,11 +14,17 @@ import { fetchMemoriesRaw, retryMemoryWrite } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
 import type { MemoryReceipt } from "@/lib/mock/types";
 import { useUser } from "@/components/providers/user-provider";
+import { useMemoryUnlock } from "@/lib/wallet/use-memory-unlock";
 
 export default function MemoryPage() {
   const { me } = useUser();
+  const { unlockMemories, unlocking, canUnlock } = useMemoryUnlock();
   const [filter, setFilter] = useState<MemoryFilter>("all");
   const [memories, setMemories] = useState<MemoryReceipt[]>([]);
+  const [decryptedTexts, setDecryptedTexts] = useState<Record<string, string>>(
+    {},
+  );
+  const [unlockError, setUnlockError] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
   const [exploreReceipt, setExploreReceipt] = useState<MemoryReceipt | null>(
     null,
@@ -56,6 +62,27 @@ export default function MemoryPage() {
       failed: visible.filter((m) => m.storageStatus === "failed").length,
     };
   }, [memories]);
+
+  const encryptedIds = useMemo(
+    () =>
+      memories
+        .filter((m) => m.encrypted && !decryptedTexts[m.id])
+        .map((m) => m.id),
+    [memories, decryptedTexts],
+  );
+
+  const unlockEncryptedMemories = useCallback(async () => {
+    if (encryptedIds.length === 0) return;
+    setUnlockError(null);
+    try {
+      const decrypted = await unlockMemories(encryptedIds);
+      setDecryptedTexts((prev) => ({ ...prev, ...decrypted }));
+    } catch (err) {
+      setUnlockError(
+        err instanceof Error ? err.message : "Failed to unlock memories",
+      );
+    }
+  }, [encryptedIds, unlockMemories]);
 
   const togglePublic = useCallback((id: string) => {
     setMemories((prev) =>
@@ -139,17 +166,31 @@ export default function MemoryPage() {
               {filter !== "all" ? ` · ${filter} filter` : ""}
             </p>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="shrink-0 rounded-xl"
-            onClick={() => void refresh()}
-            disabled={hydrating}
-          >
-            <RefreshCw className={hydrating ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
-            Refresh
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 rounded-xl"
+              onClick={() => void refresh()}
+              disabled={hydrating}
+            >
+              <RefreshCw className={hydrating ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
+              Refresh
+            </Button>
+            {encryptedIds.length > 0 && (
+              <Button
+                type="button"
+                size="sm"
+                className="shrink-0 rounded-xl"
+                onClick={() => void unlockEncryptedMemories()}
+                disabled={!canUnlock || unlocking}
+              >
+                <Lock className="h-3.5 w-3.5" />
+                {unlocking ? "Unlocking…" : "Unlock with wallet"}
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="border-b border-border px-4 py-3 sm:px-5">
@@ -157,6 +198,11 @@ export default function MemoryPage() {
         </div>
 
         <div className="p-4 sm:p-5">
+          {unlockError && (
+            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+              {unlockError}
+            </div>
+          )}
           {stats.failed > 0 && backend === "Walrus" && (
             <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
               {stats.failed} {stats.failed === 1 ? "memory" : "memories"} failed
@@ -192,6 +238,7 @@ export default function MemoryPage() {
                 <MemoryReceiptCard
                   key={receipt.id}
                   receipt={receipt}
+                  decryptedText={decryptedTexts[receipt.id]}
                   showActions
                   onClick={() => setExploreReceipt(receipt)}
                   onExplore={() => setExploreReceipt(receipt)}

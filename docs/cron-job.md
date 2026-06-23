@@ -7,6 +7,25 @@ Vercel Hobby does not support sub-daily platform crons, so production uses an ex
 
 This job syncs live scores, sends Telegram goal alerts, runs post-match congrats/roasts, and writes post-match Walrus memories.
 
+## Sleep cycle consolidation (every 6 hours)
+
+**Endpoint:** `GET /api/cron/memory-consolidation`  
+**Auth:** same `Authorization: Bearer <CRON_SECRET>` as match cron
+
+This job merges repetitive `prediction_pattern` and `prediction_history_summary` memories into `consolidated_bias` blobs and archives superseded rows.
+
+1. Create a **second** cron-job.org job pointing at `https://<your-app>.vercel.app/api/cron/memory-consolidation`
+2. Schedule: every 6 hours (e.g. `hours: [0, 6, 12, 18]`, `minutes: [0]`)
+3. Same `Authorization` header as the match cron
+
+Manual demo:
+
+```bash
+npm run consolidate:demo
+```
+
+Expected HTTP `200` JSON: `{ usersProcessed, memoriesWritten, memoriesArchived }`.
+
 ## 1. Set Vercel env vars
 
 In the Vercel project (Settings → Environment Variables), add:
@@ -87,6 +106,7 @@ No external cron is needed locally. Match sync runs from:
 
 | File | Role |
 |------|------|
-| `app/api/cron/check-resolutions/route.ts` | Cron entrypoint |
+| `app/api/cron/check-resolutions/route.ts` | Match sync + Telegram cron |
+| `app/api/cron/memory-consolidation/route.ts` | Sleep-cycle memory consolidation |
 | `cron-job/job.example.json` | API payload template |
 | `scripts/setup-cron-job.mjs` | Creates job via cron-job.org API |

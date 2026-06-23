@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { MemoryReceipt } from "@/lib/mock/types";
 import { formatDate } from "@/lib/mock/demo-user";
 import { isPlaceholderBlobId } from "@/lib/walrus/fetch-blob";
-import { Database, ArrowRight, Loader2, AlertCircle, RotateCcw, GitBranch } from "lucide-react";
+import { Database, ArrowRight, Loader2, AlertCircle, RotateCcw, GitBranch, Lock } from "lucide-react";
 
 const typeLabels: Record<string, string> = {
   remembered: "REMEMBERED",
@@ -25,6 +25,7 @@ type MemoryReceiptCardProps = {
   retrying?: boolean;
   onClick?: () => void;
   onExplore?: () => void;
+  decryptedText?: string;
 };
 
 export function MemoryReceiptCard({
@@ -38,6 +39,7 @@ export function MemoryReceiptCard({
   retrying = false,
   onClick,
   onExplore,
+  decryptedText,
 }: MemoryReceiptCardProps) {
   const hasWalrusProof = Boolean(
     receipt.walrusBlobId || receipt.walrusNamespace || receipt.walrusJobId,
@@ -102,6 +104,15 @@ export function MemoryReceiptCard({
           >
             {typeLabels[receipt.type] ?? receipt.type}
           </Badge>
+          {receipt.encrypted && (
+            <Badge
+              variant="outline"
+              className="gap-1 border-violet-200 bg-violet-50 text-[10px] font-semibold text-violet-900"
+            >
+              <Lock className="h-3 w-3" />
+              {decryptedText ? "Decrypted" : "Encrypted on Walrus"}
+            </Badge>
+          )}
         </div>
         <time
           dateTime={receipt.date}
@@ -120,8 +131,13 @@ export function MemoryReceiptCard({
             : "text-sm",
         )}
       >
-        {receipt.text}
+        {decryptedText ?? receipt.text}
       </p>
+      {receipt.encrypted && !decryptedText && (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Showing public search surrogate. Unlock with wallet to read full text.
+        </p>
+      )}
 
       {receipt.quote && (
         <p className="mt-2 text-sm italic text-muted-foreground">

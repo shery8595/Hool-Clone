@@ -23,6 +23,7 @@ const TYPE_CONFIG: Record<string, TypeDecayConfig> = {
   fan_profile: { weight: 1.0, halfLifeDays: 180 },
   bias: { weight: 1.05, halfLifeDays: 120 },
   emotional_memory: { weight: 1.1, halfLifeDays: 60 },
+  consolidated_bias: { weight: 1.4, halfLifeDays: 90 },
   remembered: { weight: 0.95, halfLifeDays: 30 },
 };
 
@@ -34,6 +35,7 @@ const SOURCE_BOOST: Record<string, number> = {
   telegram_live_goal: 0.05,
   match_resolution: 0.12,
   onboarding: 0.02,
+  sleep_cycle: 0.08,
 };
 
 function tokenize(text: string): Set<string> {

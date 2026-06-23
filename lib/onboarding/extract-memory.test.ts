@@ -31,6 +31,17 @@ describe("fallbackExtraction", () => {
     assert.ok(result.facts.some((f) => f.text.includes("England")));
   });
 
+  it("adds emotional_memory for heartbreak questions", () => {
+    const result = fallbackExtraction({
+      question: "What is your worst World Cup heartbreak?",
+      answer: "Italy 1994 — Roberto Baggio missed the penalty",
+      driver: "loyalty",
+    });
+    const emotional = result.facts.find((f) => f.type === "emotional_memory");
+    assert.ok(emotional);
+    assert.ok(emotional?.searchText);
+  });
+
   it("truncates long answers in summary", () => {
     const long = "x".repeat(150);
     const result = fallbackExtraction({
