@@ -23,6 +23,7 @@ type MemoryReceiptCardProps = {
   onTogglePublic?: () => void;
   onRetry?: () => void;
   retrying?: boolean;
+  retryError?: string;
   onClick?: () => void;
   onExplore?: () => void;
   decryptedText?: string;
@@ -37,6 +38,7 @@ export function MemoryReceiptCard({
   onTogglePublic,
   onRetry,
   retrying = false,
+  retryError,
   onClick,
   onExplore,
   decryptedText,
@@ -326,21 +328,29 @@ export function MemoryReceiptCard({
       )}
 
       {receipt.storageStatus === "failed" && (
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="flex items-center gap-1 text-xs text-destructive">
-            <AlertCircle className="h-3 w-3" />
-            Walrus write failed
-          </span>
-          {onRetry && (
-            <button
-              type="button"
-              onClick={onRetry}
-              disabled={retrying}
-              className="flex items-center gap-1 text-xs font-medium text-hoolclone-green-700 hover:underline disabled:opacity-50"
-            >
-              <RotateCcw className={cn("h-3 w-3", retrying && "animate-spin")} />
-              Retry
-            </button>
+        <div className="mt-2 flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1 text-xs text-destructive">
+              <AlertCircle className="h-3 w-3" />
+              Walrus write failed
+            </span>
+            {onRetry && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRetry();
+                }}
+                disabled={retrying}
+                className="flex items-center gap-1 rounded-md bg-hoolclone-green-100 px-2 py-0.5 text-xs font-semibold text-hoolclone-green-900 hover:bg-hoolclone-green-200 disabled:opacity-50"
+              >
+                <RotateCcw className={cn("h-3 w-3", retrying && "animate-spin")} />
+                {retrying ? "Retrying…" : "Retry"}
+              </button>
+            )}
+          </div>
+          {retryError && (
+            <p className="text-xs text-destructive">{retryError}</p>
           )}
         </div>
       )}
@@ -348,7 +358,10 @@ export function MemoryReceiptCard({
       {showActions && (
         <button
           type="button"
-          onClick={onTogglePublic}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePublic?.();
+          }}
           className="mt-3 flex items-center gap-1 text-xs font-medium text-hoolclone-green-700 hover:underline"
         >
           {receipt.publicVisible ? "Public" : "Private"} · Toggle

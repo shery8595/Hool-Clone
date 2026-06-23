@@ -9,7 +9,7 @@ import { MemoryPageHeader } from "@/components/memory/memory-page-header";
 import { MemoryReceiptCard } from "@/components/memory/memory-receipt-card";
 import { WalrusBlobExplorerSheet } from "@/components/memory/walrus-blob-explorer-sheet";
 import { WalrusProofSummary } from "@/components/memory/walrus-proof-summary";
-import { cacheKeys } from "@/lib/api/data-cache";
+import { cacheKeys, invalidateCache } from "@/lib/api/data-cache";
 import { fetchMemoriesRaw, retryMemoryWrite } from "@/lib/api/client";
 import { useCachedData } from "@/lib/hooks/use-cached-data";
 import type { MemoryReceipt } from "@/lib/mock/types";
@@ -26,6 +26,7 @@ export default function MemoryPage() {
   );
   const [unlockError, setUnlockError] = useState<string | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [retryErrors, setRetryErrors] = useState<Record<string, string>>({});
   const [exploreReceipt, setExploreReceipt] = useState<MemoryReceipt | null>(
     null,
   );
@@ -94,6 +95,16 @@ export default function MemoryPage() {
 
   const retryMemory = async (id: string) => {
     setRetryingId(id);
+    setRetryErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setMemories((prev) =>
+      prev.map((m) =>
+        m.id === id ? { ...m, storageStatus: "pending" as const } : m,
+      ),
+    );
     try {
       const result = await retryMemoryWrite(id);
       setMemories((prev) =>
@@ -102,13 +113,29 @@ export default function MemoryPage() {
             ? {
                 ...m,
                 storageStatus: result.status as MemoryReceipt["storageStatus"],
+                walrusBlobId: result.walrusBlobId ?? m.walrusBlobId,
+                walrusJobId: result.walrusJobId ?? m.walrusJobId,
+                walrusNamespace: result.walrusNamespace ?? m.walrusNamespace,
               }
             : m,
         ),
       );
+
+      if (result.status === "failed") {
+        setRetryErrors((prev) => ({
+          ...prev,
+          [id]: result.error ?? "Walrus write failed again. Try once more.",
+        }));
+      }
+
+      if (me?.id) {
+        invalidateCache(cacheKeys.memories(me.id));
+      }
       await refresh();
     } catch (err) {
-      console.error(err);
+      const message =
+        err instanceof Error ? err.message : "Failed to retry memory write";
+      setRetryErrors((prev) => ({ ...prev, [id]: message }));
     } finally {
       setRetryingId(null);
     }
@@ -245,10 +272,13 @@ export default function MemoryPage() {
                   onTogglePublic={() => togglePublic(receipt.id)}
                   onRetry={
                     receipt.storageStatus === "failed" && backend === "Walrus"
-                      ? () => void retryMemory(receipt.id)
+                      ? () => {
+                          void retryMemory(receipt.id);
+                        }
                       : undefined
                   }
                   retrying={retryingId === receipt.id}
+                  retryError={retryErrors[receipt.id]}
                 />
               ))}
             </div>

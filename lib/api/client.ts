@@ -291,14 +291,22 @@ export async function fetchMemoryHealth(): Promise<{
 
 export async function retryMemoryWrite(memoryId: string): Promise<{
   status: string;
+  walrusBlobId?: string;
+  walrusJobId?: string;
+  walrusNamespace?: string;
+  error?: string;
   backend: "Local" | "Walrus";
 }> {
-  const response = await fetch("/api/memories/retry", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ memoryId }),
-  });
+  const response = await fetchWithTimeout(
+    "/api/memories/retry",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ memoryId }),
+    },
+    120_000,
+  );
   return parseJson(response);
 }
 

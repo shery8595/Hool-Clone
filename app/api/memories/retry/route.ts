@@ -3,6 +3,8 @@ import { z } from "zod";
 import { AuthError, requireUser } from "@/lib/auth/require-user";
 import { getMemoryBackendLabel, retryFailedMemory } from "@/lib/memory";
 
+export const maxDuration = 120;
+
 const bodySchema = z.object({
   memoryId: z.string().uuid(),
 });
@@ -15,6 +17,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       status: result.status,
+      walrusBlobId: result.walrusBlobId,
+      walrusJobId: result.walrusJobId,
+      walrusNamespace: result.walrusNamespace,
+      error: result.error,
       backend: getMemoryBackendLabel(),
     });
   } catch (error) {

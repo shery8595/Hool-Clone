@@ -210,11 +210,32 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
   async retryFailedMemory(
     userId: string,
     memoryId: string,
-  ): Promise<{ status: string }> {
+  ): Promise<{
+    status: string;
+    walrusBlobId?: string;
+    walrusJobId?: string;
+    walrusNamespace?: string;
+    error?: string;
+  }> {
     const row = await getMemoryRowById(memoryId, userId);
     if (!row) throw new Error("Memory not found");
     if (row.storage_status !== "failed") {
-      return { status: row.storage_status };
+      const metadata = row.metadata ?? {};
+      return {
+        status: row.storage_status,
+        walrusBlobId:
+          typeof metadata.walrusBlobId === "string"
+            ? metadata.walrusBlobId
+            : undefined,
+        walrusJobId:
+          typeof metadata.walrusJobId === "string"
+            ? metadata.walrusJobId
+            : undefined,
+        walrusNamespace:
+          typeof metadata.walrusNamespace === "string"
+            ? metadata.walrusNamespace
+            : undefined,
+      };
     }
 
     const namespace = await getUserNamespace(userId);
@@ -239,12 +260,17 @@ export class WalrusMemoryAdapter implements MemoryAdapter {
         walrusError: null,
       });
 
-      return { status: "stored" };
+      return {
+        status: "stored",
+        walrusBlobId: result.blob_id,
+        walrusJobId: result.job_id ?? result.id,
+        walrusNamespace: namespace,
+      };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Walrus retry failed";
       await updateMemoryStorage(memoryId, "failed", { walrusError: message });
-      return { status: "failed" };
+      return { status: "failed", error: message };
     }
   }
 }

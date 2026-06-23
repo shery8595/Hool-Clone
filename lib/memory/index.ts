@@ -30,7 +30,13 @@ export function getMemoryBackendLabel(): "Local" | "Walrus" {
 export async function retryFailedMemory(
   userId: string,
   memoryId: string,
-): Promise<{ status: string }> {
+): Promise<{
+  status: string;
+  walrusBlobId?: string;
+  walrusJobId?: string;
+  walrusNamespace?: string;
+  error?: string;
+}> {
   const current = getMemoryAdapter();
   if (!(current instanceof WalrusMemoryAdapter)) {
     throw new Error("Memory retry is only available with the Walrus backend.");
