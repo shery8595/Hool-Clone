@@ -3,7 +3,8 @@
 A **15-minute walkthrough** for Walrus Memory World Cup judges. HoolClone is a World Cup 2026 dApp where an AI fan clone learns from durable Walrus memories — not model fine-tuning — and visibly changes behavior over time.
 
 **Production:** [https://walrus-mu.vercel.app](https://walrus-mu.vercel.app)  
-**Repo:** [github.com/shery8595/Hool-Clone](https://github.com/shery8595/Hool-Clone)
+**Repo:** [github.com/shery8595/Hool-Clone](https://github.com/shery8595/Hool-Clone)  
+**Web docs:** [/docs/judges](/docs/judges)
 
 > **One-line pitch:** HoolClone doesn't predict football — it predicts *you*. Every take is a Walrus Mainnet receipt; the clone recalls them before every prediction, debate, and roast.
 
@@ -14,12 +15,16 @@ A **15-minute walkthrough** for Walrus Memory World Cup judges. HoolClone is a W
 | What | URL |
 |------|-----|
 | **Demo profile** (15 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
-| **Evolution page** (judge proof panels) | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
-| **Logged-in Evolution** (sidebar; redirects when public) | [/evolution](https://walrus-mu.vercel.app/evolution) |
+| **Evolution page** (start here — public judge proof) | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
+| **Logged-in evolution** (same UI, your wallet) | [/evolution](https://walrus-mu.vercel.app/evolution) |
+| **Memory browser** (encrypted takes + lineage) | [/memory](https://walrus-mu.vercel.app/memory) |
 | **Clone Clash** (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
 | **Telegram roast cards** | [/telegram-history](https://walrus-mu.vercel.app/telegram-history) |
 | **MemWal health** | [/api/admin/memwal-health](https://walrus-mu.vercel.app/api/admin/memwal-health) |
 | **Live predict** (pick any match) | [/predict](https://walrus-mu.vercel.app/predict) |
+| **Documentation** | [/docs](/docs) |
+
+> **Note:** `/u/hoolclone-demo/evolution` is the **public evolution page** for the seeded demo account — the same layout and panels as `/evolution` for a logged-in user, pre-loaded so judges can review memory proof without training a clone.
 
 ---
 
@@ -27,7 +32,7 @@ A **15-minute walkthrough** for Walrus Memory World Cup judges. HoolClone is a W
 
 ### Step 1 — Evolution page (5 min) ★ start here
 
-Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution). This page bundles the strongest memory proofs:
+Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution). Header reads **Public judge proof**. This page bundles the strongest memory proofs:
 
 | Panel | What it proves |
 |-------|----------------|
@@ -35,6 +40,7 @@ Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo
 | **Memory Provenance** | Table of memories with blob IDs, dates, and sources (last 4 days). |
 | **Correction Override Proof** | Stale take disputed → user correction stored → regenerated clone prediction cites the new memory. |
 | **Roast my record** | Post-match summaries that feed the next recall. |
+| **Memory Time Machine** | Day 1 → Day 7 clone state reconstructed from stored memories (not replayed LLM sessions). |
 
 If panels show **Illustrative fallback** (amber), Walrus demo seed is missing — production should show **live** data after `db:seed-demo-walrus`.
 
@@ -61,9 +67,22 @@ Look for:
 
 Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Two users, two isolated Walrus namespaces (`hoolclone:demo:hoolclone-demo` vs `hoolclone:demo:hoolclone-rival`). Memory-only cross-user debate — no shared chat history.
 
-### Step 5 — Closed loop (1 min)
+### Step 5 — Closed loop + memory ops (1 min)
 
-Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-match congrats/roasts cite memories; each DM triggers a `telegram_post_match` Walrus write that shapes the **next** clone `recall()`. Cron hits `/api/cron/check-resolutions` every minute via [cron-job.org](https://cron-job.org).
+Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-match congrats/roasts cite memories; each DM triggers a `telegram_post_match` Walrus write that shapes the **next** clone `recall()`.
+
+Production crons (both via [cron-job.org](./cron-job.md), `Authorization: Bearer CRON_SECRET`):
+
+| Job | Schedule | Endpoint |
+|-----|----------|----------|
+| Match sync + Telegram | Every 1 min | `GET /api/cron/check-resolutions` |
+| Sleep-cycle consolidation | Every 6 hours | `GET /api/cron/memory-consolidation` |
+
+The consolidation job merges repetitive prediction memories into `consolidated_bias` blobs and archives superseded index rows (original Walrus blobs stay on Mainnet).
+
+### Optional — Encrypted memories (`/memory`)
+
+Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **emotional_memory** facts are encrypted on Walrus (`enc:v1:`) with a public search surrogate for clone recall. Lock badge → wallet unlock → plaintext for UI only; the clone never needs unlock to predict.
 
 ---
 
@@ -78,6 +97,8 @@ Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-ma
 | Memory shapes output | Clone cites recalled receipts, not fabricated IDs | `/predict/[matchId]` receipt cards |
 | Corrections override stale takes | Disputed memory → correction → regenerated prediction | Evolution → **Correction Override Proof** |
 | Post-match learning | Roast/congrats write `prediction_history_summary` | `/telegram-history` + evolution roast section |
+| Memory consolidation | Repetitive takes merge into `consolidated_bias` | [Cron job](./cron-job.md) · `/memory` lineage |
+| Selective privacy | Emotional memories encrypted; recall uses surrogates | `/memory` unlock flow |
 
 ### Creativity & Flair
 
@@ -96,7 +117,8 @@ Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-ma
 | Honest fallback labeling | Postgres fallback shown explicitly | Receipt cards when Walrus unavailable |
 | Mainnet verification CLI | Scripted readiness checks | `npm run verify:mainnet` |
 | Production deployment | Live app + documented env | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
-| Unit test coverage | 194 tests on recall, debate, Telegram parsers, consolidation, encryption | [Test Coverage](./test-coverage.md) |
+| Unit test coverage | 194 tests · 47 files · 91 suites | [Test Coverage](./test-coverage.md) |
+| Dual production crons | Match loop + sleep-cycle consolidation | [Production Cron](./cron-job.md) |
 
 ---
 
@@ -109,6 +131,8 @@ Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-ma
 | Evolution snapshots | **Reconstructed** from stored memories (not replayed LLM sessions) |
 | Vector recall | **Real** when Walrus healthy; UI labels fallback |
 | LLM text | **Gemini** when `GEMINI_API_KEY` set; templates when unavailable |
+| Encrypted emotional memories | **Real** encryption at write; unlock is wallet-gated for UI |
+| Consolidated biases | **Real** cron job on production; demo may show lineage after consolidation runs |
 
 The demo fan story is seeded for clarity, but every memory receipt is a **real Walrus Mainnet blob** on production.
 
@@ -130,7 +154,13 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero `demo-blob-*` p
 Run the test suite offline:
 
 ```bash
-npm test   # 194 tests, no external services
+npm test   # 194 tests, 91 suites — no external services
+```
+
+Manual consolidation demo (operators):
+
+```bash
+npm run consolidate:demo
 ```
 
 ---
@@ -153,7 +183,8 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 |-------|-----|
 | How Walrus is used in every flow | [How Walrus Memory Is Used](./how-walrus-memory-is-used.md) |
 | How memory improves the agent | [How Memory Improves the Agent](./how-memory-improves-agent.md) |
-| Technical Walrus reference | [Walrus Memory](./walrus-memory.md) |
+| Walrus write/recall, encryption, consolidation | [Walrus Memory](./walrus-memory.md) |
+| Production cron setup | [Production Cron](./cron-job.md) |
 | Full architecture | [Architecture](./hoolclone-architecture.md) |
 
 ---
@@ -163,3 +194,4 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 - [Demo Guide](./demo-guide.md) — recording tips and operator checklist
 - [Project Overview](./project-overview.md) — product vision
 - [Test Coverage](./test-coverage.md) — 194 tests mapped to criteria
+- [API Reference](./api-reference.md) — cron, unlock, and decrypt routes

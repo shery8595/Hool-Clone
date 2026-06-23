@@ -7,7 +7,6 @@ import {
   Lock,
   MessageCircle,
   RefreshCw,
-  Search,
   Shield,
   Target,
   Trophy,
@@ -18,7 +17,6 @@ import { DemoNamespaceCopy } from "@/components/landing/demo-namespace-copy";
 import { LandingWalrusMemoryVisual } from "@/components/landing/landing-walrus-memory-visual";
 import {
   DEMO_NAMESPACE,
-  DEMO_EVOLUTION_URL,
   DEMO_PROFILE_URL,
   walrusMemoryFeatures,
   walrusMemoryProofPoints,
@@ -222,14 +220,6 @@ export function LandingWalrusMemory() {
                 );
               })}
             </ul>
-
-            <ButtonLink
-              href={DEMO_EVOLUTION_URL}
-              className="mt-8 gap-2 rounded-full px-6 shadow-[0_10px_30px_rgba(10,61,46,0.18)]"
-            >
-              <Search className="h-4 w-4" />
-              Judge evolution demo
-            </ButtonLink>
           </div>
 
           <div className="order-2 flex justify-center lg:order-2">
