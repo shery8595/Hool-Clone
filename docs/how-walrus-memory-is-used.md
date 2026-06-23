@@ -24,6 +24,7 @@ Memory is **not** a log you browse later — it is **input to the agent** on the
 | Step | Walrus |
 |------|--------|
 | User answers onboarding question | `extractMemoryFromAnswer()` → one or more `remember()` calls per fact |
+| `emotional_memory` facts | Encrypted on Walrus (`enc:v1:`) with `searchText` surrogate for clone recall |
 | Metadata | `source: onboarding`, types: `fan_profile`, `bias`, `emotional_memory` |
 | Namespace | `hoolclone:user:<userId>` |
 | Recall later? | Yes — fan identity, loyalty, rivals, prediction style |
@@ -76,6 +77,31 @@ Debate uses the same namespace and recall adapter as predict, with extra queries
 These memories get **high rerank weight** on the next predict/debate (`telegram_post_match` +0.12, type weight 1.35× for prediction summaries).
 
 **Key files:** `lib/clone/post-match-resolution.ts`, `app/api/cron/check-resolutions/route.ts`
+
+---
+
+### Sleep-cycle consolidation (cron every 6h)
+
+| Step | Walrus |
+|------|--------|
+| Cron fires | `GET /api/cron/memory-consolidation` clusters repetitive prediction memories |
+| Synthesis | LLM writes one `consolidated_bias` blob per cluster |
+| Archive | Superseded Postgres rows marked `archived`; originals stay on Mainnet |
+| Recall later? | Yes — `consolidated_bias` gets boosted rerank weight |
+
+**Key files:** `lib/memory/consolidate-memories.ts`, `lib/memory/memory-filters.ts`
+
+---
+
+### Memory browser & unlock (`/memory`)
+
+| Step | Walrus |
+|------|--------|
+| List memories | Postgres index; encrypted rows show lock badge |
+| Unlock emotional memory | Wallet signs challenge → server decrypts for UI only |
+| Clone recall | Uses `searchText` surrogate — never needs unlock |
+
+**Key files:** `app/(app)/memory/page.tsx`, `lib/crypto/memory-crypto.ts`, `app/api/memories/decrypt/route.ts`
 
 ---
 

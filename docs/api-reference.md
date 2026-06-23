@@ -34,6 +34,27 @@ Content-Type: application/json
 
 Sets an HTTP-only session cookie on success.
 
+### Memory unlock (encrypted emotional memories)
+
+```http
+POST /api/auth/memory-challenge
+```
+
+Returns a `challengeToken` and message to sign with the user's wallet (separate from login challenge).
+
+```http
+POST /api/memories/decrypt
+Content-Type: application/json
+
+{
+  "memoryId": "uuid",
+  "challengeToken": "...",
+  "signature": "..."
+}
+```
+
+Returns decrypted plaintext for UI display on `/memory` only. Clone recall uses search surrogates and does not call this route.
+
 ### Session endpoints
 
 | Method | Path | Auth | Description |
@@ -101,6 +122,7 @@ Writes structured facts via Gemini extraction; each fact becomes a `remember()` 
 | `GET` | `/api/memories` | Session | List user memories + backend label |
 | `GET` | `/api/memories/health` | Session | Walrus/MemWal health for current user |
 | `POST` | `/api/memories/retry` | Session | Retry failed Walrus writes |
+| `POST` | `/api/memories/decrypt` | Session + wallet sig | Decrypt one encrypted emotional memory for UI |
 
 **`GET /api/memories` response:**
 
@@ -177,6 +199,7 @@ Used by `/u/:slug/clash?opponent=<rival-slug>` for cross-user memory debates.
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | `GET` | `/api/cron/check-resolutions` | `Bearer CRON_SECRET` | Sync scores + Telegram + resolution memories |
+| `GET` | `/api/cron/memory-consolidation` | `Bearer CRON_SECRET` | Sleep-cycle merge → `consolidated_bias` + archive |
 | `POST` | `/api/admin/sync-matches` | `Bearer CRON_SECRET` | Manual score sync |
 | `POST` | `/api/admin/seed-matches` | Dev / admin | Re-seed fixtures |
 | `GET` | `/api/admin/memwal-health` | `ADMIN_SECRET` or dev | MemWal + relayer health |

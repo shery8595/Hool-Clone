@@ -65,6 +65,10 @@ Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo
 
 Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Two separate Walrus namespaces argue — memory-only cross-user feature.
 
+### Scene 7 — Memory browser (optional, 15 sec)
+
+Open `/memory`. Show encrypted emotional memory with lock badge → wallet unlock → plaintext visible. Note clone still recalls via search surrogate without unlock.
+
 ### Closing line
 
 > "Every take is a receipt on Walrus Mainnet. The clone recalls them before every prediction. That's memory depth."
@@ -100,6 +104,8 @@ Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?
 | Recall source per receipt | `Walrus: Verified recall` vs `Postgres fallback recall` |
 | Mainnet verification | `npm run verify:mainnet` |
 | Closed-loop cron + Telegram | Cron hits every minute; post-match memories feed next recall |
+| Sleep-cycle consolidation | Every 6h cron merges repetitive takes into `consolidated_bias` |
+| Encrypted emotional memories | Lock badge on `/memory`; wallet unlock for plaintext |
 
 ---
 
@@ -144,7 +150,7 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero placeholders.
 - [ ] `npm run verify:mainnet` passes
 - [ ] Demo profile loads with 15 memories
 - [ ] Evolution panels show live data (not "Illustrative fallback")
-- [ ] Cron job running (scores update within 1–2 min of real goals)
+- [ ] Consolidation cron scheduled (`/api/cron/memory-consolidation` every 6h)
 - [ ] Telegram bot responds to `/start`
 - [ ] `GEMINI_API_KEY` set (clone generates real text)
 

@@ -96,7 +96,7 @@ Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-ma
 | Honest fallback labeling | Postgres fallback shown explicitly | Receipt cards when Walrus unavailable |
 | Mainnet verification CLI | Scripted readiness checks | `npm run verify:mainnet` |
 | Production deployment | Live app + documented env | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
-| Unit test coverage | 165 tests on recall, debate, Telegram parsers | [Test Coverage](./test-coverage.md) |
+| Unit test coverage | 194 tests on recall, debate, Telegram parsers, consolidation, encryption | [Test Coverage](./test-coverage.md) |
 
 ---
 
@@ -130,7 +130,7 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero `demo-blob-*` p
 Run the test suite offline:
 
 ```bash
-npm test   # 165 tests, no external services
+npm test   # 194 tests, no external services
 ```
 
 ---
@@ -162,4 +162,4 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 
 - [Demo Guide](./demo-guide.md) — recording tips and operator checklist
 - [Project Overview](./project-overview.md) — product vision
-- [Test Coverage](./test-coverage.md) — 165 tests mapped to criteria
+- [Test Coverage](./test-coverage.md) — 194 tests mapped to criteria

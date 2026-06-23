@@ -8,9 +8,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  extractHeadingsFromMarkdown,
+  type DocHeading,
+} from "@/lib/docs/extract-headings";
 
 type DocsPageContextValue = {
   markdown: string;
+  headings: DocHeading[];
   setMarkdown: (markdown: string) => void;
 };
 
@@ -18,13 +23,18 @@ const DocsPageContext = createContext<DocsPageContextValue | null>(null);
 
 export function DocsPageProvider({ children }: { children: ReactNode }) {
   const [markdown, setMarkdown] = useState("");
+  const headings = useMemo(
+    () => extractHeadingsFromMarkdown(markdown),
+    [markdown],
+  );
 
   const value = useMemo(
     () => ({
       markdown,
+      headings,
       setMarkdown,
     }),
-    [markdown],
+    [markdown, headings],
   );
 
   return (
@@ -40,7 +50,7 @@ export function useDocsPage() {
   return context;
 }
 
-/** Registers page markdown for the sticky copy button. */
+/** Registers page markdown for copy button and table of contents. */
 export function DocsPageRegistrar({ markdown }: { markdown: string }) {
   const { setMarkdown } = useDocsPage();
 

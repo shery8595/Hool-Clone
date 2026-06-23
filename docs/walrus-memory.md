@@ -92,6 +92,44 @@ On Walrus failure, falls back to Postgres keyword search. The UI shows this expl
 - **Walrus: Verified recall** — vector search succeeded
 - **Postgres fallback recall** — Walrus unavailable
 
+Archived memories (`archived`, `superseded`) are excluded from recall and maturity counts.
+
+---
+
+## Selective encryption (emotional memories)
+
+Only **`emotional_memory`** facts from onboarding are encrypted at write time. Other memory types remain plaintext on Walrus for vector search.
+
+| Layer | What's stored |
+|-------|----------------|
+| **Walrus blob** | `enc:v1:` ciphertext + public `search:"..."` surrogate for semantic recall |
+| **Postgres index** | Encrypted text column; UI shows lock badge until unlocked |
+| **Clone recall** | Uses `searchText` surrogate — clone never needs wallet unlock |
+
+### Unlock flow (`/memory`)
+
+1. User requests `POST /api/auth/memory-challenge` → signs unlock message with wallet
+2. `POST /api/memories/decrypt` verifies signature and returns plaintext for UI only
+3. Decrypted text is **not** sent to clone prompts — recall continues via surrogates
+
+**Key files:** `lib/crypto/memory-crypto.ts`, `lib/crypto/walrus-envelope.ts`, `lib/wallet/use-memory-unlock.ts`
+
+---
+
+## Sleep-cycle consolidation
+
+Every **6 hours**, `GET /api/cron/memory-consolidation` runs a "sleep cycle" that:
+
+1. Clusters repetitive `prediction_pattern` and `prediction_history_summary` memories
+2. Synthesizes a single `consolidated_bias` memory via LLM
+3. Archives superseded rows (`metadata.archived: true`) — Walrus blobs stay immutable
+
+Consolidated biases get a rerank boost (`consolidated_bias` type weight) and appear in memory lineage on `/memory`.
+
+**Key files:** `lib/memory/consolidate-memories.ts`, `app/api/cron/memory-consolidation/route.ts`
+
+Manual demo: `npm run consolidate:demo`
+
 ---
 
 ## When memories are written
@@ -105,6 +143,7 @@ On Walrus failure, falls back to Postgres keyword search. The UI shows this expl
 | Live goal Telegram DM | `telegram_live_goal` | `emotional_memory` |
 | Post-match roast/congrats | `telegram_post_match` | `prediction_history_summary` |
 | Match finalizes (any predictor) | `match_resolution` | `prediction_history_summary` |
+| Sleep-cycle cron (every 6h) | `sleep_cycle` | `consolidated_bias` (archives clustered sources) |
 
 ---
 
@@ -126,7 +165,7 @@ Each memory gets a `finalScore` from:
 
 | Signal | Effect |
 |--------|--------|
-| Type weight | Corrections 1.5×, prediction summaries 1.35× |
+| Type weight | Corrections 1.5×, prediction summaries 1.35×, consolidated_bias 1.4× |
 | Source boost | `telegram_post_match` +0.12, `match_resolution` +0.12 |
 | Recency decay | Exponential half-life per type |
 | Entity overlap | Boost when text mentions match teams |
@@ -154,7 +193,7 @@ Receipts must map to **recalled** memories — Gemini is instructed not to fabri
 
 ## Clone maturity
 
-Maturity level (0–4) is derived from memory count (`lib/auth/maturity.ts`):
+Maturity level (0–4) is derived from **active** memory count (`lib/auth/maturity.ts`) — archived and superseded rows are excluded:
 
 | Level | Memories | Behavior |
 |-------|----------|----------|

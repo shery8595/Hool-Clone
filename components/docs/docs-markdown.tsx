@@ -1,8 +1,30 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { Components } from "react-markdown";
+import { slugifyHeading } from "@/lib/docs/slugify";
 import { cn } from "@/lib/utils";
+
+function headingText(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) {
+    return children.map((child) => headingText(child)).join("");
+  }
+  if (children && typeof children === "object" && "props" in children) {
+    return headingText((children as { props: { children?: ReactNode } }).props.children);
+  }
+  return "";
+}
+
+const usedHeadingIds = new Map<string, number>();
+
+function nextHeadingId(title: string): string {
+  const base = slugifyHeading(title);
+  const count = usedHeadingIds.get(base) ?? 0;
+  usedHeadingIds.set(base, count + 1);
+  return count > 0 ? `${base}-${count + 1}` : base;
+}
 
 const components: Components = {
   h1: ({ children }) => (
@@ -10,16 +32,28 @@ const components: Components = {
       {children}
     </h1>
   ),
-  h2: ({ children }) => (
-    <h2 className="mb-4 mt-10 scroll-mt-24 border-b border-border pb-2 text-xl font-bold text-hoolclone-gray-900 first:mt-0">
-      {children}
-    </h2>
-  ),
-  h3: ({ children }) => (
-    <h3 className="mb-3 mt-8 text-lg font-semibold text-hoolclone-gray-900">
-      {children}
-    </h3>
-  ),
+  h2: ({ children }) => {
+    const id = nextHeadingId(headingText(children));
+    return (
+      <h2
+        id={id}
+        className="mb-4 mt-10 scroll-mt-28 border-b border-border pb-2 text-xl font-bold text-hoolclone-gray-900 first:mt-0"
+      >
+        {children}
+      </h2>
+    );
+  },
+  h3: ({ children }) => {
+    const id = nextHeadingId(headingText(children));
+    return (
+      <h3
+        id={id}
+        className="mb-3 mt-8 scroll-mt-28 text-lg font-semibold text-hoolclone-gray-900"
+      >
+        {children}
+      </h3>
+    );
+  },
   p: ({ children }) => (
     <p className="mb-4 leading-7 text-muted-foreground">{children}</p>
   ),
@@ -123,6 +157,8 @@ const components: Components = {
 };
 
 export function DocsMarkdown({ content }: { content: string }) {
+  usedHeadingIds.clear();
+
   return (
     <article className="docs-prose max-w-none">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>

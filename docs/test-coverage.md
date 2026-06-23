@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **165 unit tests** across **39 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **194 unit tests** across **47 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -10,9 +10,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Metric | Value |
 |--------|-------|
-| Test files | 39 (`lib/**/*.test.ts`) |
-| Test cases | 165 |
-| Test suites | 75 |
+| Test files | 47 (`lib/**/*.test.ts`) |
+| Test cases | 194 |
+| Test suites | 91 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -24,12 +24,12 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 |-----------|---------------|------------|
 | **Train / onboarding** | Maturity levels, memory extraction fallback, profile hints | `lib/auth/maturity.test.ts`, `lib/onboarding/extract-memory.test.ts` |
 | **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, post-match text, clone receipt filtering | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
-| **Recall / Walrus** | RRF, diversity, type weights, recency, entity overlap, blob parse, provenance | `lib/clone/memory-rerank.test.ts`, `lib/clone/memory-provenance.test.ts`, `lib/walrus/parse-blob-payload.test.ts`, `lib/memory/recall-provenance.test.ts` |
+| **Recall / Walrus** | RRF, diversity, type weights, recency, entity overlap, blob parse, provenance, consolidation, encryption envelopes | `lib/clone/memory-rerank.test.ts`, `lib/clone/memory-provenance.test.ts`, `lib/walrus/parse-blob-payload.test.ts`, `lib/memory/recall-provenance.test.ts`, `lib/memory/consolidate-memories.test.ts`, `lib/crypto/memory-crypto.test.ts` |
 | **Debate** | Full pipeline: intent → analyze → rank → align → cite → contradict → fallback | 11 files under `lib/debate/*.test.ts` |
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
 | **Cron / matches** | Match status, team code mapping, sync-on-read | `lib/match-data/match-status.test.ts`, `lib/match-data/football-team-map.test.ts`, `lib/match-data/sync-match-results.test.ts` |
 | **Public profile / dashboard** | Contradictions, temporal drift, bias radar, clone mood, judge-proof panels | `lib/clone/contradiction-hunter.test.ts`, `lib/clone/temporal-contradictions.test.ts`, `lib/stats/bias-radar.test.ts`, `lib/clone/clone-mood.test.ts`, `lib/clone/judge-proof-demo.test.ts` |
-| **Auth** | Wallet challenge JWT round-trip | `lib/auth/wallet-challenge.test.ts` |
+| **Auth** | Wallet challenge JWT round-trip, memory unlock challenge | `lib/auth/wallet-challenge.test.ts` |
 | **API shaping** | Memory receipt mapper, lineage | `lib/api/memory-mapper.test.ts` |
 
 ---
@@ -56,7 +56,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | File | Functions / behavior covered |
 |------|------------------------------|
-| [`lib/clone/memory-rerank.test.ts`](../lib/clone/memory-rerank.test.ts) | `typeWeight`, `recencyBoost`, `entityOverlapBoost`, `reciprocalRankFusion`, `selectDiverseMemories`, `rerankMemoriesForMatch` |
+| [`lib/clone/memory-rerank.test.ts`](../lib/clone/memory-rerank.test.ts) | `typeWeight`, `recencyBoost`, `entityOverlapBoost`, `reciprocalRankFusion`, `selectDiverseMemories`, `rerankMemoriesForMatch`, `consolidated_bias` boost |
 | [`lib/clone/prediction-memory-filter.test.ts`](../lib/clone/prediction-memory-filter.test.ts) | `isCurrentMatchSubmittedPick` |
 | [`lib/clone/contradiction-hunter.test.ts`](../lib/clone/contradiction-hunter.test.ts) | `huntContradictions`, `pickDashboardContradiction` |
 | [`lib/clone/temporal-contradictions.test.ts`](../lib/clone/temporal-contradictions.test.ts) | `detectTemporalContradictions`, `computeConsistencyScore` |
@@ -69,12 +69,33 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/clone/memory-provenance.test.ts`](../lib/clone/memory-provenance.test.ts) | `formatMemorySourceLabel`, `formatProvenanceLabel` |
 | [`lib/clone/clone-memory-receipts.test.ts`](../lib/clone/clone-memory-receipts.test.ts) | `memoryRelevantToMatch`, `buildStoredCloneReceipts`, `pickInfluentialReceiptsForFallback` |
 
-### Telegram (5 files · ~22 tests)
+### API & Walrus (5 files · ~20 tests)
+
+| File | Functions / behavior covered |
+|------|------------------------------|
+| [`lib/api/memory-mapper.test.ts`](../lib/api/memory-mapper.test.ts) | `storedMemoryToReceipt`, `storedMemoriesToReceipts` |
+| [`lib/walrus/parse-blob-payload.test.ts`](../lib/walrus/parse-blob-payload.test.ts) | `parseBlobPayload`, `tokenizeBlobPayload`, encrypted `enc:v1:` envelopes |
+| [`lib/memory/recall-provenance.test.ts`](../lib/memory/recall-provenance.test.ts) | `recallSourceFromMetadata` |
+| [`lib/memory/consolidate-memories.test.ts`](../lib/memory/consolidate-memories.test.ts) | Sleep-cycle clustering, `archiveMemories`, consolidation synthesis |
+| [`lib/crypto/memory-crypto.test.ts`](../lib/crypto/memory-crypto.test.ts) | HKDF key derivation, encrypt/decrypt round-trip for emotional memories |
+
+### Clone Clash, evolution & leaderboard (4 files · ~12 tests)
+
+| File | Functions / behavior covered |
+|------|------------------------------|
+| [`lib/clash/arena-opponents.test.ts`](../lib/clash/arena-opponents.test.ts) | Arena opponent selection and namespace pairing |
+| [`lib/evolution/build-evolution-chat.test.ts`](../lib/evolution/build-evolution-chat.test.ts) | Evolution chat transcript builders |
+| [`lib/leaderboard/compute-learning-score.test.ts`](../lib/leaderboard/compute-learning-score.test.ts) | Learning score from prediction history |
+| [`lib/match/team-text-tokens.test.ts`](../lib/match/team-text-tokens.test.ts) | Team name tokenization for recall queries |
+
+### Telegram (7 files · ~28 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/telegram/citation-enforcement.test.ts`](../lib/telegram/citation-enforcement.test.ts) | `enforceCitationInMessage` — LLM vs enforced citations |
 | [`lib/telegram/recall-for-telegram-match.test.ts`](../lib/telegram/recall-for-telegram-match.test.ts) | `pinPredictionMemory`, `primaryRecallSource` |
+| [`lib/telegram/recall-for-telegram.test.ts`](../lib/telegram/recall-for-telegram.test.ts) | General Telegram recall helpers |
+| [`lib/telegram/link-token.test.ts`](../lib/telegram/link-token.test.ts) | Deep-link JWT for bot connect |
 | [`lib/telegram/parse-share-card.test.ts`](../lib/telegram/parse-share-card.test.ts) | `parseMatchLabel`, `primaryQuoteFromBody`, `splitQuoteHighlight` |
 | [`lib/telegram/recalled-memory-snapshot.test.ts`](../lib/telegram/recalled-memory-snapshot.test.ts) | `excerptMemoryText`, `toRecalledMemorySnapshots`, `parseRecalledMemorySnapshots` |
 | [`lib/telegram/telegram-follow-up-memory.test.ts`](../lib/telegram/telegram-follow-up-memory.test.ts) | `buildLiveGoalFollowUpMemoryText`, `buildPostMatchFollowUpMemoryText` |
@@ -102,14 +123,6 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 |------|------------------------------|
 | [`lib/predictions/predicted-match-ids.test.ts`](../lib/predictions/predicted-match-ids.test.ts) | Predicted match id merge and case-insensitive lookup |
 
-### API & Walrus (3 files · ~11 tests)
-
-| File | Functions / behavior covered |
-|------|------------------------------|
-| [`lib/api/memory-mapper.test.ts`](../lib/api/memory-mapper.test.ts) | `storedMemoryToReceipt`, `storedMemoriesToReceipts` |
-| [`lib/walrus/parse-blob-payload.test.ts`](../lib/walrus/parse-blob-payload.test.ts) | `parseBlobPayload`, `tokenizeBlobPayload` |
-| [`lib/memory/recall-provenance.test.ts`](../lib/memory/recall-provenance.test.ts) | `recallSourceFromMetadata` |
-
 ---
 
 ## Judging criteria → test proof
@@ -120,8 +133,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | Clone cites real memories | `infer-citations`, `align-citations`, `enforceCitationInMessage` | `/telegram-history` recall snapshots |
 | Contradictions & evolution | `contradiction-hunter`, `temporal-contradictions`, `judge-proof-demo` | `/u/hoolclone-demo/evolution` |
 | Maturity over time | `maturity`, `fallback-clone-prediction` | Train → predict flow |
-| Walrus Mainnet blobs | `parse-blob-payload`, `memory-mapper`, `recall-provenance` | `npm run verify:mainnet` |
-| Post-match learning loop | `post-match-resolution`, `telegram-follow-up-memory` | Cron + Telegram DMs |
+| Walrus Mainnet blobs | `parse-blob-payload`, `memory-mapper`, `recall-provenance`, `memory-crypto` | `npm run verify:mainnet` |
+| Post-match learning loop | `post-match-resolution`, `telegram-follow-up-memory`, `consolidate-memories` | Cron + Telegram DMs |
+| Private emotional memories | `memory-crypto`, encrypted blob parse | `/memory` unlock flow |
 
 ---
 

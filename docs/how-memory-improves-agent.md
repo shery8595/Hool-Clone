@@ -74,6 +74,14 @@ After a match resolves:
 
 A user who was roasted for picking wrong may see the clone reference that loss — or ride loyalty harder after a favorite-team win. The Telegram DM is ephemeral; the Walrus memory persists.
 
+### Sleep-cycle consolidation
+
+Every **6 hours**, repetitive prediction memories merge into `consolidated_bias` blobs. Archived rows drop out of recall and maturity counts, but Walrus blobs stay on Mainnet for provenance. The clone sounds more coherent on the next predict because reranking boosts consolidated biases over noisy one-off takes.
+
+### Encrypted emotional memories
+
+Sensitive onboarding heartbreaks (`emotional_memory`) are encrypted at rest. Clone recall uses search surrogates — behavior improves without exposing plaintext until the user unlocks on `/memory` with their wallet.
+
 Clone mood (`lib/clone/clone-mood.ts`) also shifts from recent resolved predictions:
 
 | Mood | Trigger | Tone effect |
@@ -141,7 +149,7 @@ Two clones debate using **only** their respective Walrus namespaces. No shared c
 
 ## Testing the improvement story
 
-165 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
+194 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
 
 - RRF rerank and diversity selection
 - Correction emphasis and prediction filter

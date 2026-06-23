@@ -7,6 +7,7 @@ import {
   getAdjacentDocs,
   getAllDocSlugs,
   getDocPage,
+  getDocSection,
 } from "@/lib/docs/navigation";
 import { loadDocContent, rewriteDocLinks } from "@/lib/docs/load-doc";
 
@@ -45,10 +46,16 @@ export default async function DocPage({ params }: PageProps) {
 
   const content = rewriteDocLinks(doc.content);
   const { prev, next } = getAdjacentDocs(slug);
+  const section = getDocSection(slug);
 
   return (
     <>
       <DocsPageActions markdown={doc.content} />
+      {section ? (
+        <p className="mb-2 text-sm font-medium text-hoolclone-green-700">
+          {section.title}
+        </p>
+      ) : null}
       <DocsMarkdown content={content} />
       <DocsPager prev={prev} next={next} />
     </>

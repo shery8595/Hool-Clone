@@ -208,3 +208,19 @@
     transform: none;
   }
 }
+
+/* Docs — isolated sidebar scroll (wheel does not move main content) */
+.docs-layout {
+  --docs-sticky-top: 6.75rem;
+}
+
+.docs-panel-scroll {
+  max-height: calc(100vh - var(--docs-sticky-top));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.docs-panel-scroll::-webkit-scrollbar {
+  display: none;
+}

@@ -27,6 +27,9 @@ flowchart TD
   LiveGoal --> Remember
   PostMatch --> Remember
   Remember --> Walrus
+
+  Consolidate[Sleep cycle cron every 6h] --> Merge[consolidated_bias + archive]
+  Merge --> Walrus
 ```
 
 **North star:** memories are not just logged — they are **recalled before every clone action** and shape what the agent says.
@@ -42,8 +45,9 @@ Training happens on `/train` through an onboarding interview.
 1. User answers questions (favorite team, rival, prediction style, heartbreaks, etc.).
 2. `extractMemoryFromAnswer()` (Gemini) turns the raw answer into structured **facts**.
 3. Each fact is written via `getMemoryAdapter().remember()` with `metadata.source: "onboarding"`.
-4. Answers are also stored in Postgres (`onboarding_answers`) and folded into `fan_profiles.summary`.
-5. Clone maturity increases with memory count (`syncCloneMaturity()`).
+4. **`emotional_memory`** facts are encrypted at write (`enc:v1:` on Walrus + `searchText` surrogate for recall).
+5. Answers are also stored in Postgres (`onboarding_answers`) and folded into `fan_profiles.summary`.
+6. Clone maturity increases with active memory count (`syncCloneMaturity()`).
 
 ### Key files
 
@@ -333,6 +337,30 @@ These memories feed back into the next recall cycle with source boost +0.12.
 
 ---
 
+## 8b. Sleep-cycle consolidation
+
+Every **6 hours**, `GET /api/cron/memory-consolidation` (same `CRON_SECRET` as match cron):
+
+1. Finds users with enough repetitive `prediction_pattern` / `prediction_history_summary` memories
+2. Clusters similar takes and synthesizes a `consolidated_bias` memory
+3. Marks superseded Postgres rows `archived` — original Walrus blobs remain on Mainnet
+
+Consolidated biases boost reranking and show in memory lineage on `/memory`. Setup: [cron-job.md](./cron-job.md).
+
+**Key files:** `lib/memory/consolidate-memories.ts`, `app/api/cron/memory-consolidation/route.ts`
+
+---
+
+## 8c. Encrypted emotional memories
+
+Sensitive onboarding takes (`emotional_memory` only) are encrypted server-side with a per-user key derived from `AUTH_SECRET`. Walrus stores ciphertext plus a public search surrogate; clone recall uses the surrogate so predictions never require wallet unlock.
+
+Users unlock plaintext on `/memory` via wallet signature (`POST /api/auth/memory-challenge` → `POST /api/memories/decrypt`).
+
+**Key files:** `lib/crypto/memory-crypto.ts`, `lib/wallet/use-memory-unlock.ts`, `app/(app)/memory/page.tsx`
+
+---
+
 ## 9. Environment and operations
 
 | Variable | Purpose |
@@ -342,7 +370,7 @@ These memories feed back into the next recall cycle with source boost +0.12.
 | `MEMWAL_ACCOUNT_ID` / `MEMWAL_DELEGATE_PRIVATE_KEY` | Walrus Memory credentials |
 | `GEMINI_API_KEY` | Clone, debate, Telegram message generation |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot |
-| `CRON_SECRET` | Authorize `/api/cron/check-resolutions` (cron-job.org sends `Authorization: Bearer …`) |
+| `CRON_SECRET` | Authorize `/api/cron/check-resolutions` and `/api/cron/memory-consolidation` (cron-job.org sends `Authorization: Bearer …`) |
 | `WORLDCUP26_BASE_URL` | Optional; defaults to `https://worldcup26.ir` |
 
 ### Useful commands
@@ -380,6 +408,7 @@ curl -X POST https://your-app.vercel.app/api/admin/sync-matches \
 | Receive live goal DM | `telegram_live_goal` | Next live DM, predict |
 | Match ends (Telegram user) | `telegram_post_match` | Next predict, roast/congrats |
 | Match ends (any predictor) | `match_resolution` | Next predict |
+| Sleep cycle (every 6h) | `consolidated_bias` | Next predict (boosted rerank) |
 
 ---
 

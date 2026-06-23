@@ -16,7 +16,7 @@ Guide for deploying HoolClone to Vercel with Walrus Mainnet memory, Postgres, Ge
 - [ ] Demo Walrus seeds run (`db:seed-demo-walrus`, `db:seed-demo-rival-walrus`)
 - [ ] `npm run verify:mainnet` passes
 - [ ] `GEMINI_API_KEY` set
-- [ ] `CRON_SECRET` set + [cron-job.org](./cron-job.md) scheduled
+- [ ] `CRON_SECRET` set + [cron-job.org](./cron-job.md) scheduled (match cron **and** consolidation cron)
 - [ ] Telegram webhook registered (`npm run telegram:webhook`)
 - [ ] `NEXT_PUBLIC_APP_URL` matches deployment domain
 

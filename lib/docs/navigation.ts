@@ -112,7 +112,7 @@ export const docSections: DocSection[] = [
         slug: "test-coverage",
         title: "Test Coverage",
         file: "test-coverage.md",
-        description: "165 tests mapped to user flows and judging criteria.",
+        description: "194 tests mapped to user flows and judging criteria.",
       },
     ],
   },
@@ -155,6 +155,12 @@ export function getDocPage(slug: string): DocPage | undefined {
 
 export function getAllDocSlugs(): string[] {
   return [...slugToPage.keys()];
+}
+
+export function getDocSection(slug: string): DocSection | undefined {
+  return docSections.find((section) =>
+    section.pages.some((page) => page.slug === slug),
+  );
 }
 
 export function getAdjacentDocs(slug: string): {
