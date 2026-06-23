@@ -111,13 +111,6 @@ export function DashboardFlywheel({
                     Open
                     <ArrowRight className="h-3 w-3" />
                   </span>
-
-                  {active && (
-                    <span
-                      className="absolute right-3 top-3 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white"
-                      aria-label="Active"
-                    />
-                  )}
                 </div>
               </Link>
 

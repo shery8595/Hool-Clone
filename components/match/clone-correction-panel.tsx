@@ -72,12 +72,13 @@ export function CloneCorrectionPanel({
 
   useEffect(() => {
     const receipt = findSavedCorrectionReceipt(clone.receipts);
-    if (receipt) {
-      setTaught(true);
-      setSavedSummary(extractCorrectionSnippet(receipt.text));
-    }
+    setCorrection("");
+    setSubmitting(false);
+    setError(null);
+    setTaught(Boolean(receipt));
+    setSavedSummary(receipt ? extractCorrectionSnippet(receipt.text) : "");
     setStillDisagrees(prediction.agreed === false);
-  }, [clone.receipts, prediction.agreed]);
+  }, [match.id, clone.receipts, prediction.agreed]);
 
   const wrongMemoryId = pickDisputedMemoryId(clone.receipts);
 

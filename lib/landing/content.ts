@@ -65,7 +65,7 @@ export type ShowcaseFan = {
 
 export const showcaseStats = [
   { label: "Walrus Mainnet", value: "Live", icon: "database" as const },
-  { label: "Unit Tests", value: "194", icon: "shield" as const },
+  { label: "Unit Tests", value: "208", icon: "shield" as const },
   { label: "Maturity Levels", value: "5", icon: "brain" as const },
   { label: "Memory Types", value: "8+", icon: "target" as const },
 ] as const;

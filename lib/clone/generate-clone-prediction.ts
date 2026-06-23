@@ -1,12 +1,27 @@
 import { countMemories, getFanProfile } from "@/lib/db/users";
 import { upsertClonePrediction } from "@/lib/db/clone-predictions";
 import { listUserPredictions, getUserPredictionForMatch } from "@/lib/db/predictions";
+import {
+  alignCloneWinnerToPrior,
+  nudgeScoresForWinner,
+} from "@/lib/clone/align-clone-winner";
 import { buildCloneInsight } from "@/lib/clone/clone-insight";
+import {
+  backfillCloneReceipts,
+  buildStoredCloneReceipts,
+  sortReceiptsForMatch,
+} from "@/lib/clone/clone-memory-receipts";
 import { computeCloneMood } from "@/lib/clone/clone-mood";
+import { huntContradictions } from "@/lib/clone/contradiction-hunter";
 import { fallbackClonePrediction } from "@/lib/clone/fallback-clone-prediction";
+import {
+  inferMemoryBackedWinner,
+  type MemoryBackedPrior,
+} from "@/lib/clone/memory-backed-winner";
+import { normalizeCloneWinner } from "@/lib/clone/normalize-clone-winner";
 import { recallMemoriesForMatch } from "@/lib/clone/recall-memories";
 import { getOnboardingDrivers } from "@/lib/onboarding/service";
-import { countMemoriesBySource } from "@/lib/memory/postgres-memory";
+import { countMemoriesBySource, listMemoriesForUser } from "@/lib/memory/postgres-memory";
 import {
   clonePredictionSchema,
   type ClonePredictionOutput,
@@ -20,11 +35,7 @@ import {
   CLONE_PREDICTION_SYSTEM,
 } from "@/lib/prompts/clone-prediction";
 import { getMatchDataAdapter } from "@/lib/match-data";
-import {
-  buildStoredCloneReceipts,
-  sortReceiptsForMatch,
-} from "@/lib/clone/clone-memory-receipts";
-import type { ClonePrediction, Match, Prediction } from "@/lib/mock/types";
+import type { ClonePrediction, DriverChip, Match, Prediction } from "@/lib/mock/types";
 import type { RecalledMemory } from "@/lib/clone/recall-memories";
 
 export type GenerateCloneResult = {
@@ -38,6 +49,9 @@ async function runLlmClonePrediction(input: {
   favoriteTeam: string | null;
   rivalTeam: string | null;
   preferredStyle: string | null;
+  onboardingDrivers: DriverChip[];
+  memoryPrior: MemoryBackedPrior;
+  contradictionSnippet: string | null;
   match: Match;
   recalledMemories: RecalledMemory[];
   memoriesCount: number;
@@ -51,6 +65,9 @@ async function runLlmClonePrediction(input: {
     favoriteTeam: input.favoriteTeam,
     rivalTeam: input.rivalTeam,
     preferredStyle: input.preferredStyle,
+    onboardingDrivers: input.onboardingDrivers,
+    memoryPrior: input.memoryPrior,
+    contradictionSnippet: input.contradictionSnippet,
     match: input.match,
     recalledMemories: input.recalledMemories.map((m) => ({
       id: m.id,
@@ -91,21 +108,6 @@ async function runLlmClonePrediction(input: {
   }
 }
 
-function normalizeWinner(
-  output: ClonePredictionOutput,
-  homeCode: string,
-  awayCode: string,
-): string {
-  const winner = output.predictedWinner.toUpperCase();
-  if (winner === homeCode || winner === awayCode) return winner;
-
-  const homeName = output.predictedWinner.toLowerCase();
-  if (homeCode.toLowerCase().includes(homeName) || homeName.includes("home")) {
-    return homeCode;
-  }
-  return awayCode;
-}
-
 export async function generateClonePrediction(
   userId: string,
   matchExternalId: string,
@@ -116,7 +118,7 @@ export async function generateClonePrediction(
     throw new Error("Match not available for clone prediction");
   }
 
-  const [profile, memoriesCount, humanRow, postMatchMemoryCount, history, onboardingDrivers] =
+  const [profile, memoriesCount, humanRow, postMatchMemoryCount, history, onboardingDrivers, recentMemories] =
     await Promise.all([
       getFanProfile(userId),
       countMemories(userId),
@@ -127,14 +129,8 @@ export async function generateClonePrediction(
       ]).then(([telegram, resolution]) => telegram + resolution),
       listUserPredictions(userId),
       getOnboardingDrivers(userId),
+      listMemoriesForUser(userId, 30),
     ]);
-
-  const cloneMood = computeCloneMood({
-    history,
-    memoryDrivers: onboardingDrivers,
-    contradictionCount: 0,
-    favoriteTeam: profile?.favorite_team ?? null,
-  });
 
   const recalledMemories = await recallMemoriesForMatch(userId, match, {
     favoriteTeam: profile?.favorite_team,
@@ -144,11 +140,38 @@ export async function generateClonePrediction(
     excludeCurrentMatchPick: true,
   });
 
+  const memoryPrior = inferMemoryBackedWinner(match, recalledMemories, profile);
+
+  const memoryTexts = [
+    ...recentMemories.map((m) => m.text),
+    ...recalledMemories.map((m) => m.text),
+  ];
+  const uniqueMemoryTexts = [...new Set(memoryTexts)];
+
+  const contradictionFindings = huntContradictions({
+    profile,
+    history,
+    memoryDrivers: onboardingDrivers,
+    memoryTexts: uniqueMemoryTexts,
+  });
+
+  const cloneMood = computeCloneMood({
+    history,
+    memoryDrivers: onboardingDrivers,
+    contradictionCount: contradictionFindings.length,
+    favoriteTeam: profile?.favorite_team ?? null,
+  });
+
+  const contradictionSnippet = contradictionFindings[0]?.text ?? null;
+
   const output = await runLlmClonePrediction({
     profileSummary: profile?.summary ?? null,
     favoriteTeam: profile?.favorite_team ?? null,
     rivalTeam: profile?.rival_team ?? null,
     preferredStyle: profile?.preferred_style ?? null,
+    onboardingDrivers,
+    memoryPrior,
+    contradictionSnippet,
     match,
     recalledMemories,
     memoriesCount,
@@ -159,7 +182,55 @@ export async function generateClonePrediction(
 
   const homeCode = match.homeTeam.code;
   const awayCode = match.awayTeam.code;
-  const winner = normalizeWinner(output, homeCode, awayCode);
+
+  const fallbackWinner =
+    memoryPrior.winner ??
+    fallbackClonePrediction({
+      match,
+      recalledMemories,
+      memoriesCount,
+      favoriteTeam: profile?.favorite_team,
+      rivalTeam: profile?.rival_team,
+    }).predictedWinner;
+
+  let winner = normalizeCloneWinner(
+    output.predictedWinner,
+    match,
+    fallbackWinner,
+  );
+
+  const citedMemoryIds = output.memoryReceipts
+    .map((receipt) => receipt.memoryId)
+    .filter((id): id is string => Boolean(id));
+
+  const alignment = alignCloneWinnerToPrior({
+    llmWinner: winner,
+    prior: memoryPrior,
+    citedMemoryIds,
+  });
+
+  let reasoning = output.reasoning;
+  if (alignment.adjusted) {
+    winner = alignment.winner;
+    if (alignment.reasoningNote) {
+      reasoning = `${reasoning} ${alignment.reasoningNote}`;
+    }
+  }
+
+  let homeScore = output.predictedScore.teamA;
+  let awayScore = output.predictedScore.teamB;
+  if (alignment.adjusted) {
+    const nudged = nudgeScoresForWinner(
+      winner,
+      homeCode,
+      awayCode,
+      homeScore,
+      awayScore,
+    );
+    homeScore = nudged.homeScore;
+    awayScore = nudged.awayScore;
+  }
+
   const weakMemory = memoriesCount < 3;
   const trainingQuestion = weakMemory
     ? (output.trainingQuestion ??
@@ -172,18 +243,18 @@ export async function generateClonePrediction(
       .map((memory) => [memory.id!, memory]),
   );
 
+  const builtReceipts = buildStoredCloneReceipts(output.memoryReceipts, recallById, {
+    match,
+    favoriteTeam: profile?.favorite_team,
+    rivalTeam: profile?.rival_team,
+  });
+
   const validReceipts = sortReceiptsForMatch(
-    buildStoredCloneReceipts(output.memoryReceipts, recallById, {
-      match,
-      favoriteTeam: profile?.favorite_team,
-      rivalTeam: profile?.rival_team,
-    }),
+    backfillCloneReceipts(builtReceipts, recallById, memoryPrior),
     recallById,
     matchExternalId,
   );
 
-  const homeScore = output.predictedScore.teamA;
-  const awayScore = output.predictedScore.teamB;
   const insight =
     output.insight ??
     buildCloneInsight({
@@ -200,7 +271,7 @@ export async function generateClonePrediction(
     homeScore,
     awayScore,
     confidence: output.confidence,
-    reasoning: output.reasoning,
+    reasoning,
     insight: insight ?? undefined,
     memoryReceipts: validReceipts,
     rawLlmOutput: output,

@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **194 unit tests** across **47 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **208 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -10,9 +10,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Metric | Value |
 |--------|-------|
-| Test files | 47 (`lib/**/*.test.ts`) |
-| Test cases | 194 |
-| Test suites | 91 |
+| Test files | 52 (`lib/**/*.test.ts`) |
+| Test cases | 208 |
+| Test suites | 97 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -23,7 +23,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | User flow | What's tested | Test files |
 |-----------|---------------|------------|
 | **Train / onboarding** | Maturity levels, memory extraction fallback, profile hints | `lib/auth/maturity.test.ts`, `lib/onboarding/extract-memory.test.ts` |
-| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, post-match text, clone receipt filtering | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
+| **Predict** | Alignment, agreement, exclude own pick from recall, fallback clone, **memory-backed prior + post-LLM alignment**, fixture memory pinning, post-match text, clone receipt filtering | `lib/clone/prediction-*.test.ts`, `lib/clone/fallback-clone-prediction.test.ts`, `lib/clone/memory-backed-winner.test.ts`, `lib/clone/normalize-clone-winner.test.ts`, `lib/clone/align-clone-winner.test.ts`, `lib/clone/recall-memories.test.ts`, `lib/clone/post-match-resolution.test.ts`, `lib/clone/clone-memory-receipts.test.ts`, `lib/predictions/predicted-match-ids.test.ts` |
 | **Recall / Walrus** | RRF, diversity, type weights, recency, entity overlap, blob parse, provenance, consolidation, encryption envelopes | `lib/clone/memory-rerank.test.ts`, `lib/clone/memory-provenance.test.ts`, `lib/walrus/parse-blob-payload.test.ts`, `lib/memory/recall-provenance.test.ts`, `lib/memory/consolidate-memories.test.ts`, `lib/crypto/memory-crypto.test.ts` |
 | **Debate** | Full pipeline: intent → analyze → rank → align → cite → contradict → fallback | 11 files under `lib/debate/*.test.ts` |
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
@@ -52,7 +52,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/debate/thread-variation.test.ts`](../lib/debate/thread-variation.test.ts) | `isRepeatingReply`, `pickContradictionForTurn` |
 | [`lib/debate/prediction-rebuttal.test.ts`](../lib/debate/prediction-rebuttal.test.ts) | `findPredictionRebuttal` |
 
-### Clone & memory recall (12 files · ~52 tests)
+### Clone & memory recall (16 files · ~65 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
@@ -61,6 +61,10 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/clone/contradiction-hunter.test.ts`](../lib/clone/contradiction-hunter.test.ts) | `huntContradictions`, `pickDashboardContradiction` |
 | [`lib/clone/temporal-contradictions.test.ts`](../lib/clone/temporal-contradictions.test.ts) | `detectTemporalContradictions`, `computeConsistencyScore` |
 | [`lib/clone/fallback-clone-prediction.test.ts`](../lib/clone/fallback-clone-prediction.test.ts) | `fallbackClonePrediction` — weak memory + loyalty/rival |
+| [`lib/clone/memory-backed-winner.test.ts`](../lib/clone/memory-backed-winner.test.ts) | `inferMemoryBackedWinner` — corrections, loyalty, rival, underdog, profile fallback |
+| [`lib/clone/normalize-clone-winner.test.ts`](../lib/clone/normalize-clone-winner.test.ts) | `normalizeCloneWinner` — codes, fuzzy names, fallback |
+| [`lib/clone/align-clone-winner.test.ts`](../lib/clone/align-clone-winner.test.ts) | `alignCloneWinnerToPrior`, `nudgeScoresForWinner` |
+| [`lib/clone/recall-memories.test.ts`](../lib/clone/recall-memories.test.ts) | `pinFixtureCriticalMemories` — correction + bias pinning |
 | [`lib/clone/post-match-resolution.test.ts`](../lib/clone/post-match-resolution.test.ts) | `buildPostMatchResolutionMemoryText` |
 | [`lib/clone/prediction-alignment.test.ts`](../lib/clone/prediction-alignment.test.ts) | `computePredictionAlignment`, `averagePredictionAlignment` |
 | [`lib/clone/prediction-agreement.test.ts`](../lib/clone/prediction-agreement.test.ts) | `predictionsAgree` |
@@ -129,7 +133,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Judging signal | Unit test proof | Manual / prod proof |
 |----------------|-----------------|---------------------|
-| Memory drives clone behavior | `memory-rerank`, `recall-provenance`, `citation-enforcement` | Expand receipts on `/predict` |
+| Memory drives clone behavior | `memory-rerank`, `memory-backed-winner`, `align-clone-winner`, `recall-provenance`, `citation-enforcement` | Expand receipts on `/predict` |
 | Clone cites real memories | `infer-citations`, `align-citations`, `enforceCitationInMessage` | `/telegram-history` recall snapshots |
 | Contradictions & evolution | `contradiction-hunter`, `temporal-contradictions`, `judge-proof-demo` | `/u/hoolclone-demo/evolution` |
 | Maturity over time | `maturity`, `fallback-clone-prediction` | Train → predict flow |

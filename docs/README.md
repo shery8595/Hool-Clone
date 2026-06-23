@@ -57,7 +57,7 @@ Complete documentation for **HoolClone** — a World Cup 2026 dApp where you tra
 | [Architecture](./hoolclone-architecture.md) | Full system design, data model, agent design, security |
 | [Demo Guide](./demo-guide.md) | Judge URLs, 3-minute script, criteria mapping |
 | [Testing](./testing.md) | Run `npm test`, conventions, fixtures, writing tests |
-| [Test Coverage](./test-coverage.md) | 194 tests mapped to flows and judging criteria |
+| [Test Coverage](./test-coverage.md) | 208 tests mapped to flows and judging criteria |
 
 ### Design & planning
 

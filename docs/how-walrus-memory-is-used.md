@@ -150,7 +150,9 @@ flowchart LR
   Walrus --> RRF[Reciprocal Rank Fusion]
   RRF --> Rerank[Type weight + recency + entity overlap]
   Rerank --> Diversity[Max 8 diverse memories]
-  Diversity --> Prompt[LLM prompt + receipt enforcement]
+  Diversity --> Pin[Pin correction + fan profile]
+  Pin --> Prior[Memory-backed prior]
+  Prior --> Prompt[LLM prompt + receipt enforcement + alignment]
 ```
 
 | Signal | Effect |
@@ -158,6 +160,8 @@ flowchart LR
 | `correction` type | 1.5× weight; emphasized after user correction |
 | `telegram_post_match` | +0.12 source boost |
 | Entity overlap with match teams | Boost |
+| Fixture correction / fan profile | Pinned into final 8 after diversity |
+| Memory-backed prior | Injected into prompt; strong prior can override LLM winner |
 | Recency | Exponential decay per memory type |
 | Near-duplicate text | Skipped (Jaccard > 0.72) |
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useCallback, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Target } from "lucide-react";
 import { LoadingStatus } from "@/components/brand/hoolclone-loader";
 import { HumanVsClonePanel } from "@/components/clone/human-vs-clone-panel";
@@ -11,6 +11,7 @@ import { ClonePredictionPanel } from "@/components/match/clone-prediction-panel"
 import { WeakMemoryCloneCard } from "@/components/match/weak-memory-clone-card";
 import { CloneMoodBadge } from "@/components/clone/clone-mood-badge";
 import { PredictButton } from "@/components/predict/predict-button";
+import { predictionsAgree } from "@/lib/clone/prediction-agreement";
 import { buildDashboardFallback } from "@/lib/dashboard/dashboard-fallback";
 import { cacheKeys, peekCached } from "@/lib/api/data-cache";
 import {
@@ -80,21 +81,56 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
   const [submitting, setSubmitting] = useState(false);
   const [cloneLoading, setCloneLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const activeMatchIdRef = useRef(matchId);
+  activeMatchIdRef.current = matchId;
   const usingMock = matchHydrating && !!getMockMatch(matchId) && match === initialMatch;
+
+  // Navigating between fixtures reuses this page component — reset local state per match.
+  useEffect(() => {
+    setPrediction(null);
+    setTrainingQuestion(null);
+    setLocked(false);
+    setError(null);
+    setSubmitting(false);
+    setCloneLoading(false);
+  }, [matchId]);
+
+  useEffect(() => {
+    if (predHydrating) return;
+
+    if (savedPrediction && savedPrediction.matchId === matchId) {
+      setPrediction(savedPrediction);
+      setLocked(true);
+      return;
+    }
+
+    if (!savedPrediction) {
+      setPrediction(null);
+      setLocked(false);
+    }
+  }, [matchId, savedPrediction, predHydrating]);
 
   const loadCloneMeta = useCallback(async () => {
     if (!me?.id) return;
-    const meta = await fetchClonePredictionRaw(matchId);
-    if (!meta) return;
-    setTrainingQuestion(meta.trainingQuestion);
-  }, [matchId, me?.id, me?.profile.memoriesCount]);
-
-  useEffect(() => {
-    if (savedPrediction) {
-      setPrediction(savedPrediction);
-      setLocked(true);
+    const requestMatchId = matchId;
+    const meta = await fetchClonePredictionRaw(requestMatchId);
+    if (activeMatchIdRef.current !== requestMatchId) return;
+    if (!meta) {
+      setTrainingQuestion(null);
+      return;
     }
-  }, [savedPrediction]);
+    setTrainingQuestion(meta.trainingQuestion);
+    if (meta.clone) {
+      setPrediction((prev) => {
+        if (!prev || prev.matchId !== requestMatchId) return prev;
+        return {
+          ...prev,
+          clone: meta.clone!,
+          agreed: predictionsAgree(prev, meta.clone!),
+        };
+      });
+    }
+  }, [matchId, me?.id]);
 
   useEffect(() => {
     void loadCloneMeta();
@@ -110,31 +146,36 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
   }, [loadCloneMeta, refreshMe]);
 
   const runClonePrediction = useCallback(async () => {
+    const requestMatchId = matchId;
     setCloneLoading(true);
     setError(null);
     try {
-      const result = await generateClonePrediction(matchId);
+      const result = await generateClonePrediction(requestMatchId);
+      if (activeMatchIdRef.current !== requestMatchId) return;
       setTrainingQuestion(result.trainingQuestion);
       if (result.prediction) {
         setPrediction(result.prediction);
-      } else if (result.clone && prediction) {
-        setPrediction({
-          ...prediction,
-          clone: result.clone,
-          agreed:
-            prediction.winner === result.clone.winner &&
-            prediction.homeScore === result.clone.homeScore &&
-            prediction.awayScore === result.clone.awayScore,
+      } else if (result.clone) {
+        setPrediction((prev) => {
+          if (!prev || prev.matchId !== requestMatchId) return prev;
+          return {
+            ...prev,
+            clone: result.clone,
+            agreed: predictionsAgree(prev, result.clone),
+          };
         });
       }
     } catch (err) {
+      if (activeMatchIdRef.current !== requestMatchId) return;
       setError(
         err instanceof Error ? err.message : "Failed to generate clone prediction",
       );
     } finally {
-      setCloneLoading(false);
+      if (activeMatchIdRef.current === requestMatchId) {
+        setCloneLoading(false);
+      }
     }
-  }, [matchId, prediction]);
+  }, [matchId]);
 
   const handleSubmit = async (input: {
     winner: string;
@@ -188,7 +229,10 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
     );
   }
 
-  const defaultPrediction = prediction ?? {
+  const activePrediction =
+    prediction?.matchId === match.id ? prediction : null;
+
+  const defaultPrediction = activePrediction ?? {
     matchId: match.id,
     winner: match.homeTeam.code,
     homeScore: 1,
@@ -204,11 +248,14 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
   const showTrainedSuccess =
     locked && Boolean(trainingQuestion) && !stillNeedsTraining;
   const showClonePanel =
-    locked && prediction?.clone && !trainingQuestion && !showTrainedSuccess;
+    locked &&
+    activePrediction?.clone &&
+    !trainingQuestion &&
+    !showTrainedSuccess;
   const showCorrection =
     showClonePanel &&
-    prediction?.clone &&
-    prediction.agreed === false &&
+    activePrediction?.clone &&
+    activePrediction.agreed === false &&
     !usingMock;
   const matchFinished = isMatchFinished(match);
 
@@ -242,15 +289,16 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
         </p>
       )}
 
-      {locked && prediction?.clone && (
-        <HumanVsClonePanel match={match} prediction={prediction} />
+      {locked && activePrediction?.clone && (
+        <HumanVsClonePanel match={match} prediction={activePrediction} />
       )}
 
-      {showCorrection && prediction.clone && (
+      {showCorrection && activePrediction?.clone && (
         <CloneCorrectionPanel
+          key={match.id}
           match={match}
-          prediction={prediction}
-          clone={prediction.clone}
+          prediction={activePrediction}
+          clone={activePrediction.clone}
           onCorrected={({ prediction: next, agreed }) => {
             if (next) {
               setPrediction(next);
@@ -263,6 +311,7 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <PredictionForm
+          key={match.id}
           match={match}
           initialWinner={defaultPrediction.winner}
           initialHomeScore={defaultPrediction.homeScore}
@@ -279,10 +328,10 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
           <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-dashed border-border bg-white p-8 text-center text-muted-foreground">
             <LoadingStatus label="Your clone is thinking..." className="py-4" />
           </div>
-        ) : showClonePanel && prediction.clone ? (
+        ) : showClonePanel && activePrediction?.clone ? (
           <ClonePredictionPanel
             match={match}
-            clone={prediction.clone}
+            clone={activePrediction.clone}
             maturity={me?.profile.cloneMaturityLabel}
           />
         ) : showTrainedSuccess && trainingQuestion ? (
@@ -296,7 +345,7 @@ export default function PredictMatchPage({ params }: PredictMatchPageProps) {
         ) : showWeakMemory && trainingQuestion ? (
           <WeakMemoryCloneCard
             trainingQuestion={trainingQuestion}
-            reasoning={prediction?.clone?.reasoning}
+            reasoning={activePrediction?.clone?.reasoning}
           />
         ) : locked ? (
           <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-white p-8 text-center text-muted-foreground">

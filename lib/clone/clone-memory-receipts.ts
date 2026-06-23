@@ -197,3 +197,77 @@ export function sortReceiptsForMatch(
     return bStrength - aStrength;
   });
 }
+
+export function backfillCloneReceipts(
+  receipts: StoredCloneReceipt[],
+  recallById: Map<string, RecalledMemory>,
+  prior: {
+    confidence: "strong" | "weak" | "none";
+    supportingMemoryIds: string[];
+  },
+  options?: { maxBackfill?: number },
+): StoredCloneReceipt[] {
+  const maxBackfill = options?.maxBackfill ?? 2;
+  const result = [...receipts];
+  const citedIds = new Set(
+    result.map((r) => r.memoryId).filter((id): id is string => Boolean(id)),
+  );
+
+  const needsBackfill =
+    result.length === 0 ||
+    (prior.confidence === "strong" &&
+      !prior.supportingMemoryIds.some((id) => citedIds.has(id)));
+
+  if (!needsBackfill) return result;
+
+  for (const memoryId of prior.supportingMemoryIds) {
+    if (result.length >= maxBackfill && result.length > 0) break;
+    if (!memoryId || citedIds.has(memoryId)) continue;
+    const recalled = recallById.get(memoryId);
+    if (!recalled) continue;
+
+    const createdAt = recalled.createdAt ?? new Date().toISOString();
+    result.push({
+      memoryId,
+      summary: recalled.text.length > 300 ? `${recalled.text.slice(0, 300)}…` : recalled.text,
+      memoryType: recalled.type ?? "prediction_style",
+      strength: "high",
+      date: createdAt,
+      recallSource: recalled.recallSource,
+      memorySource: recalled.source,
+      provenanceLabel: formatProvenanceLabel(
+        recalled.source,
+        createdAt,
+        recalled.metadataMatchId,
+      ),
+      walrusBlobId: recalled.walrusBlobId,
+      storageStatus: recalled.walrusBlobId ? "stored" : undefined,
+    });
+    citedIds.add(memoryId);
+  }
+
+  if (result.length === 0 && recallById.size > 0) {
+    const top = [...recallById.values()].sort((a, b) => b.score - a.score)[0];
+    if (top?.id) {
+      const createdAt = top.createdAt ?? new Date().toISOString();
+      result.push({
+        memoryId: top.id,
+        summary: top.text.length > 300 ? `${top.text.slice(0, 300)}…` : top.text,
+        memoryType: top.type ?? "remembered",
+        strength: "medium",
+        date: createdAt,
+        recallSource: top.recallSource,
+        memorySource: top.source,
+        provenanceLabel: formatProvenanceLabel(
+          top.source,
+          createdAt,
+          top.metadataMatchId,
+        ),
+        walrusBlobId: top.walrusBlobId,
+        storageStatus: top.walrusBlobId ? "stored" : undefined,
+      });
+    }
+  }
+
+  return result;
+}

@@ -99,9 +99,15 @@ Mood label and `toneGuidance` are injected into the clone prediction prompt.
 
 Clone prediction recalls ~8 memories but **excludes** the user's saved pick for the current match. The clone imitates **habitual** behavior from `prediction_pattern` memories on *other* fixtures, plus fan profile and corrections.
 
-Weak memory (&lt; 3 memories): clone returns a `trainingQuestion` instead of faking confidence.
+### Memory-backed prior (winner enforcement)
 
-Strong memory: 2–4 `memoryReceipts` in output, each mapped to a recalled row — Gemini is instructed not to fabricate IDs.
+After recall, `inferMemoryBackedWinner()` builds a deterministic bias prior from corrections, consolidated biases, loyalty/rival/underdog claims, and profile fallback. The prior is injected into the Gemini prompt alongside onboarding drivers and contradiction findings.
+
+If the LLM returns a winner that conflicts with a **strong** prior without citing the supporting memory IDs, `alignCloneWinnerToPrior()` overrides the pick and nudges the scoreline. Fixture-critical memories (corrections, fan profile) are **pinned** so diversity selection cannot drop them.
+
+Weak memory (&lt; 3 memories): clone still returns a low-confidence pick plus a `trainingQuestion` instead of faking deep knowledge.
+
+Strong memory: 2–4 `memoryReceipts` in output, each mapped to a recalled row — Gemini is instructed not to fabricate IDs; `backfillCloneReceipts()` fills gaps when citations are missing.
 
 ---
 
@@ -149,13 +155,15 @@ Two clones debate using **only** their respective Walrus namespaces. No shared c
 
 ## Testing the improvement story
 
-194 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
+208 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
 
 - RRF rerank and diversity selection
+- Memory-backed winner prior and post-LLM alignment
+- Fixture memory pinning for corrections and fan profile
 - Correction emphasis and prediction filter
 - Judge-proof panel builders
 - Citation enforcement
-- Clone mood computation
+- Clone mood computation (with live contradiction count)
 - Temporal contradictions
 
 See [Test Coverage](./test-coverage.md) for the full map.

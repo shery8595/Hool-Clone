@@ -117,7 +117,7 @@ Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **
 | Honest fallback labeling | Postgres fallback shown explicitly | Receipt cards when Walrus unavailable |
 | Mainnet verification CLI | Scripted readiness checks | `npm run verify:mainnet` |
 | Production deployment | Live app + documented env | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
-| Unit test coverage | 194 tests · 47 files · 91 suites | [Test Coverage](./test-coverage.md) |
+| Unit test coverage | 208 tests · 52 files · 97 suites | [Test Coverage](./test-coverage.md) |
 | Dual production crons | Match loop + sleep-cycle consolidation | [Production Cron](./cron-job.md) |
 
 ---
@@ -154,7 +154,7 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero `demo-blob-*` p
 Run the test suite offline:
 
 ```bash
-npm test   # 194 tests, 91 suites — no external services
+npm test   # 208 tests, 97 suites — no external services
 ```
 
 Manual consolidation demo (operators):
@@ -193,5 +193,5 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 
 - [Demo Guide](./demo-guide.md) — recording tips and operator checklist
 - [Project Overview](./project-overview.md) — product vision
-- [Test Coverage](./test-coverage.md) — 194 tests mapped to criteria
+- [Test Coverage](./test-coverage.md) — 208 tests mapped to criteria
 - [API Reference](./api-reference.md) — cron, unlock, and decrypt routes

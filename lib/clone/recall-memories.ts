@@ -1,6 +1,7 @@
 import { getMemoryAdapter } from "@/lib/memory";
 import type { MemorySearchResult } from "@/lib/memory/memory-adapter";
 import type { Match, RecallSource } from "@/lib/mock/types";
+import { memoryRelevantToMatch } from "@/lib/clone/clone-memory-receipts";
 import {
   reciprocalRankFusion,
   rerankMemoriesForMatch,
@@ -8,6 +9,7 @@ import {
   type RankedMemory,
 } from "@/lib/clone/memory-rerank";
 import { isCurrentMatchSubmittedPick } from "@/lib/clone/prediction-memory-filter";
+import { matchInvolvesRef } from "@/lib/clone/team-matching";
 
 export type RecalledMemory = {
   id?: string;
@@ -115,11 +117,71 @@ function buildQueries(
     );
   }
 
+  if (
+    options.favoriteTeam &&
+    matchInvolvesRef(match, options.favoriteTeam)
+  ) {
+    queries.push(
+      `${options.favoriteTeam} ${match.homeTeam.name} ${match.awayTeam.name} always back loyalty`,
+    );
+  }
+
   if (options.extraQueries?.length) {
     queries.push(...options.extraQueries);
   }
 
   return queries;
+}
+
+export function pinFixtureCriticalMemories(
+  ranked: RankedMemory[],
+  match: Match,
+  options: {
+    favoriteTeam?: string | null;
+    rivalTeam?: string | null;
+  },
+  limit = 8,
+): RankedMemory[] {
+  if (!match.homeTeam || !match.awayTeam) return ranked.slice(0, limit);
+
+  const pins: RankedMemory[] = [];
+
+  const bestCorrection = [...ranked]
+    .filter(
+      (memory) =>
+        (memory.source === "clone_correction" ||
+          memory.type === "correction") &&
+        memory.metadataMatchId === match.id,
+    )
+    .sort((a, b) => b.finalScore - a.finalScore)[0];
+
+  const bestBias = [...ranked]
+    .filter(
+      (memory) =>
+        (memory.type === "fan_profile" ||
+          memory.type === "consolidated_bias" ||
+          memory.source === "sleep_cycle") &&
+        memoryRelevantToMatch(memory, match, {
+          favoriteTeam: options.favoriteTeam,
+          rivalTeam: options.rivalTeam,
+        }),
+    )
+    .sort((a, b) => b.finalScore - a.finalScore)[0];
+
+  for (const memory of [bestCorrection, bestBias]) {
+    if (!memory) continue;
+    pins.push({
+      ...memory,
+      score: Math.max(memory.score, 1),
+      rrfScore: Math.max(memory.rrfScore, 2),
+      finalScore: Math.max(memory.finalScore, 10),
+    });
+  }
+
+  const pinnedKeys = new Set(pins.map((m) => m.id ?? m.text));
+  const rest = ranked.filter((m) => !pinnedKeys.has(m.id ?? m.text));
+
+  return [...pins, ...rest].slice(0, limit);
 }
 
 export async function recallRankedMemoriesForMatch(
@@ -143,7 +205,11 @@ export async function recallRankedMemoriesForMatch(
     excludeCurrentMatchPick: options.excludeCurrentMatchPick,
   });
   const filtered = filterExcludedMemories(reranked, match, options);
-  return selectDiverseMemories(filtered, 8);
+  const diverse = selectDiverseMemories(filtered, 8);
+  return pinFixtureCriticalMemories(diverse, match, {
+    favoriteTeam: options.favoriteTeam,
+    rivalTeam: options.rivalTeam,
+  });
 }
 
 export async function recallMemoriesForMatch(

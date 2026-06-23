@@ -178,15 +178,18 @@ sequenceDiagram
   participant API as /api/matches/.../clone-prediction
   participant Recall as recallMemoriesForMatch
   participant Walrus as Walrus Memory
+  participant Prior as inferMemoryBackedWinner
   participant LLM as Gemini
 
   UI->>API: generate clone prediction
-  API->>Recall: multi-query + RRF + rerank
+  API->>Recall: multi-query + RRF + rerank + pin
   Recall->>Walrus: recall per query
   Walrus-->>Recall: top hits
   Recall-->>API: 8 ranked memories
-  API->>LLM: prompt with memories + match context
+  API->>Prior: bias prior from memories + profile
+  API->>LLM: prompt with memories, prior, drivers, mood
   LLM-->>API: JSON prediction + memoryReceipts
+  API->>API: normalize + align winner to strong prior
   API-->>UI: clone pick, reasoning, cited receipts
 ```
 
@@ -194,15 +197,19 @@ sequenceDiagram
 
 - Clone predicts **before** seeing your pick (unless you already submitted).
 - Prompt instructs Gemini to cite only recalled memory IDs — no fabrication.
-- Weak memory (< 3 memories): clone asks a `trainingQuestion` instead of faking confidence.
+- **Memory-backed prior** enforces loyalty/correction signals when the LLM disagrees without citing them.
+- Weak memory (< 3 memories): clone asks a `trainingQuestion` and still returns a low-confidence pick.
 - When **you** submit a pick, `rememberPredictionSubmission()` writes/updates a `prediction_submit` memory with your reasoning and emotion.
+- **Contradiction hunter** feeds clone mood and a one-line “watch for contradiction” hint into the prompt.
 
 ### Key files
 
 | File | Role |
 |------|------|
 | `lib/clone/generate-clone-prediction.ts` | Orchestrator |
-| `lib/clone/recall-memories.ts` | Recall pipeline |
+| `lib/clone/recall-memories.ts` | Recall pipeline + fixture pinning |
+| `lib/clone/memory-backed-winner.ts` | Deterministic bias prior |
+| `lib/clone/align-clone-winner.ts` | Post-LLM winner alignment |
 | `lib/clone/remember-prediction.ts` | Write prediction memory on submit |
 | `lib/prompts/clone-prediction.ts` | System prompt + weighting guidance |
 

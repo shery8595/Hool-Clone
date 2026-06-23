@@ -47,7 +47,9 @@ export function DashboardInsightsGrid({
   className?: string;
 }) {
   return (
-    <div className={cn("grid gap-5 lg:grid-cols-2", className)}>{children}</div>
+    <div className={cn("grid gap-5 lg:grid-cols-2 [&>*]:min-w-0", className)}>
+      {children}
+    </div>
   );
 }
 

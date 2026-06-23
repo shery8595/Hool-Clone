@@ -2,7 +2,7 @@
 
 HoolClone uses **Node's built-in test runner** (`node:test`) with TypeScript via `tsx`. Tests are colocated next to source as `lib/**/*.test.ts` — no Jest or Vitest, no browser E2E.
 
-**Current suite:** 47 test files · 194 test cases · 91 suites
+**Current suite:** 52 test files · 208 test cases · 97 suites
 
 ---
 
@@ -19,8 +19,8 @@ npm run test:watch
 Expected output:
 
 ```
-ℹ tests 194
-ℹ pass 194
+ℹ tests 208
+ℹ pass 208
 ℹ fail 0
 ```
 
@@ -142,7 +142,7 @@ See [Test Coverage](./test-coverage.md) for the full flow matrix.
 
 Before recording a demo or submitting to judges:
 
-- [ ] `npm test` — all 194 tests pass
+- [ ] `npm test` — all 208 tests pass
 - [ ] `npm run verify:mainnet` — passes on production DB (Walrus demo)
 - [ ] No placeholder `demo-blob-*` IDs on public demo profile
 
