@@ -4,8 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { Database, Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { MemoryReceiptCard } from "@/components/memory/memory-receipt-card";
 import { JUDGE_DEMO_CORRECTION_TEXT } from "@/lib/judge-demo/constants";
+import {
+  JUDGE_DEMO_CORRECTION_MAX_LENGTH,
+  JUDGE_DEMO_CORRECTION_MIN_LENGTH,
+} from "@/lib/judge-demo/parse-correction-text";
 import type { ClonePrediction, Prediction } from "@/lib/mock/types";
 import { TextWithTeamFlags } from "@/components/match/team-label-with-flags";
 
@@ -34,6 +39,15 @@ export function JudgeLiveProofSandbox() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [correctionText, setCorrectionText] = useState(
+    JUDGE_DEMO_CORRECTION_TEXT,
+  );
+
+  const trimmedCorrection = correctionText.trim();
+  const correctionTooShort =
+    trimmedCorrection.length < JUDGE_DEMO_CORRECTION_MIN_LENGTH;
+  const correctionTooLong =
+    trimmedCorrection.length > JUDGE_DEMO_CORRECTION_MAX_LENGTH;
 
   const loadState = useCallback(async () => {
     setLoading(true);
@@ -57,10 +71,16 @@ export function JudgeLiveProofSandbox() {
   }, [loadState]);
 
   const applyCorrection = async () => {
+    if (correctionTooShort || correctionTooLong) return;
+
     setCorrecting(true);
     setError(null);
     try {
-      const res = await fetch("/api/judge-demo/correct", { method: "POST" });
+      const res = await fetch("/api/judge-demo/correct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correctionText: trimmedCorrection }),
+      });
       const body = await res.json();
       if (!res.ok) {
         throw new Error(body.error ?? "Correction failed");
@@ -111,10 +131,10 @@ export function JudgeLiveProofSandbox() {
           </span>
         </div>
         <p className="text-sm text-muted-foreground">
-          No wallet required. Apply a correction to the demo clone on{" "}
-          <strong>{state?.matchLabel ?? "Colombia vs Portugal"}</strong>, watch a
-          new Mainnet blob land, then regenerate the clone prediction with cited
-          receipts.
+          No wallet required. Type any fan take below, write it to Walrus for the
+          demo clone on{" "}
+          <strong>{state?.matchLabel ?? "Colombia vs Portugal"}</strong>, then
+          regenerate the clone prediction with cited receipts.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -140,20 +160,41 @@ export function JudgeLiveProofSandbox() {
           </div>
         ) : null}
 
-        <div className="rounded-xl border border-dashed border-hoolclone-green-200 bg-hoolclone-green-50/40 p-4">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Correction to write
+        <div className="space-y-2 rounded-xl border border-dashed border-hoolclone-green-200 bg-hoolclone-green-50/40 p-4">
+          <label
+            htmlFor="judge-demo-correction"
+            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+          >
+            Your correction (saved to Walrus)
+          </label>
+          <Textarea
+            id="judge-demo-correction"
+            value={correctionText}
+            onChange={(event) => setCorrectionText(event.target.value)}
+            placeholder="e.g. I trust Portugal in tight games — loyalty matters more than xG."
+            rows={3}
+            disabled={correcting || regenerating}
+            className="border-hoolclone-green-200 bg-white text-sm text-hoolclone-green-950"
+            maxLength={JUDGE_DEMO_CORRECTION_MAX_LENGTH}
+          />
+          <p className="text-xs text-muted-foreground">
+            {trimmedCorrection.length}/{JUDGE_DEMO_CORRECTION_MAX_LENGTH} · min{" "}
+            {JUDGE_DEMO_CORRECTION_MIN_LENGTH} characters
           </p>
-          <p className="mt-2 text-sm font-medium text-hoolclone-green-950">
-            &ldquo;{JUDGE_DEMO_CORRECTION_TEXT}&rdquo;
-          </p>
+          {correctionTooShort && trimmedCorrection.length > 0 && (
+            <p className="text-xs text-amber-800">
+              Add a bit more detail so the clone has something to recall.
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
             onClick={() => void applyCorrection()}
-            disabled={correcting || regenerating}
+            disabled={
+              correcting || regenerating || correctionTooShort || correctionTooLong
+            }
           >
             {correcting ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -181,6 +222,9 @@ export function JudgeLiveProofSandbox() {
           <div className="space-y-2 rounded-xl border border-hoolclone-green-200 bg-hoolclone-green-50/60 p-4">
             <p className="text-xs font-bold uppercase tracking-wider text-hoolclone-green-800">
               Walrus write confirmed
+            </p>
+            <p className="text-sm text-hoolclone-green-950">
+              Saved take: &ldquo;{correction.correctionText}&rdquo;
             </p>
             <p className="text-sm text-hoolclone-green-950">
               Memory ID:{" "}

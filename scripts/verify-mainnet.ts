@@ -3,12 +3,12 @@ import { loadEnv } from "@/lib/load-env";
 loadEnv();
 
 import { closePool, query } from "@/lib/db/client";
-import { DEMO_SLUG, RIVAL_SLUG } from "@/lib/db/demo-memories";
+import { DEMO_SLUG, DEMO_SEED_MEMORY_COUNT, RIVAL_SLUG, RIVAL_SEED_MEMORY_COUNT } from "@/lib/db/demo-memories";
 import { getEnv, getMemWalServerUrl, isMemWalConfigured } from "@/lib/env";
 import { fetchRelayerConfig } from "@/lib/memwal/contract-config";
 
-const DEMO_MIN_BLOBS = 10;
-const RIVAL_MIN_BLOBS = 10;
+const DEMO_MIN_BLOBS = DEMO_SEED_MEMORY_COUNT;
+const RIVAL_MIN_BLOBS = RIVAL_SEED_MEMORY_COUNT;
 
 async function countPlaceholderBlobs(slug: string, prefix: string): Promise<number> {
   const rows = await query<{ count: string }>(

@@ -110,13 +110,14 @@ function JudgeClashCard({ href }: { href: string }) {
           hackathon proof path.
         </p>
       </div>
-      <Link
+      <ButtonLink
         href={href}
-        className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-hoolclone-green-950 transition hover:bg-hoolclone-green-50"
+        variant="outline"
+        className="mt-4 w-full justify-center rounded-xl border-white/90 bg-white text-hoolclone-green-900 hover:bg-hoolclone-green-50 [&_svg]:text-hoolclone-green-900"
       >
         <Swords className="h-4 w-4" />
         Watch judge clash
-      </Link>
+      </ButtonLink>
     </article>
   );
 }

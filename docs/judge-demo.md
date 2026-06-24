@@ -96,13 +96,15 @@ Source: `lib/db/seed-demo-user.ts`, `lib/db/seed-demo-rival.ts`, `scripts/seed-d
 
 On [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution), scroll to **Live judge sandbox**:
 
-1. **Apply correction** — writes a real `correction` memory for match `m071` (Colombia vs Portugal) to the demo Walrus namespace
+1. **Apply correction** — enter any fan take (8+ characters), writes a real `correction` memory for match `m071` to the demo Walrus namespace
 2. Note the **memory ID** and **blob ID** in the confirmation panel
 3. **Regenerate clone prediction** — clone recalls the new correction and shows cited receipt cards
 
-Fixed correction text (from `lib/judge-demo/constants.ts`):
+Fixed example text (editable in the live sandbox; from `lib/judge-demo/constants.ts`):
 
 > "I trust Portugal in tight games — loyalty matters more than xG."
+
+Judges can replace this with any correction — the API accepts `correctionText` in the POST body (8–500 characters).
 
 This uses the same `storeCloneCorrection` + `generateClonePrediction` path as the logged-in predict flow, but scoped to the demo user via public API routes.
 
@@ -168,8 +170,9 @@ Judge demo logic is covered offline — no Walrus or Gemini calls in tests:
 | Featured arena + clash href | `lib/clash/featured-arena-opponents.test.ts` | Demo/rival slugs, `buildJudgeDemoClashHref` |
 | Showcase match picker | `lib/clone/clone-showcase.test.ts` | Featured `m071` preference for evolution panels |
 | Share on X intent | `lib/profile/open-share-on-x.test.ts` | Public profile share URL builder |
+| Live correction text | `lib/judge-demo/parse-correction-text.test.ts` | `parseJudgeDemoCorrectionText` — trim, bounds, type guard |
 
-Full suite: **220 tests** · **54 files** · **100 suites** — run `npm test`. See [Test Coverage](./test-coverage.md).
+Full suite: **223 tests** · **55 files** · **101 suites** — run `npm test`. See [Test Coverage](./test-coverage.md).
 
 ---
 
@@ -181,7 +184,7 @@ Before judging or recording:
 - [x] [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) shows **Live Walrus proof** badges (not illustrative fallback)
 - [x] Live sandbox writes a blob and regenerates with receipts
 - [x] Clone Clash loads both participants with Walrus memory counts
-- [x] `npm test` — all **220** tests pass
+- [x] `npm test` — all **223** tests pass
 
 ---
 

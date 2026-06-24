@@ -78,6 +78,12 @@ export const DEMO_MEMORIES: DemoMemorySeed[] = [
   },
 ];
 
+/** Baseline seed count from `DEMO_MEMORIES` — production demo profile matches after Walrus seed. */
+export const DEMO_SEED_MEMORY_COUNT = DEMO_MEMORIES.length;
+
+/** Expected memory count on the production demo profile (same as seed baseline). */
+export const DEMO_PROFILE_MEMORY_COUNT = DEMO_SEED_MEMORY_COUNT;
+
 export function getDemoNamespace(slug: string = DEMO_SLUG): string {
   return `hoolclone:demo:${slug}`;
 }
@@ -164,3 +170,5 @@ export const RIVAL_MEMORIES: DemoMemorySeed[] = [
     daysAgo: 1,
   },
 ];
+
+export const RIVAL_SEED_MEMORY_COUNT = RIVAL_MEMORIES.length;

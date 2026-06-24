@@ -9,7 +9,10 @@ import {
   Swords,
 } from "lucide-react";
 import { buildJudgeDemoClashHref } from "@/lib/clash/featured-arena-opponents";
-import { JUDGE_DEMO_SLUG } from "@/lib/judge-demo/constants";
+import {
+  DEMO_PROFILE_MEMORY_COUNT,
+  DEMO_SLUG,
+} from "@/lib/db/demo-memories";
 import { ButtonLink } from "@/components/ui/button-link";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +20,7 @@ const pillars = [
   {
     icon: Eye,
     title: "No wallet or training",
-    body: "Judges shouldn't need to seed memories first. This URL loads a demo clone with 10 Walrus Mainnet receipts — ready in seconds.",
+    body: `Judges shouldn't need to seed memories first. This URL loads a demo clone with ${DEMO_PROFILE_MEMORY_COUNT} Walrus Mainnet receipts — ready in seconds.`,
     accent: "border-hoolclone-green-400/25 bg-hoolclone-green-800/40",
     iconClass: "text-hoolclone-green-200 bg-hoolclone-green-700/60",
   },
@@ -39,7 +42,7 @@ const pillars = [
 
 export function JudgeDemoExplainer() {
   const clashHref = buildJudgeDemoClashHref(false);
-  const telegramHref = `/u/${JUDGE_DEMO_SLUG}/telegram-history`;
+  const telegramHref = `/u/${DEMO_SLUG}/telegram-history`;
 
   return (
     <section

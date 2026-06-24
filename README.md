@@ -27,7 +27,7 @@ HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://dee
 | Clone Clash (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
 | Telegram roast cards (public demo) | [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) |
 
-**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (220 unit tests, offline)
+**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (223 unit tests, offline)
 
 Full criteria mapping, real-vs-curated notes, and video script: [Judges Guide](docs/judges.md) · [Demo Guide](docs/demo-guide.md)
 
@@ -155,7 +155,7 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 |--------|-------------|
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm test` | 220 unit tests (offline) |
+| `npm test` | 223 unit tests (offline) |
 | `npm run db:migrate` | Apply Postgres schema |
 | `npm run db:seed-matches` | Seed WC2026-style fixtures |
 | `npm run db:seed-demo` | Demo user (local placeholders) |
@@ -195,7 +195,7 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 - [x] Clone behavior driven by `recall()` from Walrus namespaces
 - [x] Telegram bot with post-match loop + Walrus memories
 - [x] Deploy to production ([walrus-mu.vercel.app](https://walrus-mu.vercel.app))
-- [x] 220 unit tests (`npm test`)
+- [x] 223 unit tests (`npm test`)
 - [x] Dedicated judge + memory docs
 - [x] Production crons (`CRON_SECRET` on Vercel + [cron-job.org](docs/cron-job.md) match sync + consolidation jobs)
 - [x] Telegram webhook registered on production (`CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook`)

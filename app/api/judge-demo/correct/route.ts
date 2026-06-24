@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { storeCloneCorrection } from "@/lib/clone/store-clone-correction";
-import { JUDGE_DEMO_CORRECTION_TEXT } from "@/lib/judge-demo/constants";
 import { getJudgeDemoUserId } from "@/lib/judge-demo/demo-user";
+import { parseJudgeDemoCorrectionText } from "@/lib/judge-demo/parse-correction-text";
 import { checkRateLimit, clientIp } from "@/lib/judge-demo/rate-limit";
 import { getMemoryRowById } from "@/lib/memory/postgres-memory";
 
@@ -29,9 +29,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Demo user not found" }, { status: 404 });
   }
 
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Request body must be JSON with correctionText." },
+      { status: 400 },
+    );
+  }
+
+  const parsed =
+    body && typeof body === "object" && "correctionText" in body
+      ? parseJudgeDemoCorrectionText(
+          (body as { correctionText: unknown }).correctionText,
+        )
+      : { ok: false as const, error: "correctionText is required." };
+
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
   try {
     const result = await storeCloneCorrection(userId, MATCH_ID, {
-      correctionText: JUDGE_DEMO_CORRECTION_TEXT,
+      correctionText: parsed.text,
       regenerate: false,
     });
 
@@ -46,7 +67,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ...result,
-      correctionText: JUDGE_DEMO_CORRECTION_TEXT,
+      correctionText: parsed.text,
       walrusBlobId,
       walrusNamespace,
       memoryText: row?.text,

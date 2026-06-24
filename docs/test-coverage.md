@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **220 unit tests** across **54 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **223 unit tests** across **55 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -10,9 +10,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Metric | Value |
 |--------|-------|
-| Test files | 54 (`lib/**/*.test.ts`) |
-| Test cases | 220 |
-| Test suites | 100 |
+| Test files | 55 (`lib/**/*.test.ts`) |
+| Test cases | 223 |
+| Test suites | 101 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -29,7 +29,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
 | **Cron / matches** | Match status, team code mapping, sync-on-read | `lib/match-data/match-status.test.ts`, `lib/match-data/football-team-map.test.ts`, `lib/match-data/sync-match-results.test.ts` |
 | **Public profile / dashboard** | Contradictions, temporal drift, bias radar, clone mood, judge-proof panels, share-on-X intent | `lib/clone/contradiction-hunter.test.ts`, `lib/clone/temporal-contradictions.test.ts`, `lib/stats/bias-radar.test.ts`, `lib/clone/clone-mood.test.ts`, `lib/clone/judge-proof-demo.test.ts`, `lib/profile/open-share-on-x.test.ts` |
-| **Judge demo / arena** | Featured demo+rival slugs, clash href, showcase match picker | `lib/clash/featured-arena-opponents.test.ts`, `lib/clone/clone-showcase.test.ts` |
+| **Judge demo / arena** | Featured demo+rival slugs, clash href, showcase match picker, live correction text validation | `lib/clash/featured-arena-opponents.test.ts`, `lib/clone/clone-showcase.test.ts`, `lib/judge-demo/parse-correction-text.test.ts` |
 | **Auth** | Wallet challenge JWT round-trip, memory unlock challenge | `lib/auth/wallet-challenge.test.ts` |
 | **API shaping** | Memory receipt mapper, lineage | `lib/api/memory-mapper.test.ts` |
 
@@ -135,6 +135,12 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/predictions/predicted-match-ids.test.ts`](../lib/predictions/predicted-match-ids.test.ts) | Predicted match id merge and case-insensitive lookup |
+
+### Judge demo (1 file · 3 tests)
+
+| File | Functions / behavior covered |
+|------|------------------------------|
+| [`lib/judge-demo/parse-correction-text.test.ts`](../lib/judge-demo/parse-correction-text.test.ts) | `parseJudgeDemoCorrectionText` — trim, min/max length, type guard for live sandbox POST |
 
 ---
 

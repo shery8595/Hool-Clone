@@ -143,7 +143,7 @@ Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **
 | Mainnet verification CLI | Scripted readiness checks | `npm run verify:mainnet` |
 | Public MemWal health | No auth required | `/api/health/memwal` |
 | Production deployment | Live app + documented env | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
-| Unit test coverage | 220 tests · 54 files · 100 suites | [Test Coverage](./test-coverage.md) |
+| Unit test coverage | 223 tests · 55 files · 101 suites | [Test Coverage](./test-coverage.md) |
 | Dual production crons | Match loop + sleep-cycle consolidation | [Production Cron](./cron-job.md) |
 
 ---
@@ -194,7 +194,7 @@ Expected: all checks pass, 10+ demo blobs, 10+ rival blobs, zero `demo-blob-*` p
 Run the test suite offline:
 
 ```bash
-npm test   # 220 tests, 100 suites — no external services
+npm test   # 223 tests, 101 suites — no external services
 ```
 
 Manual consolidation demo (operators):
@@ -234,5 +234,5 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats (authent
 - [Judge Demo](./judge-demo.md) — demo and rival accounts, live sandbox API, seeds
 - [Demo Guide](./demo-guide.md) — recording tips and operator checklist
 - [Project Overview](./project-overview.md) — product vision
-- [Test Coverage](./test-coverage.md) — 220 tests mapped to criteria
+- [Test Coverage](./test-coverage.md) — 223 tests mapped to criteria
 - [API Reference](./api-reference.md) — cron, unlock, and decrypt routes

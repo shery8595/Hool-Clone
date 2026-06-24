@@ -198,6 +198,16 @@ No authentication. All routes resolve the seeded demo user (`hoolclone-demo`). S
 
 `phaseId`: `day1` | `day3` | `day4` | `day7`
 
+**`POST /api/judge-demo/correct` body:**
+
+```json
+{
+  "correctionText": "I trust Portugal in tight games — loyalty matters more than xG."
+}
+```
+
+`correctionText` is required (8–500 characters). Judges can write any fan take; it is stored as a real Walrus correction memory.
+
 **`POST /api/judge-demo/correct` response (abbreviated):**
 
 ```json
