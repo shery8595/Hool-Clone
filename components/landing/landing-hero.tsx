@@ -1,14 +1,7 @@
 import Link from "next/link";
-import {
-  Database,
-  Heart,
-  Lock,
-  Play,
-  Shield,
-  Zap,
-} from "lucide-react";
+import { BookOpen, Database, Heart, Lock, Shield, Zap } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
-import { heroQuickLinks, trustBadges, DEMO_EVOLUTION_URL } from "@/lib/landing/content";
+import { heroQuickLinks, HOW_IT_WORKS_DOC_URL, trustBadges } from "@/lib/landing/content";
 import { LandingClonePreview } from "./landing-clone-preview";
 import { LandingHeroVisual } from "./landing-hero-visual";
 
@@ -46,17 +39,17 @@ export function LandingHero() {
 
             <div className="flex flex-wrap items-center gap-3">
               <ButtonLink href="/train" size="lg" className="gap-2">
-                <Play className="h-4 w-4 fill-current" />
-                Start here
+                <Zap className="h-4 w-4" />
+                Train Your Clone
               </ButtonLink>
               <ButtonLink
-                href={DEMO_EVOLUTION_URL}
+                href={HOW_IT_WORKS_DOC_URL}
                 variant="accent"
                 size="lg"
                 className="gap-2"
               >
-                <Zap className="h-4 w-4" />
-                See the demo
+                <BookOpen className="h-4 w-4" />
+                See how it works
               </ButtonLink>
             </div>
 

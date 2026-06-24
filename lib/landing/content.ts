@@ -170,6 +170,7 @@ export const PRODUCTION_APP_URL = "https://walrus-mu.vercel.app";
 export const DEMO_EVOLUTION_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/evolution`;
 export const LEADERBOARD_URL = "/leaderboard";
 export const JUDGES_DOC_URL = "/docs/judges";
+export const HOW_IT_WORKS_DOC_URL = "/docs/how-it-works";
 export const DEMO_PROFILE_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo`;
 export const DEMO_CLASH_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/clash?opponent=hoolclone-rival`;
 

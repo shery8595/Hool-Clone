@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
 import { ButtonLink } from "@/components/ui/button-link";
 import {
-  DEMO_EVOLUTION_URL,
+  HOW_IT_WORKS_DOC_URL,
   showcaseFans,
   showcaseStats,
 } from "@/lib/landing/content";
@@ -224,12 +224,12 @@ export function LandingShowcase() {
 
             <div className="flex flex-col gap-4">
               <ButtonLink
-                href={DEMO_EVOLUTION_URL}
+                href={HOW_IT_WORKS_DOC_URL}
                 variant="accent"
                 size="sm"
                 className="w-fit"
               >
-                See the demo
+                How it works
               </ButtonLink>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {bottomFeatures.map(({ icon: Icon, label }) => (
