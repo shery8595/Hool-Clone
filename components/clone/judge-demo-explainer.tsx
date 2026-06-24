@@ -24,7 +24,7 @@ const pillars = [
   {
     icon: ScrollText,
     title: "Proof, not marketing",
-    body: "Same question → two answers, blob IDs, correction override, and a live write sandbox — every claim is inspectable on one page.",
+    body: "Same question → two answers across days, real blob IDs, correction override, and a live write sandbox — every claim is inspectable on one page.",
     accent: "border-hoolclone-yellow-400/30 bg-hoolclone-yellow-500/10",
     iconClass: "text-hoolclone-yellow-300 bg-hoolclone-yellow-500/20",
   },
@@ -65,8 +65,9 @@ export function JudgeDemoExplainer() {
                 clone behavior changes because durable Walrus memories are recalled
               </strong>
               , not because we fine-tuned a model. This page is the evidence room —
-              pre-loaded so you can audit receipts, watch Day 1 vs Day 7 drift, and
-              even write a live correction blob without connecting a wallet.
+              pre-loaded with memories written over multiple days, so you can audit
+              blob IDs, compare Day 1 vs Day 4+ answers, and write a live correction
+              blob without connecting a wallet.
             </p>
           </div>
 

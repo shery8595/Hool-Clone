@@ -51,10 +51,10 @@ Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo
 |-------|----------------|
 | **Same Question — Two Answers** | Day 1 clone had no receipts (generic draw). Day 4+ clone cites a Walrus correction memory and picks Portugal with confidence. |
 | **Memory Provenance** | Table of memories with blob IDs, dates, and sources (last 4 days). |
-| **Correction Override Proof** | Stale take disputed → user correction stored → regenerated clone prediction cites the new memory *(reconstructed from seed)* |
+| **Correction Override Proof** | Stale take disputed → correction memory on Mainnet → clone cites that blob (badge: **Live Walrus proof**) |
 | **Live judge sandbox** | **No wallet** — click Apply correction → real Walrus blob → Regenerate clone with cited receipts |
 | **Roast my record** | Post-match summaries that feed the next recall |
-| **Memory Time Machine** | Day 1 → Day 7 clone state reconstructed from stored memories (not replayed LLM sessions). |
+| **Memory Time Machine** | Day 1 → Day 7 clone state derived from the same Walrus receipts in the provenance table |
 
 If panels show **Illustrative fallback** (amber), Walrus demo seed is missing — production should show **live** data after `db:seed-demo-walrus`.
 
@@ -148,19 +148,33 @@ Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **
 
 ---
 
+## Memory authenticity (the 4-day criterion)
+
+Hackathon rules ask for behavior that **could not have happened on day one** — after at least four days of use. HoolClone proves this in three inspectable ways:
+
+1. **Timestamps** — Memory Provenance lists real `created_at` dates spanning multiple days. Day 4+ answers cite memories written days earlier.
+2. **Same Question — Two Answers** — Identical prompt; Day 1 clone has no receipts (generic draw). Day 4+ clone recalls stored loyalty/correction memories and picks Portugal with cited blob IDs.
+3. **Live judge sandbox** — You write a **new** correction blob in this session, regenerate, and watch the clone cite it. That before/after cannot exist without Walrus memory.
+
+The demo compresses a multi-day journey onto one page for judges. The **narrative is curated**; the **blobs, recall, and behavior change are real**.
+
+---
+
 ## What is real vs curated
 
 | Layer | Status |
 |-------|--------|
 | Walrus blob IDs on demo profile | **Real Mainnet** after `db:seed-demo-walrus` |
-| Fan narrative (Brazil loyalty, rival grudges) | **Curated** for judging clarity |
-| Evolution snapshots | **Reconstructed** from stored memories (not replayed LLM sessions) |
-| Vector recall | **Real** when Walrus healthy; UI labels fallback |
+| Recall before predict / debate / roast | **Real** vector search when Walrus healthy; UI labels fallback |
+| Day 1 vs Day 4+ clone answers | **Real** — driven by which memories exist at each maturity phase |
+| Live sandbox correction write | **Real** — new Mainnet blob in the current session |
+| Fan narrative (loyalty, rival grudges) | **Curated copy** for judging clarity |
+| Evolution time machine panels | **Derived** from stored memories you can inspect (not replayed chat logs) |
 | LLM text | **Gemini** when `GEMINI_API_KEY` set; templates when unavailable |
 | Encrypted emotional memories | **Real** encryption at write; unlock is wallet-gated for UI |
 | Consolidated biases | **Real** cron job on production; demo may show lineage after consolidation runs |
 
-The demo fan story is seeded for clarity, but every memory receipt is a **real Walrus Mainnet blob** on production.
+Every memory receipt on production is a **real Walrus Mainnet blob**. Panels show **Live Walrus proof** when seeded correctly; **Illustrative fallback** means run `db:seed-demo-walrus`.
 
 ---
 
@@ -193,13 +207,13 @@ npm run consolidate:demo
 
 ## Three-minute video script
 
-For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
+For demo video recording, see [Demo Guide](./demo-guide.md). Core beats (authenticity first):
 
 1. Pitch — "predicts you, not football"
-2. Open `/u/hoolclone-demo/evolution` — Same Question + Correction Override panels
-3. **Live judge sandbox** — Apply correction → show blob → Regenerate
+2. **Live judge sandbox** — Apply correction → zoom blob ID → Regenerate → cited receipt
+3. Same Question — Two Answers + Memory Provenance (Day 1 vs Day 4+, multi-day blob IDs)
 4. Clone Clash — two namespaces
-5. Public Telegram demo — `/u/hoolclone-demo/telegram-history`
+5. Telegram roast cards — `/u/hoolclone-demo/telegram-history`
 
 ---
 

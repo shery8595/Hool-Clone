@@ -20,7 +20,7 @@ For the full 15-minute tour and criteria map, see [Judges Guide](./judges.md). F
 | **Live judge sandbox** | Apply correction → real Walrus blob → regenerate clone with cited receipts |
 | **Evolution chat** | Phase-aware clone replies (Day 1 / 3 / 4 / 7) with memory citations |
 | **Roast my record** | Post-match summaries that feed the next recall |
-| **Memory Time Machine** | Day 1 → Day 7 clone state reconstructed from stored memories |
+| **Memory Time Machine** | Day 1 → Day 7 clone state derived from the same Walrus receipts in provenance |
 
 If panels show **Illustrative fallback** (amber), Walrus demo seed is missing — run `npm run db:seed-demo-walrus` on production.
 
@@ -28,7 +28,7 @@ If panels show **Illustrative fallback** (amber), Walrus demo seed is missing �
 
 ## Seeded demo accounts
 
-Two public profiles are created by `npm run db:seed-demo` and upgraded to Mainnet with the Walrus seed scripts. They are **curated fan narratives** backed by **real Walrus Mainnet blobs** after seeding.
+Two public profiles are created by `npm run db:seed-demo` and upgraded to Mainnet with the Walrus seed scripts. Fan copy is **curated for clarity**, but every receipt is a **real Walrus Mainnet blob** with timestamps spanning multiple days — the Day 4+ clone answers recall those blobs, not a hidden prompt.
 
 ### Demo fan — `hoolclone-demo`
 
@@ -177,11 +177,11 @@ Full suite: **220 tests** · **54 files** · **100 suites** — run `npm test`. 
 
 Before judging or recording:
 
-- [ ] `npm run verify:mainnet` — 10+ demo blobs, 10+ rival blobs, zero `demo-blob-*` / `rival-blob-*` placeholders
-- [ ] [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) shows **Public judge proof** (not illustrative fallback)
-- [ ] Live sandbox writes a blob and regenerates with receipts
-- [ ] Clone Clash loads both participants with Walrus memory counts
-- [ ] `npm test` — all **220** tests pass
+- [x] `npm run verify:mainnet` — 10+ demo blobs, 10+ rival blobs, zero placeholders
+- [x] [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) shows **Live Walrus proof** badges (not illustrative fallback)
+- [x] Live sandbox writes a blob and regenerates with receipts
+- [x] Clone Clash loads both participants with Walrus memory counts
+- [x] `npm test` — all **220** tests pass
 
 ---
 

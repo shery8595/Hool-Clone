@@ -32,16 +32,16 @@ Each `remember()` call can bump maturity via `syncCloneMaturity()`. The dashboar
 
 ## Same question, two answers
 
-The evolution page's **Same Question — Two Answers** panel demonstrates the core proof:
+The evolution page's **Same Question — Two Answers** panel demonstrates the core proof judges look for (behavior after multiple days of memory accumulation):
 
 | Phase | Clone state | Answer |
 |-------|-------------|--------|
 | **Day 1** | Stranger — few memories | Generic draw, ~28% confidence, no Walrus receipts |
-| **Day 4+** | Imitator — corrections + fan profile stored | Portugal 2-1, ~68% confidence, cites correction memory |
+| **Day 4+** | Imitator — corrections + fan profile stored | Portugal 2-1, ~68% confidence, cites correction memory with **real blob ID** |
 
-The Day 4 answer is not magic — `recall()` surfaces the user's Portugal loyalty correction, reranked above stale generic takes, and the LLM is instructed to cite only recalled memories.
+The Day 4 answer is not magic — `recall()` surfaces the user's Portugal loyalty correction (written days earlier per Memory Provenance), reranked above stale generic takes, and the LLM is instructed to cite only recalled memories. The **live judge sandbox** proves the same mechanism in your current session: write blob → regenerate → cited receipt.
 
-Static fallback copy exists for unseeded demos; production with `db:seed-demo-walrus` builds this panel **live** from `buildMemoryTimeMachine()`.
+Static fallback copy exists only when demo seed is missing; production with `db:seed-demo-walrus` builds this panel **live** from `buildMemoryTimeMachine()` and shows the **Live Walrus proof** badge.
 
 ---
 

@@ -4,7 +4,7 @@
 
 > Not predicting football. Predicting you.
 
-HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://deepsurge.xyz) hackathon. You train an AI clone of yourself as a football fan — it learns your loyalties, biases, contradictions, and prediction style, stores that knowledge durably on **Walrus Mainnet**, and uses it to predict matches, debate you, and call out your bad takes.
+HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://deepsurge.xyz) hackathon. You train an AI clone of yourself as a football fan — it learns your loyalties, biases, contradictions, and prediction style, stores that knowledge durably on **Walrus Mainnet**, and uses it to predict matches, debate you, and call out your bad takes. The **Telegram bot** extends that same loop off-web: it notifies you live, but also **writes Walrus memories** from every roast, congrats, and goal alert so the clone keeps learning after you close the tab.
 
 | | |
 |---|---|
@@ -27,7 +27,7 @@ HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://dee
 | Clone Clash (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
 | Telegram roast cards (public demo) | [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) |
 
-**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (215 unit tests, offline)
+**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (220 unit tests, offline)
 
 Full criteria mapping, real-vs-curated notes, and video script: [Judges Guide](docs/judges.md) · [Demo Guide](docs/demo-guide.md)
 
@@ -47,7 +47,7 @@ You teach your clone who you support, how you think, and when you contradict you
 | **Predict** | Clone recalls memories and predicts *your* pick with cited receipts |
 | **Debate** | Clone argues from stored memories; corrections override stale takes |
 | **Evolution** | Public profile shows maturity, contradictions, and judge-proof panels |
-| **Telegram** | Post-match congrats/roasts write memories that shape the next recall |
+| **Telegram** | Not just match alerts — every roast, congrats, live-goal DM, `/roast`, and `/predict` recalls memories and **writes new Walrus blobs** that shape the next clone action |
 
 ### Why Walrus Memory
 
@@ -55,7 +55,7 @@ You teach your clone who you support, how you think, and when you contradict you
 - **Verifiable** — each receipt shows a real `walrusBlobId` on Mainnet
 - **Behavioral** — clone `recall()` runs before every prediction, debate, and roast
 - **Evolving** — corrections and post-match summaries append new blobs
-- **Closed loop** — Telegram DMs → Walrus write → next predict weights them heavily
+- **Closed loop** — Telegram is a memory writer, not just a notifier: DMs → `remember()` on Walrus → next predict/debate weights them heavily
 
 Namespaces: `hoolclone:user:<id>` per user; demo at `hoolclone:demo:hoolclone-demo`.
 
@@ -108,15 +108,28 @@ If a write fails during seeding: `npm run db:retry-failed-demo-walrus`
 
 ## Telegram bot
 
+The bot is a **second surface for the same memory loop** — not a notification-only sidecar. Every outbound message is built from Walrus recall and many paths **write new memories back** so the clone evolves after matches, not only inside the browser.
+
 Connect from the dashboard → **Connect Telegram** → open deep link → `/start` in bot.
 
 | Command | Action |
 |---------|--------|
-| `/roast` | Memory-backed roast |
-| `/predict m071` | Your pick + clone pick with receipts |
-| `/notifications on\|off` | Match alerts |
+| `/roast` | Recalls memories → roasts you → can write follow-up memories |
+| `/predict m071` | Your pick + clone pick with cited receipts (recall-driven) |
+| `/notifications on\|off` | Live goal + post-match alerts |
 
-Post-match cron (`/api/cron/check-resolutions`, every 1 min via [cron-job.org](docs/cron-job.md)) sends congrats/roasts and writes `telegram_post_match` memories.
+**What writes to Walrus (not just sends a DM):**
+
+| Trigger | Walrus memory |
+|---------|----------------|
+| Live goal alert | `telegram_live_goal` — factual reaction anchored to the match |
+| Post-match congrats/roast | `telegram_post_match` — outcome summary weighted heavily on next recall |
+| Match resolution cron | `prediction_history_summary` for all predictors |
+| Interactive `/roast`, `/predict` | Recall-first generation; post-match path persists structured blobs |
+
+Post-match cron (`/api/cron/check-resolutions`, every 1 min via [cron-job.org](docs/cron-job.md)) syncs scores, sends DMs, and **always pairs messages with `remember()`** — the DM is ephemeral; the Walrus blob is what the clone recalls tomorrow.
+
+Public demo of roast cards + linked memories: [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history)
 
 Full reference: [Telegram Bot](docs/telegram-bot.md)
 
@@ -182,9 +195,9 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 - [x] Clone behavior driven by `recall()` from Walrus namespaces
 - [x] Telegram bot with post-match loop + Walrus memories
 - [x] Deploy to production ([walrus-mu.vercel.app](https://walrus-mu.vercel.app))
-- [x] 215 unit tests (`npm test`)
+- [x] 220 unit tests (`npm test`)
 - [x] Dedicated judge + memory docs
-- [ ] Set `CRON_SECRET` on Vercel + both [cron-job.org](docs/cron-job.md) jobs (`npm run cron:setup` + `npm run cron:setup-consolidation`)
-- [ ] Run `CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook` against production
-- [ ] Reseed demo after narrative fix: `npm run db:seed-demo-walrus` + `npm run db:seed-demo-rival-walrus`
+- [x] Production crons (`CRON_SECRET` on Vercel + [cron-job.org](docs/cron-job.md) match sync + consolidation jobs)
+- [x] Telegram webhook registered on production (`CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook`)
+- [x] Demo + rival Walrus Mainnet seeds (`npm run db:seed-demo-walrus` + `npm run db:seed-demo-rival-walrus`)
 - [x] Record demo video (≤3 min) — [youtu.be/r02UQHRqUH4](https://youtu.be/r02UQHRqUH4) · script in [Demo Guide](docs/demo-guide.md)

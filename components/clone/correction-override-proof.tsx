@@ -52,8 +52,8 @@ export function CorrectionOverrideProof({
         </div>
         <p className="text-sm text-muted-foreground">
           <MatchLabelWithFlags label={data.matchLabel} size="sm" />: a stale
-          memory drove the wrong take — your correction reranked higher and
-          changed the clone pick.
+          memory drove the wrong take — your correction on Walrus reranked higher
+          and changed the clone pick. Blob IDs are inspectable below.
         </p>
         {dataSource === "fallback" && (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">

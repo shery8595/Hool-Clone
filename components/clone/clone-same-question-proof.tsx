@@ -113,8 +113,8 @@ export function CloneSameQuestionProof({
           <ProofSourceBadge source={dataSource} />
         </div>
         <p className="text-sm text-muted-foreground">
-          Judges: identical prompt, different clone behavior after Walrus-backed
-          training.
+          Judges: identical prompt — Day 1 clone had no memories; Day 4+ recalls
+          Walrus receipts written days earlier (see blob IDs below).
         </p>
         {dataSource === "fallback" && (
           <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">

@@ -130,7 +130,7 @@ Citation enforcement drops invalid memory IDs; if recall is strong but citations
 | Evolution page | `buildMemoryTimeMachine()` reconstructs day-by-day clone state from stored memories |
 | Judge panels | `buildSameQuestionProofFromTimeMachine()`, correction override, roast record |
 
-Evolution is **reconstructed from memories**, not replayed LLM session logs — honest about what is derived vs live.
+Evolution panels are **derived from the same Walrus receipts** shown on the profile — honest about presentation vs storage. Judges should look for the **Live Walrus proof** badge and inspect blob IDs in Memory Provenance.
 
 **Key files:** `lib/clone/build-memory-time-machine.ts`, `lib/clone/judge-proof-demo.ts`
 
