@@ -83,7 +83,7 @@ export default function DocsIndexPage() {
           <FlaskConical className="mb-2 h-5 w-5 text-hoolclone-green-700" />
           <p className="font-semibold text-hoolclone-gray-900">Testing</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            213 unit tests · coverage map
+            220 unit tests · coverage map
           </p>
         </Link>
       </div>

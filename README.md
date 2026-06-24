@@ -21,12 +21,12 @@ HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://dee
 
 | Proof | URL |
 |-------|-----|
-| Demo profile (15 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
-| Evolution & judge panels | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
+| Demo profile (10 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
+| Evolution & judge panels + live sandbox | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
 | Clone Clash (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
-| Telegram roast cards | [/telegram-history](https://walrus-mu.vercel.app/telegram-history) |
+| Telegram roast cards (public demo) | [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) |
 
-**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (213 unit tests, offline)
+**CLI checks** (optional): `npm run verify:mainnet` · `npm test` (215 unit tests, offline)
 
 Full criteria mapping, real-vs-curated notes, and video script: [Judges Guide](docs/judges.md) · [Demo Guide](docs/demo-guide.md)
 
@@ -83,7 +83,8 @@ Open [http://localhost:3000](http://localhost:3000) — demo at [/u/hoolclone-de
 npm run memwal:setup -- --write-env
 # Set MEMORY_BACKEND=walrus in .env
 
-npm run db:seed-demo-walrus        # 15 real Mainnet writes (~10 min)
+npm run db:seed-demo-walrus        # 10 real Mainnet writes (~5–6 min)
+npm run db:top-up-walrus           # only missing demo/rival writes (safe to re-run)
 npm run db:seed-demo-rival-walrus  # 10 rival writes for Clone Clash (~7 min)
 npm run verify:mainnet             # must pass before recording demo video
 ```
@@ -98,7 +99,7 @@ Full setup: [Getting Started](docs/getting-started.md) · [Deployment](docs/depl
 npm run verify:mainnet
 ```
 
-Expected: `MEMORY_BACKEND=walrus`, MemWal configured, relayer healthy, **0** placeholder blobs, **15+** demo blobs, **10+** rival blobs. See [Judges Guide](docs/judges.md) for sample output.
+Expected: `MEMORY_BACKEND=walrus`, MemWal configured, relayer healthy, **0** placeholder blobs, **10+** demo blobs, **10+** rival blobs. See [Judges Guide](docs/judges.md) for sample output.
 
 If a write fails during seeding: `npm run db:retry-failed-demo-walrus`
 
@@ -140,7 +141,7 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 |--------|-------------|
 | `npm run dev` | Development server |
 | `npm run build` | Production build |
-| `npm test` | 213 unit tests (offline) |
+| `npm test` | 220 unit tests (offline) |
 | `npm run db:migrate` | Apply Postgres schema |
 | `npm run db:seed-matches` | Seed WC2026-style fixtures |
 | `npm run db:seed-demo` | Demo user (local placeholders) |
@@ -148,7 +149,8 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 | `npm run db:seed-demo-rival-walrus` | Rival user for Clone Clash |
 | `npm run verify:mainnet` | Mainnet readiness checklist |
 | `npm run memwal:setup` | One-time MemWal account setup |
-| `npm run cron:setup` | cron-job.org scheduler |
+| `npm run cron:setup` | Match resolution cron (every 1 min) |
+| `npm run cron:setup-consolidation` | Memory consolidation cron (every 6 h) |
 | `npm run telegram:webhook` | Register Telegram webhook |
 
 ---
@@ -178,8 +180,9 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 - [x] Clone behavior driven by `recall()` from Walrus namespaces
 - [x] Telegram bot with post-match loop + Walrus memories
 - [x] Deploy to production ([walrus-mu.vercel.app](https://walrus-mu.vercel.app))
-- [x] 213 unit tests (`npm test`)
+- [x] 215 unit tests (`npm test`)
 - [x] Dedicated judge + memory docs
-- [ ] Set `CRON_SECRET` + [cron-job.org](docs/cron-job.md) on production
-- [ ] Run `npm run telegram:webhook` against production
-- [ ] Record demo video (≤3 min)
+- [ ] Set `CRON_SECRET` on Vercel + both [cron-job.org](docs/cron-job.md) jobs (`npm run cron:setup` + `npm run cron:setup-consolidation`)
+- [ ] Run `CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook` against production
+- [ ] Reseed demo after narrative fix: `npm run db:seed-demo-walrus` + `npm run db:seed-demo-rival-walrus`
+- [ ] Record demo video (≤3 min) — script in [Demo Guide](docs/demo-guide.md)

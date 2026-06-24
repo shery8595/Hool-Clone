@@ -13,7 +13,15 @@ type SeedRivalResult = {
   memoriesInserted: number;
 };
 
-export async function seedDemoRivalUser(): Promise<SeedRivalResult> {
+export type SeedRivalOptions = {
+  /** When false, only upserts user, profile, and predictions — memories are untouched. */
+  touchMemories?: boolean;
+};
+
+export async function seedDemoRivalUser(
+  options: SeedRivalOptions = {},
+): Promise<SeedRivalResult> {
+  const touchMemories = options.touchMemories !== false;
   let user = await queryOne<{ id: string; public_slug: string | null }>(
     `select id, public_slug from users where public_slug = $1`,
     [RIVAL_SLUG],
@@ -67,33 +75,35 @@ export async function seedDemoRivalUser(): Promise<SeedRivalResult> {
     ],
   );
 
-  await query(`delete from memories where user_id = $1`, [user.id]);
-
   let memoriesInserted = 0;
-  for (const memory of RIVAL_MEMORIES) {
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - memory.daysAgo);
+  if (touchMemories) {
+    await query(`delete from memories where user_id = $1`, [user.id]);
 
-    await query(
-      `insert into memories (
-         user_id, memory_type, text, metadata, storage_status,
-         public_visible, created_at
-       ) values ($1, $2, $3, $4, 'stored', $5, $6)`,
-      [
-        user.id,
-        memory.type,
-        memory.text,
-        JSON.stringify({
-          ...memory.metadata,
-          walrusNamespace: namespace,
-          walrusBlobId: `rival-blob-${memoriesInserted + 1}`,
-          walrusJobId: `rival-job-${memoriesInserted + 1}`,
-        }),
-        memory.publicVisible ?? true,
-        createdAt.toISOString(),
-      ],
-    );
-    memoriesInserted += 1;
+    for (const memory of RIVAL_MEMORIES) {
+      const createdAt = new Date();
+      createdAt.setDate(createdAt.getDate() - memory.daysAgo);
+
+      await query(
+        `insert into memories (
+           user_id, memory_type, text, metadata, storage_status,
+           public_visible, created_at
+         ) values ($1, $2, $3, $4, 'stored', $5, $6)`,
+        [
+          user.id,
+          memory.type,
+          memory.text,
+          JSON.stringify({
+            ...memory.metadata,
+            walrusNamespace: namespace,
+            walrusBlobId: `rival-blob-${memoriesInserted + 1}`,
+            walrusJobId: `rival-job-${memoriesInserted + 1}`,
+          }),
+          memory.publicVisible ?? true,
+          createdAt.toISOString(),
+        ],
+      );
+      memoriesInserted += 1;
+    }
   }
 
   const featuredMatchId = await getMatchDbId("m071");

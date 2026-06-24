@@ -3,6 +3,8 @@ import { ArrowLeft, Brain } from "lucide-react";
 import { AccuracyLeaderboardCard } from "@/components/clone/accuracy-leaderboard";
 import { CloneClashCta } from "@/components/clone/clone-clash-cta";
 import { CloneSameQuestionProof } from "@/components/clone/clone-same-question-proof";
+import { JudgeDemoExplainer } from "@/components/clone/judge-demo-explainer";
+import { JudgeLiveProofSandbox } from "@/components/clone/judge-live-proof-sandbox";
 import { CorrectionOverrideProof } from "@/components/clone/correction-override-proof";
 import { EvolutionStakesHero } from "@/components/clone/evolution-stakes-hero";
 import { evolutionMatchFromTimeMachine } from "@/lib/clone/evolution-match";
@@ -24,7 +26,7 @@ import { EvolutionPageHeader } from "@/components/evolution/evolution-page-heade
 import { EvolutionChatShowcase } from "@/components/evolution/evolution-chat-showcase";
 import { EvolutionSection } from "@/components/evolution/evolution-section";
 import { SeasonReportCard } from "@/components/profile/season-report-card";
-import { DEMO_NAMESPACE } from "@/lib/landing/content";
+import { DEMO_SLUG } from "@/lib/db/demo-memories";
 import { computeMaturityProgress } from "@/lib/auth/maturity";
 import type { TimeMachinePhaseId } from "@/lib/clone/memory-time-machine-types";
 import type { EvolutionPageData } from "@/lib/evolution/types";
@@ -99,7 +101,7 @@ export function EvolutionProofPage({
   const namespace =
     walrusNamespace ??
     allMemoryReceipts[0]?.walrusNamespace ??
-    (slug === "hoolclone-demo" ? DEMO_NAMESPACE : undefined);
+    (slug === DEMO_SLUG ? `hoolclone:demo:${DEMO_SLUG}` : undefined);
 
   const maturity = computeMaturityProgress(allMemoryReceipts.length);
   const day1Phase = memoryTimeMachine?.phases.find((p) => p.id === "day1");
@@ -124,6 +126,8 @@ export function EvolutionProofPage({
           {isPublicView ? "Back to profile" : "Back to dashboard"}
         </Link>
       )}
+
+      {slug === DEMO_SLUG && <JudgeDemoExplainer />}
 
       <EvolutionPageHeader
         displayName={displayName}
@@ -158,6 +162,8 @@ export function EvolutionProofPage({
           <EvolutionChatShowcase
             allMemoryReceipts={allMemoryReceipts}
             memoryTimeMachine={memoryTimeMachine}
+            profileSlug={slug}
+            isPublicView={isPublicView}
           />
         </>
       ) : (
@@ -166,6 +172,8 @@ export function EvolutionProofPage({
           <EvolutionChatShowcase
             allMemoryReceipts={allMemoryReceipts}
             memoryTimeMachine={null}
+            profileSlug={slug}
+            isPublicView={isPublicView}
           />
         </>
       )}
@@ -205,7 +213,22 @@ export function EvolutionProofPage({
         dataSource={correctionResult.source}
       />
 
-      {roastRecord && <RoastRecordSection data={roastRecord} />}
+      {slug === DEMO_SLUG && (
+        <div id="judge-live-sandbox">
+          <JudgeLiveProofSandbox />
+        </div>
+      )}
+
+      {roastRecord && (
+        <RoastRecordSection
+          data={roastRecord}
+          telegramHistoryHref={
+            slug === DEMO_SLUG
+              ? `/u/${slug}/telegram-history`
+              : "/telegram-history"
+          }
+        />
+      )}
 
       {isPublicView && (
         <CloneClashCta slug={slug} />

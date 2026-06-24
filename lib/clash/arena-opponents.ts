@@ -7,6 +7,8 @@ export type ArenaOpponent = LeaderboardEntry & {
   rivalryTag?: string;
   arenaWins?: number;
   arenaLosses?: number;
+  /** Curated judge-facing demo with verified Mainnet memories */
+  featuredLabel?: string;
 };
 
 export function isClashEligible(entry: LeaderboardEntry): boolean {
@@ -116,8 +118,12 @@ export function suggestOpponents(
   entries: LeaderboardEntry[],
   viewerEntry: LeaderboardEntry | null,
   limit = 8,
+  options?: { excludeSlugs?: string[] },
 ): ArenaOpponent[] {
-  const pool = excludeViewer(entries, viewerEntry);
+  const exclude = new Set(options?.excludeSlugs ?? []);
+  const pool = excludeViewer(entries, viewerEntry).filter(
+    (entry) => !exclude.has(entry.slug),
+  );
   if (pool.length === 0) return [];
 
   const suggestions: LeaderboardEntry[] = [];

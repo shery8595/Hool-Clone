@@ -6,7 +6,10 @@ import { ChatMessage } from "@/components/debate/chat-message";
 import { ChatInput } from "@/components/debate/chat-input";
 import { DebateTypingIndicator } from "@/components/debate/debate-typing-indicator";
 import { Button } from "@/components/ui/button";
-import { sendEvolutionChatMessage } from "@/lib/api/client";
+import {
+  sendEvolutionChatMessage,
+  sendJudgeDemoEvolutionChatMessage,
+} from "@/lib/api/client";
 import { buildEvolutionPhaseReply } from "@/lib/evolution/build-evolution-chat";
 import {
   EVOLUTION_COMPARE_PRESETS,
@@ -14,6 +17,7 @@ import {
   memoriesForEvolutionPhase,
 } from "@/lib/evolution/evolution-phase-memories";
 import { defaultEvolutionChatQuestion } from "@/lib/evolution/evolution-chat-question";
+import { JUDGE_DEMO_SLUG } from "@/lib/judge-demo/constants";
 import type { TimeMachinePhaseId } from "@/lib/clone/memory-time-machine-types";
 import type { MemoryTimeMachine } from "@/lib/clone/memory-time-machine-types";
 import type { DebateMessage, MemoryReceipt } from "@/lib/mock/types";
@@ -23,6 +27,9 @@ import { cn } from "@/lib/utils";
 type EvolutionChatShowcaseProps = {
   allMemoryReceipts: MemoryReceipt[];
   memoryTimeMachine: MemoryTimeMachine | null;
+  /** Public profile slug — judge demo uses live API with that clone's memories. */
+  profileSlug?: string;
+  isPublicView?: boolean;
   className?: string;
 };
 
@@ -64,9 +71,12 @@ function cloneMessage(
 export function EvolutionChatShowcase({
   allMemoryReceipts,
   memoryTimeMachine,
+  profileSlug,
+  isPublicView = false,
   className,
 }: EvolutionChatShowcaseProps) {
   const { me } = useUser();
+  const isJudgeDemo = profileSlug === JUDGE_DEMO_SLUG;
   const [leftPane, setLeftPane] = useState<PaneState>({
     phaseId: "day1",
     messages: [],
@@ -84,7 +94,18 @@ export function EvolutionChatShowcase({
       message: string,
       recentMessages: DebateMessage[],
     ) => {
-      if (me?.id) {
+      if (isJudgeDemo) {
+        try {
+          const result = await sendJudgeDemoEvolutionChatMessage({
+            phaseId,
+            message,
+            recentMessages,
+          });
+          return result.reply;
+        } catch {
+          // Offline fallback below.
+        }
+      } else if (Boolean(me?.id) && !isPublicView) {
         try {
           const result = await sendEvolutionChatMessage({
             phaseId,
@@ -106,7 +127,7 @@ export function EvolutionChatShowcase({
       });
       return cloneMessage(built.reply, built.citedReceipts);
     },
-    [allMemoryReceipts, memoryTimeMachine, me],
+    [allMemoryReceipts, memoryTimeMachine, isJudgeDemo, isPublicView, me],
   );
 
   const sendToPane = useCallback(
@@ -234,8 +255,14 @@ export function EvolutionChatShowcase({
           <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-hoolclone-yellow-600" />
           <span>
             <strong className="font-semibold">Judge note:</strong> Day 1 uses
-            zero memories; Day 7 uses every stored receipt.
-            {me ? " Logged in — live Gemini when configured." : ""}
+            zero memories; Day 7 uses every stored receipt on this profile.
+            {isJudgeDemo
+              ? " Demo clone — live Gemini recalls Walrus memories (no wallet)."
+              : isPublicView
+                ? " Public view — offline replay from profile receipts."
+                : me
+                  ? " Logged in — live Gemini when configured."
+                  : ""}
           </span>
         </p>
       </div>

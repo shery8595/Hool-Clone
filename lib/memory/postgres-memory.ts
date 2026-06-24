@@ -214,6 +214,22 @@ export async function getPublicMemoriesByIds(
   return rows.map(rowToStoredMemory);
 }
 
+export async function getPublicMemoryByWalrusBlobId(
+  userId: string,
+  blobId: string,
+): Promise<StoredMemory | null> {
+  const row = await queryOne<MemoryRow>(
+    `select * from memories
+     where user_id = $1
+       and metadata->>'walrusBlobId' = $2
+       and public_visible = true
+       and ${ACTIVE_MEMORY_SQL}
+     limit 1`,
+    [userId, blobId],
+  );
+  return row ? rowToStoredMemory(row) : null;
+}
+
 export async function getMemoryByWalrusBlobId(
   blobId: string,
 ): Promise<StoredMemory | null> {

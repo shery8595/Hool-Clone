@@ -30,8 +30,14 @@ import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import type { StoredMemory } from "@/lib/memory/memory-adapter";
 import type { DebateHighlight, MemoryReceipt } from "@/lib/mock/types";
 import { memoryCountToMaturity } from "@/lib/auth/maturity";
+import { DEMO_SLUG } from "@/lib/db/demo-memories";
 import { resolveFanDisplayName } from "@/lib/auth/display-name";
-import { findUserById, getFanProfile, type DbUser } from "@/lib/db/users";
+import {
+  countMemories,
+  findUserById,
+  getFanProfile,
+  type DbUser,
+} from "@/lib/db/users";
 import type { PublicProfileData } from "@/lib/db/public-profile-types";
 import type { ClashParticipantMeta } from "@/lib/clash/types";
 
@@ -58,15 +64,10 @@ export async function getPublicProfileIdsBySlug(
 
   if (!row) return null;
 
-  const [profile, memoryRows] = await Promise.all([
+  const [profile, memoriesCount] = await Promise.all([
     getFanProfile(row.id),
-    query<{ count: string }>(
-      `select count(*)::text as count from memories where user_id = $1`,
-      [row.id],
-    ),
+    countMemories(row.id),
   ]);
-
-  const memoriesCount = Number(memoryRows[0]?.count ?? 0);
   const { label } = memoryCountToMaturity(memoriesCount);
 
   return {
@@ -224,18 +225,15 @@ export async function buildPublicProfile(
   const profile = await getFanProfile(userId);
   if (!user || !profile?.public_enabled) return null;
 
-  const [memoryRows, history, cloneByMatchId, publicMemories, debateHighlights, matches, chronologicalMemories, onboardingDrivers] =
+  const [memoriesCount, history, cloneByMatchId, publicMemories, debateHighlights, matches, chronologicalMemories, onboardingDrivers] =
     await Promise.all([
-      query<{ count: string }>(
-        `select count(*)::text as count from memories where user_id = $1`,
-        [userId],
-      ),
+      countMemories(userId),
       listUserPredictions(userId),
       listClonePredictionsForUser(userId),
       listPublicMemoryReceipts(userId),
       listDebateHighlights(userId),
       getMatchDataAdapter().listMatches(),
-      listMemoriesChronologicalForUser(userId),
+      listMemoriesChronologicalForUser(userId, 200),
       getOnboardingDrivers(userId),
     ]);
 
@@ -244,7 +242,6 @@ export async function buildPublicProfile(
     ...onboardingDrivers,
   ];
 
-  const memoriesCount = Number(memoryRows[0]?.count ?? 0);
   const comparisons = buildPredictionComparisonsFromHistory(
     history,
     cloneByMatchId,
@@ -328,6 +325,7 @@ export async function buildPublicProfile(
       matches,
       chronologicalMemories,
       memoryDrivers,
+      preferredMatchId: slug === DEMO_SLUG ? "m071" : undefined,
     }),
     debateHighlights,
     cloneAnalytics,

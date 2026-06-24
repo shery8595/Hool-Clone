@@ -57,6 +57,21 @@ describe("arena-opponents", () => {
     assert.ok(suggestions.every((s) => s.userId !== "me"));
   });
 
+  it("suggestOpponents excludes slugs when requested", () => {
+    const viewer = entry({ userId: "me", slug: "me", rank: 3 });
+    const entries = [
+      viewer,
+      entry({ userId: "d", slug: "hoolclone-demo", rank: 1 }),
+      entry({ userId: "r", slug: "hoolclone-rival", rank: 2 }),
+      entry({ userId: "x", slug: "other", rank: 4 }),
+    ];
+    const suggestions = suggestOpponents(entries, viewer, 8, {
+      excludeSlugs: ["hoolclone-demo", "hoolclone-rival"],
+    });
+    assert.ok(suggestions.every((s) => s.slug !== "hoolclone-demo"));
+    assert.ok(suggestions.every((s) => s.slug !== "hoolclone-rival"));
+  });
+
   it("buildClashHref includes arena marker", () => {
     assert.equal(
       buildClashHref("alice", "bob"),

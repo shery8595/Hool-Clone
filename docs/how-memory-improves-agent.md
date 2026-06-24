@@ -157,7 +157,7 @@ Two clones debate using **only** their respective Walrus namespaces. No shared c
 
 ## Testing the improvement story
 
-213 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
+220 unit tests cover the machinery behind visible improvement — without calling Gemini or Walrus:
 
 - RRF rerank and diversity selection
 - Memory-backed winner prior and post-LLM alignment

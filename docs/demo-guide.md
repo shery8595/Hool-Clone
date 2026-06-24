@@ -13,9 +13,22 @@ Step-by-step guide for hackathon judges, video recording, and live demos. Every 
 | **Home** | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
 | **Demo profile** | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
 | **Evolution (judge page)** | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
+| **Judge demo docs** | [/docs/judge-demo](/docs/judge-demo) |
+| **Live judge sandbox** | On evolution page — no wallet |
 | **Clone Clash** | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
-| **Telegram history** | [/telegram-history](https://walrus-mu.vercel.app/telegram-history) |
-| **MemWal health** | [/api/admin/memwal-health](https://walrus-mu.vercel.app/api/admin/memwal-health) |
+| **Telegram history (public demo)** | [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) |
+| **MemWal health** | [/api/health/memwal](https://walrus-mu.vercel.app/api/health/memwal) |
+
+---
+
+## Seeded accounts
+
+| Account | Slug | Profile | Memories |
+|---------|------|---------|----------|
+| Demo Fan | `hoolclone-demo` | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) | 10 Walrus receipts |
+| Rival Fan | `hoolclone-rival` | [/u/hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-rival) | 10 Walrus receipts |
+
+See [Judge Demo](./judge-demo.md) for namespaces, wallets, seed commands, and API routes.
 
 ---
 
@@ -33,7 +46,7 @@ Step-by-step guide for hackathon judges, video recording, and live demos. Every 
 
 ---
 
-## Three-minute demo script
+## Three-minute demo script (judge-focused)
 
 ### Scene 1 — The pitch (15 sec)
 
@@ -41,37 +54,40 @@ Open the landing page. One line:
 
 > "HoolClone doesn't predict football — it predicts *you*. Your AI fan clone learns from every take and stores it on Walrus Memory."
 
-### Scene 2 — Empty clone (20 sec)
-
-Connect wallet → `/train`. Show maturity **Level 0 Stranger**. Clone admits it doesn't know you yet.
-
-### Scene 3 — Training writes memory (45 sec)
-
-Answer 2–3 onboarding questions. Expand a memory receipt — show Walrus blob ID and **Verified on Walrus Mainnet** badge.
-
-### Scene 4 — Prediction with receipts (45 sec)
-
-Go to `/predict`, pick a match. Submit your pick. Generate clone prediction. Point at **memory receipts** — each cites a recalled memory with source and date.
-
-### Scene 5 — Demo profile with history (30 sec)
+### Scene 2 — Evolution proof (45 sec)
 
 Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution):
 
-- **Same Question — Two Answers** (Day 1 vs Day 4+)
+- **Same Question — Two Answers** (Day 1 vs Day 4+ on Colombia vs Portugal)
 - **Memory Provenance** table with blob IDs
-- **Correction Override Proof**
+- **Correction Override Proof** (reconstructed from seed)
 
-### Scene 6 — Clone Clash (20 sec)
+### Scene 3 — Live judge sandbox (45 sec)
 
-Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Two separate Walrus namespaces argue — memory-only cross-user feature.
+On the same page, scroll to **Live judge sandbox**:
 
-### Scene 7 — Memory browser (optional, 15 sec)
+1. Click **Apply correction** — show new Walrus blob ID
+2. Click **Regenerate clone prediction** — show cited correction receipts
 
-Open `/memory`. Show encrypted emotional memory with lock badge → wallet unlock → plaintext visible. Note clone still recalls via search surrogate without unlock.
+No wallet required.
 
-### Closing line
+### Scene 4 — Clone Clash (30 sec)
+
+Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Pick a match, start debate — two Walrus namespaces argue with memory receipts.
+
+### Scene 5 — Telegram loop (20 sec)
+
+Open [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) — post-match roast citing Walrus memories.
+
+### Closing line (15 sec)
 
 > "Every take is a receipt on Walrus Mainnet. The clone recalls them before every prediction. That's memory depth."
+
+### Optional wallet scenes (not required for judges)
+
+- `/train` — empty clone → first Walrus receipt
+- `/predict` — submit pick + clone cites memories
+- `/memory` — encrypted emotional memory unlock
 
 ---
 
@@ -85,7 +101,8 @@ Open `/memory`. Show encrypted emotional memory with lock badge → wallet unloc
 | Blob IDs + dates + sources | Evolution → **Memory Provenance** |
 | Citations on predict with provenance | `/predict/[matchId]` receipt cards |
 | Correction overriding stale take | Evolution → **Correction Override Proof** |
-| Roast with memory receipts | Evolution → **Roast my record** + `/telegram-history` |
+| Roast with memory receipts | Evolution → **Roast my record** + `/u/hoolclone-demo/telegram-history` |
+| Live correction write | Evolution → **Live judge sandbox** |
 
 ### Creativity & Flair
 
@@ -131,7 +148,7 @@ npm install
 npm run verify:mainnet
 ```
 
-Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero placeholders.
+Expected: all checks pass, 10+ demo blobs, 10+ rival blobs, zero placeholders.
 
 ---
 
@@ -148,7 +165,7 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero placeholders.
 ## Pre-demo checklist (operators)
 
 - [ ] `npm run verify:mainnet` passes
-- [ ] Demo profile loads with 15 memories
+- [ ] Demo profile loads with 10 memories
 - [ ] Evolution panels show live data (not "Illustrative fallback")
 - [ ] Consolidation cron scheduled (`/api/cron/memory-consolidation` every 6h)
 - [ ] Telegram bot responds to `/start`
@@ -158,6 +175,7 @@ Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero placeholders.
 
 ## Related docs
 
+- [Judge Demo](./judge-demo.md) — demo and rival accounts, live sandbox, API routes
 - [Judges Guide](./judges.md) — 15-minute tour and criteria map
 - [How Memory Improves the Agent](./how-memory-improves-agent.md) — why clone behavior changes
 - [Getting Started](./getting-started.md) — run locally

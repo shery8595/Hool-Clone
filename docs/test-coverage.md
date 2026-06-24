@@ -1,6 +1,6 @@
 # Test Coverage
 
-Map of **213 unit tests** across **52 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
+Map of **220 unit tests** across **54 files** to HoolClone user flows and submission-critical logic. Run `npm test` to verify — no external services required.
 
 For how to run tests and write new ones, see [Testing](./testing.md).
 
@@ -10,9 +10,9 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 
 | Metric | Value |
 |--------|-------|
-| Test files | 52 (`lib/**/*.test.ts`) |
-| Test cases | 213 |
-| Test suites | 98 |
+| Test files | 54 (`lib/**/*.test.ts`) |
+| Test cases | 220 |
+| Test suites | 100 |
 | Runner | Node `node:test` + `tsx` |
 | E2E / API route tests | None (by design) |
 
@@ -28,7 +28,8 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | **Debate** | Full pipeline: intent → analyze → rank → align → cite → contradict → fallback | 11 files under `lib/debate/*.test.ts` |
 | **Telegram** | Citation enforcement, pin prediction memory, share cards, snapshots, follow-up memory | `lib/telegram/*.test.ts` (5 files) |
 | **Cron / matches** | Match status, team code mapping, sync-on-read | `lib/match-data/match-status.test.ts`, `lib/match-data/football-team-map.test.ts`, `lib/match-data/sync-match-results.test.ts` |
-| **Public profile / dashboard** | Contradictions, temporal drift, bias radar, clone mood, judge-proof panels | `lib/clone/contradiction-hunter.test.ts`, `lib/clone/temporal-contradictions.test.ts`, `lib/stats/bias-radar.test.ts`, `lib/clone/clone-mood.test.ts`, `lib/clone/judge-proof-demo.test.ts` |
+| **Public profile / dashboard** | Contradictions, temporal drift, bias radar, clone mood, judge-proof panels, share-on-X intent | `lib/clone/contradiction-hunter.test.ts`, `lib/clone/temporal-contradictions.test.ts`, `lib/stats/bias-radar.test.ts`, `lib/clone/clone-mood.test.ts`, `lib/clone/judge-proof-demo.test.ts`, `lib/profile/open-share-on-x.test.ts` |
+| **Judge demo / arena** | Featured demo+rival slugs, clash href, showcase match picker | `lib/clash/featured-arena-opponents.test.ts`, `lib/clone/clone-showcase.test.ts` |
 | **Auth** | Wallet challenge JWT round-trip, memory unlock challenge | `lib/auth/wallet-challenge.test.ts` |
 | **API shaping** | Memory receipt mapper, lineage | `lib/api/memory-mapper.test.ts` |
 
@@ -73,6 +74,12 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/clone/memory-provenance.test.ts`](../lib/clone/memory-provenance.test.ts) | `formatMemorySourceLabel`, `formatProvenanceLabel` |
 | [`lib/clone/clone-memory-receipts.test.ts`](../lib/clone/clone-memory-receipts.test.ts) | `isCloneCorrectionForMatch`, `memoryRelevantToMatch`, `buildStoredCloneReceipts`, `pickInfluentialReceiptsForFallback` |
 
+### Profile sharing (1 file · ~1 test)
+
+| File | Functions / behavior covered |
+|------|------------------------------|
+| [`lib/profile/open-share-on-x.test.ts`](../lib/profile/open-share-on-x.test.ts) | `buildShareOnXIntentUrl` — public profile share intent |
+
 ### API & Walrus (5 files · ~20 tests)
 
 | File | Functions / behavior covered |
@@ -83,11 +90,13 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 | [`lib/memory/consolidate-memories.test.ts`](../lib/memory/consolidate-memories.test.ts) | Sleep-cycle clustering, `archiveMemories`, consolidation synthesis |
 | [`lib/crypto/memory-crypto.test.ts`](../lib/crypto/memory-crypto.test.ts) | HKDF key derivation, encrypt/decrypt round-trip for emotional memories |
 
-### Clone Clash, evolution & leaderboard (4 files · ~17 tests)
+### Clone Clash, evolution & leaderboard (6 files · ~23 tests)
 
 | File | Functions / behavior covered |
 |------|------------------------------|
 | [`lib/clash/arena-opponents.test.ts`](../lib/clash/arena-opponents.test.ts) | Arena opponent selection and namespace pairing |
+| [`lib/clash/featured-arena-opponents.test.ts`](../lib/clash/featured-arena-opponents.test.ts) | `isFeaturedArenaSlug`, `buildJudgeDemoClashHref`, `pickFeaturedArenaOpponents` |
+| [`lib/clone/clone-showcase.test.ts`](../lib/clone/clone-showcase.test.ts) | `pickShowcaseMatch` — featured `m071` for evolution panels |
 | [`lib/evolution/build-evolution-chat.test.ts`](../lib/evolution/build-evolution-chat.test.ts) | Evolution phase memory caps, chat prompts, citation alignment, loyalty/rival fallback replies |
 | [`lib/leaderboard/compute-learning-score.test.ts`](../lib/leaderboard/compute-learning-score.test.ts) | Learning score from prediction history |
 | [`lib/match/team-text-tokens.test.ts`](../lib/match/team-text-tokens.test.ts) | Team name tokenization for recall queries |
@@ -135,7 +144,7 @@ For how to run tests and write new ones, see [Testing](./testing.md).
 |----------------|-----------------|---------------------|
 | Memory drives clone behavior | `memory-rerank`, `memory-backed-winner`, `align-clone-winner`, `recall-provenance`, `citation-enforcement` | Expand receipts on `/predict` |
 | Clone cites real memories | `infer-citations`, `align-citations`, `enforceCitationInMessage` | `/telegram-history` recall snapshots |
-| Contradictions & evolution | `contradiction-hunter`, `temporal-contradictions`, `judge-proof-demo` | `/u/hoolclone-demo/evolution` |
+| Contradictions & evolution | `contradiction-hunter`, `temporal-contradictions`, `judge-proof-demo`, `featured-arena-opponents` | `/u/hoolclone-demo/evolution` |
 | Maturity over time | `maturity`, `fallback-clone-prediction` | Train → predict flow |
 | Walrus Mainnet blobs | `parse-blob-payload`, `memory-mapper`, `recall-provenance`, `memory-crypto` | `npm run verify:mainnet` |
 | Post-match learning loop | `post-match-resolution`, `telegram-follow-up-memory`, `consolidate-memories` | Cron + Telegram DMs |

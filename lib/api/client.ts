@@ -557,6 +557,28 @@ export async function sendEvolutionChatMessage(input: {
   return parseJson(response);
 }
 
+/** Public judge demo — recalls demo clone Walrus memories via Gemini (no wallet). */
+export async function sendJudgeDemoEvolutionChatMessage(input: {
+  phaseId: "day1" | "day3" | "day4" | "day7";
+  message: string;
+  recentMessages?: DebateMessage[];
+}): Promise<{
+  reply: DebateMessage;
+  meta: {
+    memoryCount: number;
+    maturityLabel: string;
+    phaseLabel: string;
+    source?: string;
+  };
+}> {
+  const response = await fetch("/api/judge-demo/evolution-chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  return parseJson(response);
+}
+
 export async function sendDebateMessage(input: {
   message: string;
   recentMessages?: DebateMessage[];

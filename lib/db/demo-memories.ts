@@ -30,18 +30,6 @@ export const DEMO_MEMORIES: DemoMemorySeed[] = [
     daysAgo: 12,
   },
   {
-    text: "England overrate themselves every tournament. Media narrative ≠ quality.",
-    type: "remembered",
-    metadata: { driver: "stats", team: "England" },
-    daysAgo: 11,
-  },
-  {
-    text: "Knockouts are where loyalty beats spreadsheets for me.",
-    type: "remembered",
-    metadata: { driver: "loyalty" },
-    daysAgo: 10,
-  },
-  {
     text: "I said Portugal would struggle if Ronaldo is isolated — still believe it.",
     type: "remembered",
     metadata: { driver: "stats", team: "Portugal" },
@@ -66,35 +54,6 @@ export const DEMO_MEMORIES: DemoMemorySeed[] = [
     daysAgo: 6,
   },
   {
-    text: "Brazil fans act like a quarter-final is guaranteed. I pick against them.",
-    type: "remembered",
-    metadata: { driver: "chaos", team: "Brazil" },
-    daysAgo: 5,
-  },
-  {
-    text: "Debate: challenged clone on England being underrated. Clone cited my stats receipts.",
-    type: "remembered",
-    metadata: {
-      source: "debate_highlight",
-      exchangeCount: 4,
-      citedMemoryCount: 2,
-      topics: ["England underrated?", "Stats vs loyalty"],
-    },
-    daysAgo: 4,
-  },
-  {
-    text: "I never pick Brazil in knockouts even when they are favorites.",
-    type: "remembered",
-    metadata: { driver: "chaos", team: "Brazil" },
-    daysAgo: 3,
-  },
-  {
-    text: "User correction: clone was right — I pick Portugal with heart, not spreadsheets.",
-    type: "correction",
-    metadata: { driver: "loyalty", source: "correction" },
-    daysAgo: 2,
-  },
-  {
     text: "Featured match COL vs POR: loyalty says Portugal, stats say draw.",
     type: "used",
     metadata: { driver: "loyalty", team: "Portugal", source: "prediction" },
@@ -105,6 +64,17 @@ export const DEMO_MEMORIES: DemoMemorySeed[] = [
     type: "inferred",
     metadata: { driver: "chaos", team: "Colombia" },
     daysAgo: 1,
+  },
+  {
+    text: "[post_match] COL vs POR (2-1): predicted POR (2-1), actual winner COL (2-1). User was incorrect. Clone disagreed with the user's pick.",
+    type: "remembered",
+    metadata: {
+      source: "telegram_post_match",
+      matchId: "m071",
+      driver: "loyalty",
+    },
+    daysAgo: 2,
+    publicVisible: false,
   },
 ];
 

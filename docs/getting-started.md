@@ -76,6 +76,8 @@ npm run db:seed-demo
 
 Open [http://localhost:3000/u/hoolclone-demo](http://localhost:3000/u/hoolclone-demo). Memories use placeholder blob IDs (`demo-blob-*`) — fine for UI development, not for Mainnet judging.
 
+This creates **two** public demo accounts (`hoolclone-demo` and `hoolclone-rival`) with **10 memories each**. See [Judge Demo](./judge-demo.md) for full account details.
+
 ---
 
 ## 5. Start the dev server
@@ -107,7 +109,7 @@ npm run memwal:setup -- --write-env
 MEMORY_BACKEND=walrus
 ```
 
-Seed demo memories to Mainnet (~10 minutes for 15 writes):
+Seed demo memories to Mainnet (~6 minutes for 10 writes):
 
 ```bash
 npm run db:seed-demo-walrus
@@ -187,7 +189,7 @@ Before recording your demo or submitting to judges:
 | How memory improves the clone | [How Memory Improves the Agent](./how-memory-improves-agent.md) |
 | Walrus namespaces, write/recall paths | [Walrus Memory](./walrus-memory.md) |
 | Vercel + env vars + Mainnet | [Deployment](./deployment.md) |
-| Recording the hackathon demo | [Demo Guide](./demo-guide.md) |
+| Recording the hackathon demo | [Demo Guide](./demo-guide.md) · [Judge Demo](./judge-demo.md) |
 | All API endpoints | [API Reference](./api-reference.md) |
 
 **Live production demo:** [https://walrus-mu.vercel.app](https://walrus-mu.vercel.app)

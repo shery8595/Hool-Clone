@@ -7,7 +7,7 @@ import { buildMemoryTimeMachine } from "@/lib/clone/build-memory-time-machine";
 import { computeMaturityProgress } from "@/lib/auth/maturity";
 import { listClonePredictionsForUser } from "@/lib/db/clone-predictions";
 import { listUserPredictions } from "@/lib/db/predictions";
-import { findUserById, getFanProfile } from "@/lib/db/users";
+import { countMemories, findUserById, getFanProfile } from "@/lib/db/users";
 import { listMemoriesChronologicalForUser } from "@/lib/memory/postgres-memory";
 import { getOnboardingDrivers } from "@/lib/onboarding/service";
 import { getMatchDataAdapter } from "@/lib/match-data";
@@ -17,8 +17,8 @@ import {
   findLatestDisagreement,
 } from "@/lib/stats/user-analytics";
 import { buildCloneAnalyticsBundle } from "@/lib/stats/clone-analytics";
+import { DEMO_SLUG } from "@/lib/db/demo-memories";
 import { resolveFanDisplayName } from "@/lib/auth/display-name";
-import { query } from "@/lib/db/client";
 import type { EvolutionPageData } from "@/lib/evolution/types";
 
 export type { EvolutionPageData };
@@ -27,14 +27,11 @@ export async function buildEvolutionPageData(
   userId: string,
   options?: { isPublicView?: boolean },
 ): Promise<EvolutionPageData | null> {
-  const [user, profile, memoryRows, history, cloneByMatchId, matches, chronologicalMemories, onboardingDrivers] =
+  const [user, profile, memoriesCount, history, cloneByMatchId, matches, chronologicalMemories, onboardingDrivers] =
     await Promise.all([
       findUserById(userId),
       getFanProfile(userId),
-      query<{ count: string }>(
-        `select count(*)::text as count from memories where user_id = $1`,
-        [userId],
-      ),
+      countMemories(userId),
       listUserPredictions(userId),
       listClonePredictionsForUser(userId),
       getMatchDataAdapter().listMatches(),
@@ -48,7 +45,6 @@ export async function buildEvolutionPageData(
     ...onboardingDrivers,
   ];
 
-  const memoriesCount = Number(memoryRows[0]?.count ?? 0);
   const maturity = computeMaturityProgress(memoriesCount);
   const comparisons = buildPredictionComparisonsFromHistory(
     history,
@@ -112,6 +108,8 @@ export async function buildEvolutionPageData(
       matches,
       chronologicalMemories,
       memoryDrivers,
+      preferredMatchId:
+        user.public_slug === DEMO_SLUG ? "m071" : undefined,
     }),
     allMemoryReceipts: storedMemoriesToReceipts(chronologicalMemories),
     walrusNamespace: user.memwal_namespace,

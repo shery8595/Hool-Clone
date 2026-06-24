@@ -171,6 +171,8 @@ export function ClashDebate({
               receipts: result?.participantA.receipts ?? [],
             }}
             side="A"
+            debateStarted={debateActive}
+            memoriesCount={participantA.memoriesCount}
             onExploreReceipt={setExploreReceipt}
           />
           <ClashParticipantCard
@@ -183,6 +185,8 @@ export function ClashDebate({
               receipts: result?.participantB.receipts ?? [],
             }}
             side="B"
+            debateStarted={debateActive}
+            memoriesCount={participantB.memoriesCount}
             onExploreReceipt={setExploreReceipt}
           />
         </div>

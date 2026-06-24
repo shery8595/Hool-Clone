@@ -1,12 +1,16 @@
 "use client";
 
 import { useUser } from "@/components/providers/user-provider";
+import { ArenaFeaturedMatchups } from "@/components/arena/arena-featured-matchups";
 import { ArenaHero } from "@/components/arena/arena-hero";
 import { ArenaOpponentGrid } from "@/components/arena/arena-opponent-grid";
 import {
   ArenaQuickMatch,
 } from "@/components/arena/arena-opponent-card";
 import { ArenaRecentBouts } from "@/components/arena/arena-recent-bouts";
+import {
+  FEATURED_ARENA_SLUGS,
+} from "@/lib/clash/featured-arena-opponents";
 import {
   pickQuickMatch,
   suggestOpponents,
@@ -30,7 +34,9 @@ export function ArenaView({ data, serverViewerUserId }: ArenaViewProps) {
   const publicEnabled = Boolean(challengerSlug);
 
   const quickMatch = pickQuickMatch(data.entries, viewerEntry);
-  const suggestions = suggestOpponents(data.entries, viewerEntry, 9);
+  const suggestions = suggestOpponents(data.entries, viewerEntry, 9, {
+    excludeSlugs: [...FEATURED_ARENA_SLUGS],
+  });
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-8">
@@ -39,6 +45,12 @@ export function ArenaView({ data, serverViewerUserId }: ArenaViewProps) {
         totalPlayers={data.totalPlayers}
         challengerSlug={challengerSlug}
         publicEnabled={publicEnabled}
+      />
+
+      <ArenaFeaturedMatchups
+        entries={data.entries}
+        viewerEntry={viewerEntry}
+        challengerSlug={challengerSlug}
       />
 
       {publicEnabled && challengerSlug && (
@@ -50,6 +62,8 @@ export function ArenaView({ data, serverViewerUserId }: ArenaViewProps) {
           <ArenaOpponentGrid
             opponents={suggestions}
             challengerSlug={challengerSlug}
+            title="More from the leaderboard"
+            description="Other public clones — memory depth varies. For judge proof, use the curated matchups above."
           />
         </>
       )}

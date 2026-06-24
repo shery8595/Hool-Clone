@@ -234,7 +234,7 @@ npm run memwal:setup -- --write-env
 npm run verify:mainnet
 ```
 
-Expected: zero `demo-blob-*` placeholders, 15+ real blobs on demo user, relayer reachable.
+Expected: zero `demo-blob-*` placeholders, 10+ real blobs on demo user, relayer reachable.
 
 ---
 

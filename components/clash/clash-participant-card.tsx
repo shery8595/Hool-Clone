@@ -8,6 +8,8 @@ type ClashParticipantCardProps = {
   participant: ClashParticipant;
   side: "A" | "B";
   onExploreReceipt?: (receipt: MemoryReceipt) => void;
+  debateStarted?: boolean;
+  memoriesCount?: number;
   className?: string;
 };
 
@@ -15,6 +17,8 @@ export function ClashParticipantCard({
   participant,
   side,
   onExploreReceipt,
+  debateStarted = false,
+  memoriesCount,
   className,
 }: ClashParticipantCardProps) {
   const isA = side === "A";
@@ -51,7 +55,13 @@ export function ClashParticipantCard({
         </div>
         <div className="flex justify-between gap-2">
           <dt className="text-muted-foreground">Recalled</dt>
-          <dd className="font-medium">{participant.receipts.length} public memories</dd>
+          <dd className="font-medium">
+            {debateStarted
+              ? `${participant.receipts.length} public memories`
+              : memoriesCount != null
+                ? `${memoriesCount} Walrus memories`
+                : "Start debate to recall"}
+          </dd>
         </div>
       </dl>
 

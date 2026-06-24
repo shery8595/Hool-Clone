@@ -175,6 +175,45 @@ Used by `/u/:slug/clash?opponent=<rival-slug>` for cross-user memory debates.
 
 ---
 
+## Judge demo (public)
+
+No authentication. All routes resolve the seeded demo user (`hoolclone-demo`). See [Judge Demo](./judge-demo.md) for account details and operator checklist.
+
+| Method | Path | Rate limit (per IP / hour) | Description |
+|--------|------|---------------------------|-------------|
+| `GET` | `/api/judge-demo/state` | — | Human + clone prediction for featured match `m071` |
+| `POST` | `/api/judge-demo/correct` | 8 | Write live correction memory to Walrus |
+| `POST` | `/api/judge-demo/regenerate` | 12 | Regenerate clone prediction with cited receipts |
+| `POST` | `/api/judge-demo/evolution-chat` | 40 | Phase-aware evolution chat reply |
+
+**`POST /api/judge-demo/evolution-chat` body:**
+
+```json
+{
+  "phaseId": "day4",
+  "message": "Who wins Colombia vs Portugal?",
+  "recentMessages": []
+}
+```
+
+`phaseId`: `day1` | `day3` | `day4` | `day7`
+
+**`POST /api/judge-demo/correct` response (abbreviated):**
+
+```json
+{
+  "memoryId": "uuid",
+  "storageStatus": "stored",
+  "walrusBlobId": "…",
+  "walrusNamespace": "hoolclone:demo:hoolclone-demo",
+  "correctionText": "I trust Portugal in tight games — loyalty matters more than xG."
+}
+```
+
+Returns `429` with `Retry-After` when rate limited. Returns `404` if demo user is not seeded.
+
+---
+
 ## Walrus blobs
 
 | Method | Path | Auth | Description |

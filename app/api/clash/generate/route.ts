@@ -1,4 +1,3 @@
-import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
 import { generateClashDebate } from "@/lib/clash/generate-clash-debate";
 import { judgeClashDebate } from "@/lib/clash/judge-clash-debate";
@@ -63,12 +62,6 @@ async function runClashGenerate(slugA: string, slugB: string, matchId: string) {
     status: 200 as const,
   };
 }
-const cachedClashGenerate = unstable_cache(
-  async (slugA: string, slugB: string, matchId: string) =>
-    runClashGenerate(slugA, slugB, matchId),
-  ["clash-generate"],
-  { revalidate: 300 },
-);
 
 export async function POST(request: Request) {
   try {
@@ -84,7 +77,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await cachedClashGenerate(slugA, slugB, matchId);
+    const result = await runClashGenerate(slugA, slugB, matchId);
 
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: result.status });

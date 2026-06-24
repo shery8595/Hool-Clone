@@ -19,6 +19,9 @@ export function LandingClonePreview({ className }: LandingClonePreviewProps) {
         <p className="text-[10px] font-bold tracking-widest text-white/70">
           CLONE MATURITY
         </p>
+        <span className="mt-1 inline-block rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white/90">
+          Illustrative preview
+        </span>
         <div className="mt-1 flex items-start justify-between gap-2">
           <div>
             <p className="text-sm font-bold">Contradiction Hunter</p>

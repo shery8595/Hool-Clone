@@ -9,11 +9,13 @@ import {
   Home,
   MessageCircle,
   Send,
+  Sparkles,
   Swords,
   Target,
   User,
   type LucideIcon,
 } from "lucide-react";
+import { JUDGE_DEMO_SLUG } from "@/lib/judge-demo/constants";
 import { cn } from "@/lib/utils";
 import { prefetchRoute } from "@/lib/api/prefetch";
 import { SIDEBAR_BG_SRC } from "@/lib/assets/sidebar-bg";
@@ -36,6 +38,12 @@ type NavSection = {
   items: NavItem[];
 };
 
+const judgeDemoHref = `/u/${JUDGE_DEMO_SLUG}/evolution`;
+
+const judgeDemoItems: NavItem[] = [
+  { href: judgeDemoHref, label: "Judge demo", icon: Sparkles },
+];
+
 const cloneCoreItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/train", label: "Train", icon: Brain },
@@ -52,6 +60,9 @@ const communicationItems: NavItem[] = [
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/dashboard") return pathname === "/dashboard";
+  if (href === judgeDemoHref) {
+    return pathname.startsWith(`/u/${JUDGE_DEMO_SLUG}`);
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -146,6 +157,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       label: "Profile",
       items: [{ href: publicHref, label: "Public Profile", icon: User }],
     },
+    { label: "Judge demo", items: judgeDemoItems },
   ];
 
   return (

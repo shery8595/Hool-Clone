@@ -52,6 +52,11 @@ export function ArenaOpponentCard({
             {opponent.rivalryTag}
           </span>
         )}
+        {opponent.featuredLabel && (
+          <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-900">
+            {opponent.featuredLabel}
+          </span>
+        )}
         {(opponent.arenaWins != null || opponent.arenaLosses != null) && (
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-900">
             Arena {opponent.arenaWins ?? 0}W · {opponent.arenaLosses ?? 0}L

@@ -38,6 +38,13 @@ export const docSections: DocSection[] = [
         file: "judges.md",
         description: "15-minute tour, criteria map, and proof URLs.",
       },
+      {
+        slug: "judge-demo",
+        title: "Judge Demo",
+        file: "judge-demo.md",
+        description:
+          "Demo and rival accounts, live sandbox, API routes, and seed commands.",
+      },
     ],
   },
   {
@@ -112,7 +119,7 @@ export const docSections: DocSection[] = [
         slug: "test-coverage",
         title: "Test Coverage",
         file: "test-coverage.md",
-        description: "213 tests mapped to user flows and judging criteria.",
+        description: "220 tests mapped to user flows and judging criteria.",
       },
     ],
   },

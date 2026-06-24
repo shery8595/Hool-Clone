@@ -136,7 +136,13 @@ export function MemoryProvenancePanel({
                             : truncateBlob(memory.walrusBlobId)}
                         </button>
                       ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
+                        <span className="text-xs text-muted-foreground">
+                          {memory.storageStatus === "pending"
+                            ? "pending write"
+                            : memory.storageStatus === "failed"
+                              ? "write failed"
+                              : "no blob yet"}
+                        </span>
                       )}
                     </td>
                     <td className="py-2.5 align-top text-xs">

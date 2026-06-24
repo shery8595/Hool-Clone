@@ -27,6 +27,7 @@ export const docPageIcons: Record<string, LucideIcon> = {
   overview: BookOpen,
   "how-it-works": GitBranch,
   judges: Scale,
+  "judge-demo": Play,
   "walrus-memory": Database,
   "how-walrus-memory-is-used": Network,
   "how-memory-improves-agent": Brain,

@@ -10,18 +10,31 @@ A **15-minute walkthrough** for Walrus Memory World Cup judges. HoolClone is a W
 
 ---
 
+## Seeded demo accounts
+
+| Account | Slug | Memories | Namespace | Role |
+|---------|------|----------|-----------|------|
+| **Demo Fan** | `hoolclone-demo` | 10 | `hoolclone:demo:hoolclone-demo` | Portugal loyalty fan — judge evolution + live sandbox |
+| **Rival Fan** | `hoolclone-rival` | 10 | `hoolclone:demo:hoolclone-rival` | Colombia chaos fan — Clone Clash opponent |
+
+Full account details, wallets, seed commands, and API routes: [Judge Demo](./judge-demo.md).
+
+---
+
 ## Bookmark these URLs
 
 | What | URL |
 |------|-----|
-| **Demo profile** (15 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
+| **Demo profile** (10 Mainnet memories) | [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo) |
 | **Evolution page** (start here — public judge proof) | [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) |
+| **Judge demo reference** (accounts, API, seeds) | [/docs/judge-demo](/docs/judge-demo) |
+| **Live judge sandbox** (no wallet — writes real correction) | Scroll to **Live judge sandbox** on evolution page |
 | **Logged-in evolution** (same UI, your wallet) | [/evolution](https://walrus-mu.vercel.app/evolution) |
-| **Memory browser** (encrypted takes + lineage) | [/memory](https://walrus-mu.vercel.app/memory) |
+| **Memory browser** (encrypted takes + lineage) | [/memory](https://walrus-mu.vercel.app/memory) *(wallet required)* |
 | **Clone Clash** (two Walrus namespaces) | [/u/hoolclone-demo/clash?opponent=hoolclone-rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival) |
-| **Telegram roast cards** | [/telegram-history](https://walrus-mu.vercel.app/telegram-history) |
-| **MemWal health** | [/api/admin/memwal-health](https://walrus-mu.vercel.app/api/admin/memwal-health) |
-| **Live predict** (pick any match) | [/predict](https://walrus-mu.vercel.app/predict) |
+| **Telegram roast cards** (public demo) | [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history) |
+| **MemWal health** (public) | [/api/health/memwal](https://walrus-mu.vercel.app/api/health/memwal) |
+| **Live predict** *(wallet required)* | [/predict](https://walrus-mu.vercel.app/predict) |
 | **Documentation** | [/docs](/docs) |
 
 > **Note:** `/u/hoolclone-demo/evolution` is the **public evolution page** for the seeded demo account — the same layout and panels as `/evolution` for a logged-in user, pre-loaded so judges can review memory proof without training a clone.
@@ -38,8 +51,9 @@ Open [/u/hoolclone-demo/evolution](https://walrus-mu.vercel.app/u/hoolclone-demo
 |-------|----------------|
 | **Same Question — Two Answers** | Day 1 clone had no receipts (generic draw). Day 4+ clone cites a Walrus correction memory and picks Portugal with confidence. |
 | **Memory Provenance** | Table of memories with blob IDs, dates, and sources (last 4 days). |
-| **Correction Override Proof** | Stale take disputed → user correction stored → regenerated clone prediction cites the new memory. |
-| **Roast my record** | Post-match summaries that feed the next recall. |
+| **Correction Override Proof** | Stale take disputed → user correction stored → regenerated clone prediction cites the new memory *(reconstructed from seed)* |
+| **Live judge sandbox** | **No wallet** — click Apply correction → real Walrus blob → Regenerate clone with cited receipts |
+| **Roast my record** | Post-match summaries that feed the next recall |
 | **Memory Time Machine** | Day 1 → Day 7 clone state reconstructed from stored memories (not replayed LLM sessions). |
 
 If panels show **Illustrative fallback** (amber), Walrus demo seed is missing — production should show **live** data after `db:seed-demo-walrus`.
@@ -53,9 +67,19 @@ Open [/u/hoolclone-demo](https://walrus-mu.vercel.app/u/hoolclone-demo). Expand 
 
 Top bar shows **Walrus: Verified** when Mainnet recall is healthy.
 
-### Step 3 — Predict with cited recall (4 min)
+### Step 3 — Live judge sandbox (2 min)
 
-Go to [/predict](https://walrus-mu.vercel.app/predict), open a match, submit your pick, then generate the clone prediction.
+On the evolution page, scroll to **Live judge sandbox**:
+
+1. Click **Apply correction** — writes a real `correction` memory to Walrus for the demo namespace
+2. Note the **memory ID** and **blob ID**
+3. Click **Regenerate clone prediction** — clone cites the new correction receipt
+
+No wallet required. Rate-limited for abuse protection.
+
+### Step 4 — Predict with cited recall (optional, wallet)
+
+Go to [/predict](https://walrus-mu.vercel.app/predict) **after connecting your wallet**, open a match, submit your pick, then generate the clone prediction.
 
 Look for:
 
@@ -63,13 +87,13 @@ Look for:
 - **Recall backend badge** — `Walrus: Verified recall` vs `Postgres fallback recall` (UI is honest about fallback)
 - **Clone mood badge** — `On Fire`, `Salty`, `Loyalist`, etc. (derived from prediction history + memory drivers)
 
-### Step 4 — Clone Clash (2 min)
+### Step 5 — Clone Clash (2 min)
 
-Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Two users, two isolated Walrus namespaces (`hoolclone:demo:hoolclone-demo` vs `hoolclone:demo:hoolclone-rival`). Memory-only cross-user debate — no shared chat history.
+Open [Clone Clash vs rival](https://walrus-mu.vercel.app/u/hoolclone-demo/clash?opponent=hoolclone-rival). Participant cards show **Walrus memory count** before debate; pick a match and **Start clash debate** to see recalled receipts in the transcript. Two isolated Walrus namespaces — memory-only cross-user debate.
 
-### Step 5 — Closed loop + memory ops (1 min)
+### Step 6 — Closed loop + memory ops (1 min)
 
-Skim [/telegram-history](https://walrus-mu.vercel.app/telegram-history). Post-match congrats/roasts cite memories; each DM triggers a `telegram_post_match` Walrus write that shapes the **next** clone `recall()`.
+Skim [/u/hoolclone-demo/telegram-history](https://walrus-mu.vercel.app/u/hoolclone-demo/telegram-history). Post-match congrats/roasts cite memories; each DM triggers a `telegram_post_match` Walrus write that shapes the **next** clone `recall()`.
 
 Production crons (both via [cron-job.org](./cron-job.md), `Authorization: Bearer CRON_SECRET`):
 
@@ -95,8 +119,9 @@ Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **
 | Behavior changes over sessions | Same question, two answers (Day 1 vs Day 4+) | Evolution → **Same Question — Two Answers** |
 | Verifiable storage | Real `walrusBlobId` on Mainnet | Any memory card on demo profile |
 | Memory shapes output | Clone cites recalled receipts, not fabricated IDs | `/predict/[matchId]` receipt cards |
-| Corrections override stale takes | Disputed memory → correction → regenerated prediction | Evolution → **Correction Override Proof** |
-| Post-match learning | Roast/congrats write `prediction_history_summary` | `/telegram-history` + evolution roast section |
+| Corrections override stale takes | Disputed memory → correction → regenerated prediction | Evolution → **Correction Override** + **Live judge sandbox** |
+| Live Walrus write without wallet | Apply correction → blob ID → regenerate | Evolution → **Live judge sandbox** |
+| Post-match learning | Roast/congrats write `prediction_history_summary` | `/u/hoolclone-demo/telegram-history` + evolution roast section |
 | Memory consolidation | Repetitive takes merge into `consolidated_bias` | [Cron job](./cron-job.md) · `/memory` lineage |
 | Selective privacy | Emotional memories encrypted; recall uses surrogates | `/memory` unlock flow |
 
@@ -116,8 +141,9 @@ Connect wallet → [/memory](https://walrus-mu.vercel.app/memory). Onboarding **
 | Walrus integration visible | Status badges in UI | Sidebar, top bar, predict panel |
 | Honest fallback labeling | Postgres fallback shown explicitly | Receipt cards when Walrus unavailable |
 | Mainnet verification CLI | Scripted readiness checks | `npm run verify:mainnet` |
+| Public MemWal health | No auth required | `/api/health/memwal` |
 | Production deployment | Live app + documented env | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
-| Unit test coverage | 213 tests · 52 files · 98 suites | [Test Coverage](./test-coverage.md) |
+| Unit test coverage | 220 tests · 54 files · 100 suites | [Test Coverage](./test-coverage.md) |
 | Dual production crons | Match loop + sleep-cycle consolidation | [Production Cron](./cron-job.md) |
 
 ---
@@ -149,12 +175,12 @@ npm install
 npm run verify:mainnet
 ```
 
-Expected: all checks pass, 15+ demo blobs, 10+ rival blobs, zero `demo-blob-*` placeholders.
+Expected: all checks pass, 10+ demo blobs, 10+ rival blobs, zero `demo-blob-*` placeholders.
 
 Run the test suite offline:
 
 ```bash
-npm test   # 213 tests, 98 suites — no external services
+npm test   # 220 tests, 100 suites — no external services
 ```
 
 Manual consolidation demo (operators):
@@ -170,10 +196,10 @@ npm run consolidate:demo
 For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 
 1. Pitch — "predicts you, not football"
-2. Train → Walrus receipt on first answer
-3. Predict → clone cites memories
-4. Evolution page → same question proof + correction override
-5. Clone Clash → two namespaces
+2. Open `/u/hoolclone-demo/evolution` — Same Question + Correction Override panels
+3. **Live judge sandbox** — Apply correction → show blob → Regenerate
+4. Clone Clash — two namespaces
+5. Public Telegram demo — `/u/hoolclone-demo/telegram-history`
 
 ---
 
@@ -191,7 +217,8 @@ For demo video recording, see [Demo Guide](./demo-guide.md). Core beats:
 
 ## Related docs
 
+- [Judge Demo](./judge-demo.md) — demo and rival accounts, live sandbox API, seeds
 - [Demo Guide](./demo-guide.md) — recording tips and operator checklist
 - [Project Overview](./project-overview.md) — product vision
-- [Test Coverage](./test-coverage.md) — 213 tests mapped to criteria
+- [Test Coverage](./test-coverage.md) — 220 tests mapped to criteria
 - [API Reference](./api-reference.md) — cron, unlock, and decrypt routes

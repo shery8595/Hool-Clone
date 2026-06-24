@@ -14,7 +14,7 @@ This job syncs live scores, sends Telegram goal alerts, runs post-match congrats
 
 This job merges repetitive `prediction_pattern` and `prediction_history_summary` memories into `consolidated_bias` blobs and archives superseded rows.
 
-1. Create a **second** cron-job.org job pointing at `https://<your-app>.vercel.app/api/cron/memory-consolidation`
+1. Run `npm run cron:setup-consolidation` (or create manually on cron-job.org)
 2. Schedule: every 6 hours (e.g. `hours: [0, 6, 12, 18]`, `minutes: [0]`)
 3. Same `Authorization` header as the match cron
 

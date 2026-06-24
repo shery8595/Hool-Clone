@@ -4,7 +4,11 @@ import type { ClashParticipantMeta } from "@/lib/clash/types";
 import { getFanProfile } from "@/lib/db/users";
 import type { Match } from "@/lib/mock/types";
 import type { MemoryReceipt } from "@/lib/mock/types";
-import { getPublicMemoriesByIds } from "@/lib/memory/postgres-memory";
+import {
+  getPublicMemoriesByIds,
+  getPublicMemoryByWalrusBlobId,
+} from "@/lib/memory/postgres-memory";
+import type { StoredMemory } from "@/lib/memory/memory-adapter";
 
 async function buildPublicReceiptCatalog(
   userId: string,
@@ -22,12 +26,29 @@ async function buildPublicReceiptCatalog(
     .map((r) => r.id)
     .filter((id): id is string => Boolean(id));
 
-  if (memoryIds.length === 0) {
-    return [];
+  const publicById =
+    memoryIds.length > 0
+      ? await getPublicMemoriesByIds(userId, memoryIds)
+      : [];
+
+  const seen = new Set(publicById.map((m) => m.id));
+  const extras: StoredMemory[] = [];
+
+  for (const item of recalled) {
+    if (!item.walrusBlobId) continue;
+    if (item.id && seen.has(item.id)) continue;
+
+    const row = item.id
+      ? null
+      : await getPublicMemoryByWalrusBlobId(userId, item.walrusBlobId);
+
+    if (row && !seen.has(row.id)) {
+      seen.add(row.id);
+      extras.push(row);
+    }
   }
 
-  const publicMemories = await getPublicMemoriesByIds(userId, memoryIds);
-  return storedMemoriesToReceipts(publicMemories);
+  return storedMemoriesToReceipts([...publicById, ...extras]);
 }
 
 export async function recallForClashParticipant(

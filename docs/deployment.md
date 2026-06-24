@@ -114,7 +114,7 @@ DATABASE_URL="postgresql://..." npm run db:seed-demo-rival-walrus
 DATABASE_URL="postgresql://..." npm run verify:mainnet
 ```
 
-Walrus seeds take ~10–17 minutes total. Do not run concurrently on the same namespace.
+Walrus seeds take ~5–12 minutes total. Do not run concurrently on the same namespace.
 
 ---
 
@@ -160,7 +160,7 @@ All checks must pass:
 - `MEMORY_BACKEND=walrus`
 - MemWal configured
 - Walrus relayer health reachable
-- Demo: 0 placeholder blobs, 15+ real blobs
+- Demo: 0 placeholder blobs, 10+ real blobs
 - Rival: 0 placeholder blobs, 5+ real blobs
 
 ---

@@ -8,7 +8,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
-import { heroQuickLinks, trustBadges } from "@/lib/landing/content";
+import { heroQuickLinks, trustBadges, DEMO_EVOLUTION_URL } from "@/lib/landing/content";
 import { LandingClonePreview } from "./landing-clone-preview";
 import { LandingHeroVisual } from "./landing-hero-visual";
 
@@ -45,18 +45,13 @@ export function LandingHero() {
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-              <ButtonLink href="/train" size="lg" className="gap-2">
+              <ButtonLink href={DEMO_EVOLUTION_URL} size="lg" className="gap-2">
+                <Play className="h-4 w-4 fill-current" />
+                Judge proof (start here)
+              </ButtonLink>
+              <ButtonLink href="/train" variant="accent" size="lg" className="gap-2">
                 <Zap className="h-4 w-4" />
                 Train Your Clone
-              </ButtonLink>
-              <ButtonLink
-                href="/docs/how-it-works"
-                variant="accent"
-                size="lg"
-                className="gap-2"
-              >
-                <Play className="h-4 w-4 fill-current" />
-                See How It Works
               </ButtonLink>
             </div>
 

@@ -41,6 +41,10 @@ describe("buildSameQuestionProofFromTimeMachine", () => {
     });
     assert.equal(result.data.day1.answer, "Draw 1-1");
     assert.equal(result.data.day4.answer, "Portugal 2-1");
+    assert.equal(
+      result.data.question,
+      "Who wins Portugal vs Colombia — and why?",
+    );
   });
 });
 

@@ -12,7 +12,7 @@ Complete documentation for **HoolClone** — a World Cup 2026 dApp where you tra
 
 | I want to… | Start here |
 |------------|------------|
-| **Review as a judge** | [Judges Guide](./judges.md) |
+| **Review as a judge** | [Judges Guide](./judges.md) → [Judge Demo](./judge-demo.md) |
 | Run the app locally | [Getting Started](./getting-started.md) |
 | Understand the runtime loop | [How It Works](./how-it-works.md) |
 | See Walrus in every flow | [How Walrus Memory Is Used](./how-walrus-memory-is-used.md) |
@@ -37,6 +37,7 @@ Complete documentation for **HoolClone** — a World Cup 2026 dApp where you tra
 | [Project Overview](./project-overview.md) | What HoolClone is, target users, MVP scope, success criteria |
 | [How It Works](./how-it-works.md) | Training, memory write/recall, predictions, cron, Telegram |
 | [Judges Guide](./judges.md) | 15-minute tour, criteria map, proof URLs, CLI verification |
+| [Judge Demo](./judge-demo.md) | Demo and rival accounts, live sandbox, API routes, seed commands |
 
 ### Walrus & operations
 
@@ -57,7 +58,7 @@ Complete documentation for **HoolClone** — a World Cup 2026 dApp where you tra
 | [Architecture](./hoolclone-architecture.md) | Full system design, data model, agent design, security |
 | [Demo Guide](./demo-guide.md) | Judge URLs, 3-minute script, criteria mapping |
 | [Testing](./testing.md) | Run `npm test`, conventions, fixtures, writing tests |
-| [Test Coverage](./test-coverage.md) | 213 tests mapped to flows and judging criteria |
+| [Test Coverage](./test-coverage.md) | 220 tests mapped to flows and judging criteria |
 
 ### Design & planning
 
@@ -74,8 +75,9 @@ Complete documentation for **HoolClone** — a World Cup 2026 dApp where you tra
 ### For judges (15 minutes)
 
 1. [Judges Guide](./judges.md) — bookmark URLs and criteria map
-2. [How Memory Improves the Agent](./how-memory-improves-agent.md) — why behavior changes
-3. [How Walrus Memory Is Used](./how-walrus-memory-is-used.md) — where memory flows
+2. [Judge Demo](./judge-demo.md) — demo accounts, live sandbox, seeds
+3. [How Memory Improves the Agent](./how-memory-improves-agent.md) — why behavior changes
+4. [How Walrus Memory Is Used](./how-walrus-memory-is-used.md) — where memory flows
 
 ### For developers (45 minutes)
 

@@ -61,7 +61,9 @@ export function storedMemoryToReceipt(
       | "pending"
       | "failed"
       | undefined,
-    walrusBlobId: metadataString(metadata, "walrusBlobId"),
+    walrusBlobId:
+      metadataString(metadata, "walrusBlobId") ??
+      metadataString(metadata, "blobId"),
     walrusNamespace: metadataString(metadata, "walrusNamespace"),
     walrusJobId: metadataString(metadata, "walrusJobId"),
     recallSource: metadataRecallSource(metadata),

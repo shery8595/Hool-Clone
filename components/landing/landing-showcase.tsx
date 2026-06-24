@@ -18,7 +18,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BiasRadarChart } from "@/components/charts/bias-radar-chart";
+import { ButtonLink } from "@/components/ui/button-link";
 import {
+  DEMO_EVOLUTION_URL,
   showcaseFans,
   showcaseStats,
 } from "@/lib/landing/content";
@@ -216,11 +218,20 @@ export function LandingShowcase() {
             <p className="max-w-md text-lg font-black uppercase leading-tight tracking-tight text-white sm:text-xl lg:pl-36">
               Every clone is unique.{" "}
               <span className="text-hoolclone-yellow-500">
-                Every memory is real.
+                Live demo uses real Mainnet blobs.
               </span>
             </p>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+            <div className="flex flex-col gap-4">
+              <ButtonLink
+                href={DEMO_EVOLUTION_URL}
+                variant="accent"
+                size="sm"
+                className="w-fit"
+              >
+                Open judge proof
+              </ButtonLink>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {bottomFeatures.map(({ icon: Icon, label }) => (
                 <div key={label} className="flex items-start gap-2.5">
                   <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-hoolclone-yellow-500">
@@ -231,6 +242,7 @@ export function LandingShowcase() {
                   </p>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>

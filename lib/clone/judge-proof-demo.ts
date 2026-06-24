@@ -181,7 +181,9 @@ export function buildSameQuestionProofFromTimeMachine(
   return {
     source,
     data: {
-      question: `${JUDGE_PROOF_QUESTION.split("—")[0].trim()} (${machine.matchLabel})?`,
+      question: machine.matchLabel
+        ? `Who wins ${machine.matchLabel} — and why?`
+        : JUDGE_PROOF_QUESTION,
       day1: {
         label: "Day 1 · Stranger clone",
         answer: day1.prediction,

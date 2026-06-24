@@ -7,10 +7,15 @@ import type { RoastRecordData } from "@/lib/clone/judge-proof-demo";
 
 type RoastRecordSectionProps = {
   data: RoastRecordData;
+  telegramHistoryHref?: string;
   className?: string;
 };
 
-export function RoastRecordSection({ data, className }: RoastRecordSectionProps) {
+export function RoastRecordSection({
+  data,
+  telegramHistoryHref = "/telegram-history",
+  className,
+}: RoastRecordSectionProps) {
   return (
     <section className={className}>
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
@@ -24,7 +29,7 @@ export function RoastRecordSection({ data, className }: RoastRecordSectionProps)
           </p>
         </div>
         <Link
-          href="/telegram-history"
+          href={telegramHistoryHref}
           className="text-xs font-semibold text-hoolclone-green-800 hover:underline"
         >
           Full Telegram loop →

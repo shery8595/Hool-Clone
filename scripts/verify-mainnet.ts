@@ -7,8 +7,8 @@ import { DEMO_SLUG, RIVAL_SLUG } from "@/lib/db/demo-memories";
 import { getEnv, getMemWalServerUrl, isMemWalConfigured } from "@/lib/env";
 import { fetchRelayerConfig } from "@/lib/memwal/contract-config";
 
-const DEMO_MIN_BLOBS = 15;
-const RIVAL_MIN_BLOBS = 5;
+const DEMO_MIN_BLOBS = 10;
+const RIVAL_MIN_BLOBS = 10;
 
 async function countPlaceholderBlobs(slug: string, prefix: string): Promise<number> {
   const rows = await query<{ count: string }>(
@@ -79,6 +79,54 @@ async function main() {
         name: "Walrus relayer health",
         ok: false,
         detail: error instanceof Error ? error.message : "Health check failed",
+      });
+    }
+  }
+
+  const env = getEnv();
+  checks.push({
+    name: "CRON_SECRET set",
+    ok: Boolean(env.CRON_SECRET),
+    detail: env.CRON_SECRET
+      ? "CRON_SECRET configured"
+      : "Missing CRON_SECRET — production crons will 401",
+  });
+
+  if (!process.env.GEMINI_API_KEY) {
+    checks.push({
+      name: "GEMINI_API_KEY set",
+      ok: false,
+      detail: "Missing GEMINI_API_KEY — clone text falls back to templates",
+    });
+  } else {
+    checks.push({
+      name: "GEMINI_API_KEY set",
+      ok: true,
+      detail: "Gemini configured for live clone text",
+    });
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.CRON_APP_URL;
+  if (appUrl) {
+    try {
+      const healthUrl = `${appUrl.replace(/\/$/, "")}/api/health/memwal`;
+      const res = await fetch(healthUrl, { signal: AbortSignal.timeout(10_000) });
+      const body = (await res.json()) as { ok?: boolean; configured?: boolean };
+      checks.push({
+        name: "Public MemWal health endpoint",
+        ok: res.ok && body.configured !== false,
+        detail: res.ok
+          ? `GET ${healthUrl} → ok=${String(body.ok)}`
+          : `GET ${healthUrl} failed (${res.status})`,
+      });
+    } catch (error) {
+      checks.push({
+        name: "Public MemWal health endpoint",
+        ok: false,
+        detail:
+          error instanceof Error
+            ? error.message
+            : "Could not reach public health endpoint",
       });
     }
   }

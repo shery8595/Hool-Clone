@@ -28,12 +28,37 @@ export function pickShowcaseMatch(input: {
   history: PredictionHistoryItem[];
   cloneByMatchId: Map<string, ClonePredictionEntry>;
   matches: Match[];
+  preferredMatchId?: string;
 }): {
   match: Match;
   cloneEntry: ClonePredictionEntry | null;
   historyItem: PredictionHistoryItem | null;
 } | null {
   const playable = (m: Match) => m.homeTeam && m.awayTeam;
+
+  if (input.preferredMatchId) {
+    const preferred = input.matches.find(
+      (m) => m.id === input.preferredMatchId && playable(m),
+    );
+    if (preferred) {
+      const cloneEntry = input.cloneByMatchId.get(preferred.id) ?? null;
+      const historyItem =
+        input.history.find((h) => h.match.id === preferred.id) ?? null;
+      if (cloneEntry || historyItem) {
+        return { match: preferred, cloneEntry, historyItem };
+      }
+    }
+  }
+
+  const featured = input.matches.find((m) => m.featured && playable(m));
+  if (featured && input.cloneByMatchId.has(featured.id)) {
+    return {
+      match: featured,
+      cloneEntry: input.cloneByMatchId.get(featured.id)!,
+      historyItem:
+        input.history.find((h) => h.match.id === featured.id) ?? null,
+    };
+  }
 
   for (const item of input.history) {
     if (!playable(item.match)) continue;
@@ -51,14 +76,14 @@ export function pickShowcaseMatch(input: {
     }
   }
 
-  const featured =
+  const fallbackMatch =
     input.matches.find((m) => m.featured && playable(m)) ??
     input.matches.find(playable);
-  if (!featured) return null;
+  if (!fallbackMatch) return null;
 
   return {
-    match: featured,
-    cloneEntry: input.cloneByMatchId.get(featured.id) ?? null,
+    match: fallbackMatch,
+    cloneEntry: input.cloneByMatchId.get(fallbackMatch.id) ?? null,
     historyItem: null,
   };
 }

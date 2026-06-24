@@ -14,7 +14,15 @@ type SeedDemoResult = {
   predictionsInserted: number;
 };
 
-export async function seedDemoUser(): Promise<SeedDemoResult> {
+export type SeedDemoOptions = {
+  /** When false, only upserts user, profile, and predictions — memories are untouched. */
+  touchMemories?: boolean;
+};
+
+export async function seedDemoUser(
+  options: SeedDemoOptions = {},
+): Promise<SeedDemoResult> {
+  const touchMemories = options.touchMemories !== false;
   let user = await queryOne<{ id: string; public_slug: string | null }>(
     `select id, public_slug from users where public_slug = $1`,
     [DEMO_SLUG],
@@ -68,33 +76,35 @@ export async function seedDemoUser(): Promise<SeedDemoResult> {
     ],
   );
 
-  await query(`delete from memories where user_id = $1`, [user.id]);
-
   let memoriesInserted = 0;
-  for (const memory of DEMO_MEMORIES) {
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - memory.daysAgo);
+  if (touchMemories) {
+    await query(`delete from memories where user_id = $1`, [user.id]);
 
-    await query(
-      `insert into memories (
-         user_id, memory_type, text, metadata, storage_status,
-         public_visible, created_at
-       ) values ($1, $2, $3, $4, 'stored', $5, $6)`,
-      [
-        user.id,
-        memory.type,
-        memory.text,
-        JSON.stringify({
-          ...memory.metadata,
-          walrusNamespace: namespace,
-          walrusBlobId: `demo-blob-${memoriesInserted + 1}`,
-          walrusJobId: `demo-job-${memoriesInserted + 1}`,
-        }),
-        memory.publicVisible ?? true,
-        createdAt.toISOString(),
-      ],
-    );
-    memoriesInserted += 1;
+    for (const memory of DEMO_MEMORIES) {
+      const createdAt = new Date();
+      createdAt.setDate(createdAt.getDate() - memory.daysAgo);
+
+      await query(
+        `insert into memories (
+           user_id, memory_type, text, metadata, storage_status,
+           public_visible, created_at
+         ) values ($1, $2, $3, $4, 'stored', $5, $6)`,
+        [
+          user.id,
+          memory.type,
+          memory.text,
+          JSON.stringify({
+            ...memory.metadata,
+            walrusNamespace: namespace,
+            walrusBlobId: `demo-blob-${memoriesInserted + 1}`,
+            walrusJobId: `demo-job-${memoriesInserted + 1}`,
+          }),
+          memory.publicVisible ?? true,
+          createdAt.toISOString(),
+        ],
+      );
+      memoriesInserted += 1;
+    }
   }
 
   const featuredMatchId = await getMatchDbId("m071");
@@ -133,59 +143,60 @@ export async function seedDemoUser(): Promise<SeedDemoResult> {
     },
     {
       externalId: "m067",
-      userWinner: "POR",
-      userHome: 2,
-      userAway: 0,
-      userConfidence: 70,
-      userReasoning: "Portugal ride or die.",
-      cloneWinner: "BRA",
-      cloneHome: 3,
-      cloneAway: 0,
-      cloneConfidence: 55,
-      cloneReasoning: "Early clone — generic Brazil hype, no receipts yet.",
-      finalize: { winner: "POR", scoreA: 2, scoreB: 1 },
+      userWinner: "PAN",
+      userHome: 1,
+      userAway: 2,
+      userConfidence: 62,
+      userReasoning: "Panama can nick one on the counter.",
+      cloneWinner: "ENG",
+      cloneHome: 0,
+      cloneAway: 2,
+      cloneConfidence: 68,
+      cloneReasoning:
+        "You distrust England narratives but the clone still reads them as favorites here.",
+      finalize: { winner: "ENG", scoreA: 0, scoreB: 2 },
     },
     {
       externalId: "m068",
-      userWinner: "ARG",
-      userHome: 2,
-      userAway: 1,
-      userConfidence: 72,
-      userReasoning: "Argentina at home in the Americas.",
-      cloneWinner: "COL",
+      userWinner: "GHA",
+      userHome: 1,
+      userAway: 2,
+      userConfidence: 66,
+      userReasoning: "Ghana have pace on the break.",
+      cloneWinner: "CRO",
       cloneHome: 2,
       cloneAway: 1,
-      cloneConfidence: 60,
-      cloneReasoning: "Clone still learning your loyalty patterns.",
-      finalize: { winner: "ARG", scoreA: 2, scoreB: 1 },
+      cloneConfidence: 64,
+      cloneReasoning: "Croatia's midfield control wins tight group games.",
+      finalize: { winner: "CRO", scoreA: 2, scoreB: 1 },
     },
     {
       externalId: "m069",
-      userWinner: "ENG",
+      userWinner: "ALG",
       userHome: 1,
-      userAway: 2,
+      userAway: 1,
       userConfidence: 58,
-      userReasoning: "England bottle it again.",
-      cloneWinner: "ENG",
-      cloneHome: 1,
-      cloneAway: 2,
-      cloneConfidence: 74,
-      cloneReasoning: "Your skepticism of England is now a Walrus-backed receipt.",
-      finalize: { winner: "ENG", scoreA: 1, scoreB: 2 },
+      userReasoning: "Algeria grind out a point.",
+      cloneWinner: "AUT",
+      cloneHome: 2,
+      cloneAway: 1,
+      cloneConfidence: 61,
+      cloneReasoning: "Austria's structure edges a low-scoring affair.",
+      finalize: { winner: "AUT", scoreA: 2, scoreB: 1 },
     },
     {
       externalId: "m070",
-      userWinner: "POR",
-      userHome: 2,
-      userAway: 1,
-      userConfidence: 76,
-      userReasoning: "Loyalty over analytics.",
-      cloneWinner: "POR",
+      userWinner: "JOR",
+      userHome: 1,
+      userAway: 2,
+      userConfidence: 55,
+      userReasoning: "Jordan ride the underdog energy.",
+      cloneWinner: "ARG",
       cloneHome: 2,
-      cloneAway: 1,
-      cloneConfidence: 81,
-      cloneReasoning: "Clone converging — cites your Portugal loyalty memories.",
-      finalize: { winner: "POR", scoreA: 2, scoreB: 1 },
+      cloneAway: 0,
+      cloneConfidence: 72,
+      cloneReasoning: "Argentina's quality shows in the Americas.",
+      finalize: { winner: "ARG", scoreA: 2, scoreB: 0 },
     },
   ];
 

@@ -347,6 +347,7 @@ export function buildMemoryTimeMachine(input: {
   matches: Match[];
   chronologicalMemories: StoredMemory[];
   memoryDrivers: DriverChip[];
+  preferredMatchId?: string;
 }): MemoryTimeMachine | null {
   const picked = pickShowcaseMatch(input);
   if (!picked?.match.homeTeam || !picked.match.awayTeam) return null;
