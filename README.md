@@ -9,6 +9,7 @@ HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://dee
 | | |
 |---|---|
 | **Live app** | [walrus-mu.vercel.app](https://walrus-mu.vercel.app) |
+| **Demo video** | [youtu.be/r02UQHRqUH4](https://youtu.be/r02UQHRqUH4) |
 | **Docs (web)** | [walrus-mu.vercel.app/docs](https://walrus-mu.vercel.app/docs) |
 | **Judges guide** | [walrus-mu.vercel.app/docs/judges](https://walrus-mu.vercel.app/docs/judges) |
 | **GitHub** | [shery8595/Hool-Clone](https://github.com/shery8595/Hool-Clone) |
@@ -17,7 +18,7 @@ HoolClone is a World Cup 2026 dApp for the [Walrus Memory World Cup](https://dee
 
 ## For judges (start here)
 
-**15-minute tour:** [docs/judges.md](docs/judges.md) · [live evolution page](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution)
+**15-minute tour:** [docs/judges.md](docs/judges.md) · [live evolution page](https://walrus-mu.vercel.app/u/hoolclone-demo/evolution) · [demo video](https://youtu.be/r02UQHRqUH4)
 
 | Proof | URL |
 |-------|-----|
@@ -159,6 +160,7 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 
 | Resource | Link |
 |----------|------|
+| **Demo video** | [youtu.be/r02UQHRqUH4](https://youtu.be/r02UQHRqUH4) |
 | **Web docs** | [/docs](https://walrus-mu.vercel.app/docs) |
 | **Judges guide** | [docs/judges.md](docs/judges.md) |
 | **How Walrus is used** | [docs/how-walrus-memory-is-used.md](docs/how-walrus-memory-is-used.md) |
@@ -185,4 +187,4 @@ Full reference: [Telegram Bot](docs/telegram-bot.md)
 - [ ] Set `CRON_SECRET` on Vercel + both [cron-job.org](docs/cron-job.md) jobs (`npm run cron:setup` + `npm run cron:setup-consolidation`)
 - [ ] Run `CRON_APP_URL=https://walrus-mu.vercel.app npm run telegram:webhook` against production
 - [ ] Reseed demo after narrative fix: `npm run db:seed-demo-walrus` + `npm run db:seed-demo-rival-walrus`
-- [ ] Record demo video (≤3 min) — script in [Demo Guide](docs/demo-guide.md)
+- [x] Record demo video (≤3 min) — [youtu.be/r02UQHRqUH4](https://youtu.be/r02UQHRqUH4) · script in [Demo Guide](docs/demo-guide.md)

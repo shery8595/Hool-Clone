@@ -2,7 +2,7 @@ import { loadEnv } from "@/lib/load-env";
 
 loadEnv();
 
-import { query } from "@/lib/db/client";
+import { closePool, query } from "@/lib/db/client";
 import { DEMO_SLUG, RIVAL_SLUG } from "@/lib/db/demo-memories";
 import { getEnv, getMemWalServerUrl, isMemWalConfigured } from "@/lib/env";
 import { fetchRelayerConfig } from "@/lib/memwal/contract-config";
@@ -217,7 +217,9 @@ async function main() {
   console.log("All checks passed. Safe to record demo video.");
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  })
+  .finally(() => closePool());
