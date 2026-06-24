@@ -175,7 +175,7 @@ export const DEMO_CLASH_URL = `${PRODUCTION_APP_URL}/u/hoolclone-demo/clash?oppo
 
 /** Quick links for hero — real demo/docs, not inflated user counts */
 export const heroQuickLinks = [
-  { label: "Judge proof (start here)", href: DEMO_EVOLUTION_URL },
+  { label: "Evolution demo", href: DEMO_EVOLUTION_URL },
   { label: "Live demo profile", href: DEMO_PROFILE_URL },
   { label: "How memory works", href: "/docs/how-memory-improves-agent" },
 ] as const;

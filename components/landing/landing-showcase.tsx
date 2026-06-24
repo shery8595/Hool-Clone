@@ -229,7 +229,7 @@ export function LandingShowcase() {
                 size="sm"
                 className="w-fit"
               >
-                Open judge proof
+                See the demo
               </ButtonLink>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
               {bottomFeatures.map(({ icon: Icon, label }) => (
